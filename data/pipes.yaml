@@ -1,0 +1,10 @@
+# Datensatz-Definition fuer die Rohrprofil-Erkennung (Bachelorarbeit)
+#   train : rein synthetisch (src/generate.py)
+#   val   : REALES Bild -> Modellauswahl auf der Zieldomaene
+#   test  : REALES Bild -> beruehrt das Training nie
+path: /home/mso/source/yolo-gen
+train: synth/train/images
+val: data/val/images
+test: data/test/images
+names:
+  0: rohrprofil

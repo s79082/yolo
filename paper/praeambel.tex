@@ -1,0 +1,102 @@
+% ---------------------------------------------------------------------------
+%  Praeambel
+% ---------------------------------------------------------------------------
+% Zeichenkodierung und Schrift engine-abhaengig:
+%   pdfLaTeX  -> inputenc/fontenc + Latin Modern (8 Bit)
+%   XeLaTeX / LuaLaTeX -> UTF-8 direkt ueber fontspec.  Wichtig: unter XeLaTeX
+%   darf fontenc T1 NICHT geladen werden, sonst wird "ss" falsch gesetzt.
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[utf8]{inputenc}
+  \usepackage[T1]{fontenc}
+  \usepackage{lmodern}
+\else
+  \usepackage{fontspec}
+\fi
+\usepackage[ngerman]{babel}
+\usepackage[german=quotes]{csquotes}
+\usepackage{microtype}
+
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{tabularx}
+\usepackage{multirow}
+\usepackage{array}
+\usepackage{xcolor}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{enumitem}
+\usepackage{float}
+\usepackage{setspace}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,fit,backgrounds,calc,shapes.geometric,
+                patterns,decorations.pathreplacing}
+
+\usepackage[a4paper,inner=3.2cm,outer=2.6cm,top=2.8cm,bottom=3.0cm]{geometry}
+
+% ---------------------------------------------------------------------------
+%  Literatur.  backend=biber ist der Standardweg und wird von latexmk
+%  automatisch bedient (biber liest die .bcf-Datei).
+%  Ohne biber im System: backend=bibtex setzen UND latexmk mit
+%    -e '$bibtex_use=2;' aufrufen, sonst startet latexmk trotzdem biber.
+% ---------------------------------------------------------------------------
+\usepackage[backend=biber,style=authoryear,maxcitenames=2,mincitenames=1,
+            maxbibnames=12,giveninits=true,dashed=false,sorting=nyt,
+            urldate=long]{biblatex}
+\addbibresource{literatur.bib}
+\DeclareNameAlias{sortname}{family-given}
+\renewcommand*{\nameyeardelim}{\addcomma\space}   % (Autor, 2016)
+
+\usepackage[hidelinks]{hyperref}
+\hypersetup{
+  pdftitle={Datenaugmentierung fuer die CNN-basierte Detektion von Rohrprofil-Stirnflaechen},
+  pdfsubject={Bachelorarbeit},
+  colorlinks=true, linkcolor=black, citecolor=black, urlcolor=black,
+  linktoc=all
+}
+
+% ---------------------------------------------------------------------------
+%  Satzspiegel und Typografie
+% ---------------------------------------------------------------------------
+\onehalfspacing
+\setlength{\emergencystretch}{3em}
+\captionsetup{font=small,labelfont=bf,width=0.94\textwidth}
+\captionsetup[sub]{font=small}
+\setlist{itemsep=2pt,parsep=0pt,topsep=4pt}
+
+% Kopfzeilen
+\usepackage[automark,headsepline]{scrlayer-scrpage}
+\pagestyle{scrheadings}
+\clearpairofpagestyles
+\ihead*{\headmark}
+\ohead*{\pagemark}
+
+% Trennhilfen fuer die wiederkehrenden langen Komposita
+\hyphenation{Trans-la-ti-ons-äqui-va-ri-anz Trans-la-ti-ons-in-va-ri-anz
+  Augmen-tie-rungs-pipe-line Augmen-tie-rung Ob-jekt-aus-schnit-te
+  Merk-mals-ex-trak-ti-on Sicht-bar-keits-rech-nung Ge-samt-schritt-wei-te
+  De-tek-ti-ons-kopf De-tek-ti-ons-ebe-ne In-fe-renz-auf-lö-sung
+  Ob-jekt-grö-ßen-ver-tei-lung Trai-nings-ver-tei-lung Kon-fi-denz-in-ter-vall
+  Rohr-pro-fil-Stirn-flä-chen Anti-Ab-kür-zungs-Maß-nah-me
+  Ein-bet-tungs-rea-lis-mus Prä-dik-ti-ons-po-si-tio-nen}
+
+% ---------------------------------------------------------------------------
+%  Eigene Makros
+% ---------------------------------------------------------------------------
+\newcommand{\code}[1]{\texttt{\small #1}}          % Dateien, Parameter, Pfade
+\newcommand{\px}{\,px}
+\newcommand{\PP}{\,Prozentpunkte}
+\newcommand{\mAPfifty}{mAP@0{,}5}
+\newcommand{\mAPseven}{mAP@0{,}75}
+\newcommand{\mAPall}{mAP@0{,}5{:}0{,}95}
+\newcommand{\Oe}{\ensuremath{\varnothing}}         % Durchmesser als Laengeneinheit
+
+% Absatzueberschrift im Stil des Theorieteils
+\newcommand{\absatz}[1]{\textbf{#1}}
+
+% Tabellenhilfen
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+\newcolumntype{R}[1]{>{\raggedleft\arraybackslash}p{#1}}
+\newcommand{\tabkopf}[1]{\textbf{#1}}

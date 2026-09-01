@@ -1,0 +1,201 @@
+{
+  "cutouts": [
+    {
+      "file": "cutted1.png",
+      "w": 38,
+      "h": 32,
+      "rgba": true,
+      "alpha_min": 255,
+      "alpha_max": 255,
+      "alpha_uniform": true,
+      "kranz_p90": 143.0,
+      "bohrung_p10": 2.0
+    },
+    {
+      "file": "cutted_4.png",
+      "w": 30,
+      "h": 30,
+      "rgba": true,
+      "alpha_min": 255,
+      "alpha_max": 255,
+      "alpha_uniform": true,
+      "kranz_p90": 162.0,
+      "bohrung_p10": 44.900000000000006
+    },
+    {
+      "file": "cutted_5.png",
+      "w": 43,
+      "h": 38,
+      "rgba": true,
+      "alpha_min": 255,
+      "alpha_max": 255,
+      "alpha_uniform": true,
+      "kranz_p90": 123.0,
+      "bohrung_p10": 4.0
+    },
+    {
+      "file": "cutted_6.png",
+      "w": 29,
+      "h": 30,
+      "rgba": true,
+      "alpha_min": 255,
+      "alpha_max": 255,
+      "alpha_uniform": true,
+      "kranz_p90": 161.0,
+      "bohrung_p10": 45.0
+    },
+    {
+      "file": "cutted_7.png",
+      "w": 41,
+      "h": 35,
+      "rgba": true,
+      "alpha_min": 255,
+      "alpha_max": 255,
+      "alpha_uniform": true,
+      "kranz_p90": 143.0,
+      "bohrung_p10": 20.0
+    },
+    {
+      "file": "cutted_8.png",
+      "w": 39,
+      "h": 35,
+      "rgba": true,
+      "alpha_min": 255,
+      "alpha_max": 255,
+      "alpha_uniform": true,
+      "kranz_p90": 146.0,
+      "bohrung_p10": 27.0
+    },
+    {
+      "file": "cutted_9.png",
+      "w": 28,
+      "h": 30,
+      "rgba": true,
+      "alpha_min": 255,
+      "alpha_max": 255,
+      "alpha_uniform": true,
+      "kranz_p90": 140.0,
+      "bohrung_p10": 39.0
+    },
+    {
+      "file": "cuuted2.png",
+      "w": 36,
+      "h": 33,
+      "rgba": true,
+      "alpha_min": 255,
+      "alpha_max": 255,
+      "alpha_uniform": true,
+      "kranz_p90": 142.29999999999995,
+      "bohrung_p10": 4.0
+    },
+    {
+      "file": "cuuted3.png",
+      "w": 36,
+      "h": 34,
+      "rgba": true,
+      "alpha_min": 255,
+      "alpha_max": 255,
+      "alpha_uniform": true,
+      "kranz_p90": 157.70000000000005,
+      "bohrung_p10": 1.0
+    }
+  ],
+  "labels": {
+    "val": {
+      "n": 88,
+      "image": "2459x1174",
+      "w_px": [
+        19.881015,
+        29.259641000000002,
+        38.549743
+      ],
+      "h_px": [
+        15.69051,
+        27.039568,
+        34.190402
+      ],
+      "diam_px": [
+        20.63598762658211,
+        27.432112838710562,
+        35.82564325418021
+      ],
+      "aspect_p10_med_p90": [
+        0.9702039452513921,
+        1.0837912996313968,
+        1.3141449269292558
+      ],
+      "nn_dist_in_diam": [
+        0.8589991839147095,
+        1.087977546003669,
+        1.7832976190247567
+      ],
+      "neighbours_within_5d": [
+        10.0,
+        14.0
+      ],
+      "frac_touching": 0.6136363636363636,
+      "frac_border": 0.0,
+      "area_frac": 0.024801229135,
+      "size_ratio_to_nn": [
+        1.0478022161396363,
+        1.144152445021496
+      ],
+      "neighbour_direction_hist": {
+        "0-30": 30,
+        "30-60": 39,
+        "60-90": 46,
+        "90-120": 65,
+        "120-150": 52,
+        "150-180": 30
+      }
+    },
+    "test": {
+      "n": 86,
+      "image": "1600x900",
+      "w_px": [
+        9.310400000000001,
+        23.8104,
+        33.2992
+      ],
+      "h_px": [
+        6.3999,
+        19.734750000000002,
+        30.4803
+      ],
+      "diam_px": [
+        12.225962538794237,
+        19.635177718276612,
+        31.858587629711394
+      ],
+      "aspect_p10_med_p90": [
+        0.8485234308219993,
+        1.0879308747662662,
+        1.2217907409925823
+      ],
+      "nn_dist_in_diam": [
+        0.8328176016222716,
+        1.236420856106185,
+        2.511928172504457
+      ],
+      "neighbours_within_5d": [
+        9.5,
+        20.0
+      ],
+      "frac_touching": 0.46511627906976744,
+      "frac_border": 0.05813953488372093,
+      "area_frac": 0.026897495537,
+      "size_ratio_to_nn": [
+        1.0526541388116342,
+        1.1749358688974985
+      ],
+      "neighbour_direction_hist": {
+        "0-30": 32,
+        "30-60": 40,
+        "60-90": 38,
+        "90-120": 40,
+        "120-150": 54,
+        "150-180": 34
+      }
+    }
+  }
+}

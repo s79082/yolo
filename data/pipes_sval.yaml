@@ -1,0 +1,6 @@
+# Variante mit synthetischem Validierungssplit -> misst den Sim-to-Real-Gap
+path: /home/mso/source/yolo-gen
+train: synth/train/images
+val: data/sval/images
+names:
+  0: rohrprofil

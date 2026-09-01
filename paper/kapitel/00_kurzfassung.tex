@@ -1,0 +1,48 @@
+\chapter*{Kurzfassung}
+\addcontentsline{toc}{chapter}{Kurzfassung}
+\markboth{Kurzfassung}{Kurzfassung}
+\thispagestyle{plain}
+
+Gestapelte mobile Bauzaunfelder sollen automatisiert gezählt werden. Gezählt wird
+über die Detektion der Stirnflächen ihrer Rahmenrohre -- kleine, untereinander
+nahezu identische Kreisringe, die dicht gepackt und wechselseitig verdeckt
+auftreten. Für dieses Zielobjekt existieren keine annotierten Datensätze, und die
+Handannotation hunderter Kleinobjekte pro Bild ist teuer. Der hier verfolgte
+Ansatz umgeht das Problem vollständig: Trainiert wird \emph{ausschließlich} auf
+synthetischen Bildern, die aus neun freigestellten Objektausschnitten und sieben
+Hintergrundaufnahmen erzeugt werden; validiert und getestet wird auf echten
+Aufnahmen.
+
+Damit verschiebt sich der methodische Schwerpunkt von der Netzarchitektur auf die
+\textbf{Augmentierungs- und Synthese-Pipeline}: Sie ist in diesem Aufbau nicht
+Beiwerk zu einem vorhandenen Datensatz, sondern erzeugt die Trainingsverteilung
+vollständig. Die Arbeit behandelt daher zunächst die theoretischen Grundlagen der
+Datenaugmentierung -- Augmentierung als Kodierung von Invarianzen, als
+Rauschregularisierung und als Mittel gegen \enquote{Shortcut Learning} -- und
+entwickelt daraus ein Leitprinzip für den vorliegenden Fall: Jede Transformation
+muss entweder eine an den Realdaten \emph{gemessene} Eigenschaft nachbilden, eine
+\emph{physikalische Randbedingung} respektieren oder eine konkrete
+\emph{Abkürzung} schließen, über die das Netz sonst \enquote{hier wurde etwas
+eingeklebt} anstelle von \enquote{hier ist ein Rohrende} lernen könnte.
+
+Die resultierende Pipeline umfasst 36 dokumentierte Transformationen in neun
+Stufen. Für jede werden der gewählte Parameterbereich, der gemessene Ist-Anteil
+im erzeugten Datensatz (6000 Bilder, 173\,100 gerenderte Instanzen, 136\,384
+gelabelte Objekte) und die Begründung angegeben. Kernpunkte sind eine
+label-exakte Sichtbarkeitsrechnung über die Malreihenfolge, eine an den
+Rohrdurchmesser des Hintergrunds gekoppelte Objektgröße, ein aus der
+Nachbarschaftsstatistik der Realbilder kalibriertes Layoutmodell und vier
+physikalisch unterschiedlich motivierte Okklusionsquellen.
+
+Die Bewertung erfolgt auf zwei unberührten realen Aufnahmen und liefert drei
+belastbare Befunde. Erstens: Der Sim-to-Real-Abstand ist messbar und beträgt
+9,6\PP{} \mAPfifty{} (0,982 synthetisch gegen 0,886/0,888 real) -- klein genug,
+dass das Verfahren praktisch funktioniert, und groß genug, um zu belegen, dass
+das Netz nicht bloß Einfügeartefakte gelernt hat. Zweitens: Der dominierende
+Parameter der gesamten Arbeit ist nicht eine Augmentierungsentscheidung, sondern
+die Inferenzauflösung; \mAPfifty{} steigt von 0,435 bei 640\px{} auf 0,904 bei
+1600\px{}. Drittens: In einer kontrollierten Ablation über drei
+Okklusionsstufen verbessert stärkere Verdeckung in den Trainingsdaten das
+Ergebnis \emph{monoton} über zwei Splits und drei Metriken -- und das, obwohl der
+stärkste Arm 33\,\% weniger Labels enthält. Der Zählfehler auf den realen
+Aufnahmen liegt bei 2,3\,\%.

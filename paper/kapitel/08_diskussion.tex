@@ -1,0 +1,256 @@
+\chapter{Diskussion}
+\label{kap:diskussion}
+
+\section{Was ist belegt, was ist nur begründet?}
+\label{sec:tragend}
+
+Kapitel~\ref{kap:pipeline} hat gezeigt, dass die Pipeline die in
+Abschnitt~\ref{sec:anforderungen} aufgestellten Anforderungen erfüllt. Das ist
+eine Aussage über den Entwurf, nicht über die Wirkung. Für eine ehrliche
+Bilanz muss unterschieden werden zwischen Entscheidungen, deren Nutzen
+\emph{gemessen} wurde, und Entscheidungen, die lediglich \emph{begründet} sind.
+Tabelle~\ref{tab:evidenz} nimmt diese Unterscheidung vor.
+
+\begin{table}[htbp]
+\centering
+\caption[Belegstärke der Entwurfsentscheidungen]{Belegstärke der
+Entwurfsentscheidungen. Von den 36 dokumentierten Transformationen der Pipeline
+ist der Trainingsnutzen von drei durch eine Ablation gemessen; sechs weitere sind
+an einer Realmessung kalibriert, ohne dass ihr Nutzen separat geprüft wurde; die
+übrigen 27 sind begründet, aber nicht einzeln belegt.}
+\label{tab:evidenz}
+\footnotesize
+\begin{tabularx}{\textwidth}{@{}L{0.20\textwidth}L{0.22\textwidth}X@{}}
+\toprule
+\textbf{Belegstärke} & \textbf{Entscheidung} & \textbf{Nachweis} \\
+\midrule
+\textbf{gemessen} (eigener Trainingslauf) &
+Okklusionsanteil: quer liegende Stangen, Fremdkörper, Tiefenordnung &
+Ablation über drei Arme, monoton in sechs Metrikspalten; Effekt allerdings
+innerhalb des Konfidenzintervalls (Abschnitt~\ref{sec:ablation}) \\
+\addlinespace
+\textbf{gemessen} (Sweep ohne Neutraining) &
+Inferenzauflösung, \code{max\_det}, NMS-IoU, TTA, FP16 &
+Abschnitte~\ref{sec:imgsz} und \ref{sec:infparam}; der Auflösungseffekt ist der
+einzige, dessen Größe das Konfidenzintervall deutlich übersteigt \\
+\addlinespace
+\textbf{gemessen} (Modellvergleich) &
+Modellfamilie und P2-Kopf & Abschnitt~\ref{sec:modelle} \\
+\addlinespace
+\textbf{kalibriert} (Messung an der erzeugten Verteilung) &
+Objektgrößenbereich, Ovalisierungsanteil, Gitterabstände, eine Basisgröße pro
+Cluster, Tiefenmodell 75/25, Randregel &
+Tabelle~\ref{tab:kalibrierung}: erzeugte Statistik trifft die reale Statistik.
+Nutzen für die Detektionsgüte nicht separat gemessen \\
+\addlinespace
+\textbf{indirekt gestützt} &
+das Bündel der Anti-Abkürzungs-Maßnahmen S1--S6 &
+Der Sim-to-Real-Abstand beträgt 9,6\PP{} und nicht, wie bei einer durchlässigen
+Signatur zu erwarten, das Vielfache (Abschnitt~\ref{sec:simtoreal}). Kein
+Nachweis für einzelne Maßnahmen \\
+\addlinespace
+\textbf{begründet, nicht belegt} &
+Matting-Schwelle, Farbangleich, Unschärfe- und Rauschangleich,
+JPEG-Requantisierung, Schlagschatten, Gamma, HSV, Mulde, globale Bildstufe,
+Negativbildanteil, Dellen- und Perspektivanteil &
+physikalische Randbedingung, Literatur oder Annahme; jeweils in
+Kapitel~\ref{kap:pipeline} benannt \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\absatz{Die unbequeme Bilanz.} Der größte gemessene Einzeleffekt der Arbeit ist
+\emph{keine} Augmentierungsentscheidung, sondern die Inferenzauflösung: 47\PP{}
+\mAPfifty{} zwischen \code{imgsz}~640 und 1600. Alle
+Augmentierungsentscheidungen zusammen bewegen sich in einer Größenordnung von
+wenigen Prozentpunkten. Das relativiert den Aufwand der Pipeline nicht -- ohne
+sie gäbe es überhaupt keinen Trainingsdatensatz --, aber es verschiebt die
+Priorität: Wer eine solche Anwendung baut, sollte die Auflösungsfrage
+\emph{zuerst} klären und erst danach die Feinheiten der Synthese optimieren.
+
+\absatz{Was das Ablationsergebnis wirklich sagt.} Die Okklusionsablation ist die
+belastbarste Aussage über die Pipeline, und sie fällt positiv aus: Stärkere
+Verdeckung hilft, obwohl sie ein Drittel der Labels kostet. Zwei Vorbehalte
+bleiben. Erstens ist der Effekt kleiner als das Konfidenzintervall; belastbar ist
+nur seine Konsistenz. Zweitens beantwortet das Experiment nicht die eigentlich
+interessante Frage, ob die \emph{physikalische Plausibilität} der Verdeckung
+nötig ist. Ein Arm mit gleich starker, aber generischer Verdeckung -- etwa Cutout
+oder eingesetzten Rechtecken -- hätte diese Frage entschieden. Er fehlt, und
+damit bleibt die aufwendigste Begründung der Pipeline (echte Rohrschäfte statt
+gemalter Balken) unbelegt.
+
+\section{Grenzen der Pipeline}
+\label{sec:grenzen}
+
+\begin{enumerate}
+  \item \textbf{Nur neun Quellobjekte.} Jedes erscheint im Trainingssatz rund
+  15\,100-mal als gelabeltes Objekt. Die photometrische und geometrische
+  Streuung mildert das, hebt es aber nicht auf -- Augmentierung erzeugt keine
+  neue Information über die Objektklasse
+  (Abschnitt~\ref{sec:augmechanismen}). Das ist der Hauptgrund, warum bewusst
+  ein kleines Modell trainiert wird, und der plausibelste Grund für den
+  Nebenbefund, dass 6000 Bilder gegenüber 3000 keinen Vorteil brachten
+  (Abschnitt~\ref{sec:ableinschraenkung}).
+  \item \textbf{Nur diffuses Licht im Quellmaterial.} Harte Schlagschatten,
+  Gegenlicht, Nässe und Schnee fehlen in allen vier Clean Plates vollständig und
+  werden nur approximativ über die globale photometrische Stufe angenähert
+  (Abschnitt~\ref{sec:globalstufe}). Das ist die größte verbleibende
+  Domänenlücke, und die Fehleranalyse bestätigt sie: Ein Teil der
+  Falsch-Negativen sind Enden ohne sichtbaren hellen Kranz
+  (Abschnitt~\ref{sec:fehleranalyse}).
+  \item \textbf{Reflect-Padding erzeugt Spiegelsymmetrie}, wenn ein Hintergrund
+  für den gewünschten Zoom zu klein ist -- betroffen ist vor allem
+  \code{test5\_cutted.jpg} mit $945\times552$ Pixeln. Sichtbar in
+  Abbildung~\ref{abb:synthbeispiele}. Eine spiegelsymmetrische Bildhälfte ist
+  selbst ein Merkmal, das ein CNN erkennen kann; die Maßnahme gegen Signatur~S1
+  erzeugt damit eine schwächere neue Auffälligkeit.
+  \item \textbf{Sechs Anteile sind Annahmen.} Dellen (18\,\%), Perspektive
+  (30\,\%), Schlagschatten (49\,\%), vertikale Spiegelung (15\,\%), globale
+  Farbtemperaturvariation (69\,\%) und Bewegungsunschärfe (10\,\%) sind nicht
+  an einer Messung kalibriert, weil die Realbilder die entsprechende Häufigkeit
+  nicht hergeben. Ihre Wirkungsrichtung ist in
+  Kapitel~\ref{kap:pipeline} diskutiert, ihre Höhe ist gesetzt.
+  \item \textbf{Die Cluster sind dichter als real} (13 statt 10 Nachbarn
+  innerhalb $5\,\Oe$, im Maximum 61 statt 20). Bewusst als Robustheitsreserve
+  belassen; die umgekehrte Abweichung wäre gefährlich gewesen
+  (Abschnitt~\ref{sec:kalibrierung}).
+  \item \textbf{Die Schaftrichtung ist nicht am Hintergrund ausgerichtet.} Sie
+  entsteht als Senkrechte zur Säulenrichtung des Clusters mit einer Streuung von
+  $55^\circ$ bis $125^\circ$ und ist damit an der gemessenen Nachbarrichtung
+  kalibriert -- nicht an der Rohrrichtung des Hintergrunds. Die vier Clean Plates
+  haben ihre Rohre zwischen $-1{,}6^\circ$ und $+6{,}6^\circ$ zur Waagerechten
+  (Struktur-Tensor, \code{src/occluders.py}), sodass der Schaft in 19,1\,\% der
+  Cluster die Hintergrundrohre unter mehr als $60^\circ$ kreuzt; betroffen sind
+  21,6\,\% aller erzeugten Bilder. Weil alle Rohre eines Stapels parallel
+  liegen, ist das dieselbe Unstimmigkeit, gegen die die enge Streuung von
+  $\pm 11^\circ$ \emph{innerhalb} eines Clusters gesetzt ist -- zwischen Cluster
+  und Hintergrund wird sie nicht erzwungen. Wie bei der Clusterdichte geht die
+  Abweichung in Richtung mehr Variation, ihr Nutzen ist aber nicht geprüft. Ein
+  Angleich wäre billig, weil die dominante Hintergrundrichtung gemessen
+  vorliegt; er kostet jedoch einen neuen Generator- und Trainingslauf.
+\end{enumerate}
+
+\section{Grenzen der Bewertung}
+
+Die schwerwiegendste methodische Schwäche der Arbeit liegt nicht in der
+Pipeline, sondern in der Bewertung: \emph{je ein Bild} pro Split. Daraus folgen
+drei Einschränkungen, die für alle berichteten Zahlen gelten.
+
+Erstens sind die Konfidenzintervalle breit ($\pm 0{,}04$ bis $\pm 0{,}05$
+\mAPfifty{}), sodass Unterschiede unterhalb dieser Größe nicht entscheidbar sind.
+Zweitens zeigen beide Bilder dieselbe Objektart bei ähnlichem Wetter; die
+Ergebnisse sagen also nichts über andere Zaunhersteller, andere Rohrdurchmesser
+oder andere Lichtsituationen aus. Drittens ist die Ground Truth selbst
+unvollständig: Die Fehleranalyse hat gezeigt, dass mehrere gezählte
+Falsch-Positive auf tatsächlich vorhandenen, aber nicht annotierten Rohröffnungen
+sitzen. Die Precision-Werte sind daher eine Untergrenze. Hinzu kommt der in
+Abschnitt~\ref{sec:boxversatz} gemessene Größenversatz zwischen Generatorlabel
+und Handannotation von 1,2 bis 2,5\px: Er macht \mAPseven{} und \mAPall{} auf
+\code{test} zu einem erheblichen Teil zu einem Maß für die Labelkonvention statt
+für die Lokalisierungsgüte.
+
+Ein weiterer Punkt betrifft die Modellauswahl. \code{best.pt} wird über
+\code{val} gewählt, und die Inferenzauflösung wird ebenfalls auf \code{val}
+gewählt. \code{test} ist damit ein sauberer Endtest -- aber \code{val} ist durch
+diese doppelte Verwendung kein unabhängiger Bewertungssplit mehr. Alle Aussagen,
+die \code{val} betreffen, sind entsprechend optimistisch verzerrt; die
+belastbaren Zahlen sind die \code{test}-Zahlen.
+
+\section{Ausblick}
+
+Die folgenden Punkte sind nach erwartetem Nutzen geordnet, nicht nach Aufwand.
+
+\begin{enumerate}
+  \item \textbf{Labelkonvention angleichen.} Der Größenversatz von 1,2 bis
+  2,5\px{} zwischen Generatorboxen und Handannotation
+  (Abschnitt~\ref{sec:boxversatz}) ist der billigste große Gewinn dieser Liste:
+  Eine geänderte Boxschwelle im Generator genügt, und die Sensitivitätsrechnung
+  lässt auf \code{test} rund 39 Punkte \mAPseven{} erwarten. Vor jeder weiteren
+  Optimierung zu beheben.
+  \item \textbf{Mehr Bewertungsdaten.} Zehn bis zwanzig annotierte Realbilder
+  würden die Konfidenzintervalle auf ein Maß bringen, bei dem die
+  Okklusionsablation entscheidbar wäre -- und damit alle weiteren
+  Augmentierungsablationen überhaupt erst sinnvoll. Das ist mit Abstand der
+  wirksamste nächste Schritt.
+  \item \textbf{Leave-one-out-Ablation der Anti-Abkürzungs-Maßnahmen.} Je ein
+  Trainingslauf mit abgeschaltetem Farbangleich, Rauschangleich,
+  Unschärfeangleich und JPEG-Durchlauf würde erstmals belegen, welche der
+  Signaturen S1--S6 in diesem Anwendungsfall tatsächlich ausgenutzt würden. Da
+  der Sim-to-Real-Abstand die Zielgröße ist, wäre der Effekt gut messbar: Eine
+  durchlässige Signatur müsste \code{sval} nach oben und die realen Splits nach
+  unten bewegen.
+  \item \textbf{Labelzahl-kontrollierte Okklusionsablation.} Die Bildzahl je Arm
+  so anpassen, dass alle Arme gleich viele Labels enthalten
+  (Abschnitt~\ref{sec:ableinschraenkung}), und zusätzlich einen Arm mit
+  generischer statt physikalischer Verdeckung aufnehmen.
+  \item \textbf{Mehr Quellobjekte.} Aus den vorhandenen Realbildern ließen sich
+  mit demselben Matting-Verfahren über 150 weitere Ausschnitte gewinnen --
+  allerdings nur unter Verzicht auf diese Bilder als Bewertungsdaten. Der
+  Zielkonflikt mit Punkt~1 ist unauflösbar, solange keine neuen Aufnahmen
+  hinzukommen.
+  \item \textbf{Beleuchtungsvielfalt.} Die größte verbleibende Domänenlücke
+  (Abschnitt~\ref{sec:grenzen}) ließe sich am direktesten durch zusätzliche
+  Clean Plates bei harter Sonne, Gegenlicht und Nässe schließen. Alternativ
+  käme eine Relighting-Stufe in Betracht, was allerdings Tiefeninformation
+  voraussetzt, die hier nicht vorliegt.
+  \item \textbf{Kachelweise Inferenz} statt Skalierung des Gesamtbildes
+  \parencite{akyon2022sahi}. Bei deutlich größeren Aufnahmen als 2500\px{} wäre
+  das die skalierbarere Lösung für das in Abschnitt~\ref{sec:imgsz}
+  identifizierte Auflösungsproblem, weil der Speicherbedarf konstant bleibt.
+  \item \textbf{Gelernte Augmentierungsstrategien.} Sobald ein ausreichend
+  großer Bewertungssplit existiert, wären Verfahren wie RandAugment
+  \parencite{cubuk2020} oder detektionsspezifische Strategien
+  \parencite{zoph2020} anwendbar -- allerdings nur für die Stärke der
+  photometrischen Transformationen. Die strukturellen Entscheidungen der Pipeline
+  (Schaft hinter jedem Profil, Tiefenmodell, Layoutgeometrie) bleiben
+  Modellierungsfragen, die keine Suche beantworten kann
+  (Abschnitt~\ref{sec:autoaug}).
+  \item \textbf{Generative Ergänzung.} Diffusionsmodelle als Augmentierer
+  \parencite{trabucco2024} könnten die Erscheinungsvielfalt der neun
+  Quellobjekte erweitern. Der offene Punkt ist die Boxtreue: Für die Detektion
+  muss die Objektgrenze pixelgenau bekannt bleiben, was ein generatives Modell
+  nicht garantiert. Ein gangbarer Weg wäre, ausschließlich die \emph{Textur}
+  innerhalb der bestehenden Alphamaske zu variieren.
+\end{enumerate}
+
+\section{Fazit}
+
+Ein ausschließlich auf synthetischen Bildern trainierter Detektor erreicht auf
+zwei echten, nie im Training gesehenen Aufnahmen \mAPfifty{} von 0,886 und 0,888
+-- bei geeigneter Inferenzauflösung 0,928 -- und einen Zählfehler von 2,3\,\%.
+Für eine Anwendung, für die kein einziges handannotiertes Trainingsbild existiert,
+ist das ein brauchbares Ergebnis.
+
+Methodisch tragen drei Einsichten:
+
+\begin{enumerate}
+  \item \textbf{Bei rein synthetischen Trainingsdaten ist die Pipeline die
+  Hypothese.} Jede Entscheidung über eine Transformation ist eine Aussage
+  darüber, welche Invarianzen in der Zieldomäne gelten. Deshalb ist die
+  Begründungspflicht -- Messung, physikalische Randbedingung oder ausgewiesene
+  Annahme -- keine Formalität, sondern das eigentliche Handwerk.
+  \item \textbf{Die dominante Fehlerquelle sind systematische Versätze, nicht
+  fehlende Variation.} Farb-, Schärfe-, Rausch- und Kompressionsversatz zwischen
+  eingefügten und originalen Pixeln lassen sich nicht durch mehr Zufall
+  beheben; sie müssen einzeln geschlossen werden. Der gemessene
+  Sim-to-Real-Abstand von 9,6\PP{} -- klein genug zum Funktionieren, groß genug
+  als Beleg gegen reines Artefaktlernen -- ist das beste verfügbare Indiz, dass
+  dies gelungen ist.
+  \item \textbf{Verdeckung ist bei dicht gepackten Kleinobjekten kein Beiwerk.}
+  Stärkere physikalisch plausible Verdeckung in den Trainingsdaten verbessert das
+  Ergebnis monoton -- und zwar gegen einen Verlust von einem Drittel der Labels.
+\end{enumerate}
+
+Ein vierter Punkt kommt aus der Fehleranalyse: \textbf{Die Labelkonvention ist
+Teil des Messinstruments.} Ein systematischer Größenversatz von zwei Pixeln
+zwischen Generatorlabel und Handannotation kostet auf dem Testbild 39 Punkte
+\mAPseven{} -- mehr als jede Augmentierungsentscheidung einbringt. Wer
+Lokalisierungsmetriken bei 20\px-Objekten berichtet, muss die Konvention beider
+Seiten zuerst gegeneinander prüfen.
+
+Gleichzeitig bleibt die nüchterne Feststellung, dass der größte gemessene
+Einzeleffekt außerhalb der Augmentierung liegt. Die Inferenzauflösung entscheidet
+über Faktor zwei in der Detektionsgüte, und sie ist mit einer einzigen Zahl
+einzustellen. Eine sorgfältig begründete Synthese-Pipeline ist notwendig, damit
+das Verfahren überhaupt existiert; sie ist aber nicht der Ort, an dem die letzten
+Prozentpunkte gewonnen werden.

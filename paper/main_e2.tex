@@ -1,0 +1,57 @@
+% ===========================================================================
+%  Bachelorarbeit -- Kurzfassung, ein Experiment (Okklusionsablation)
+%
+%  Gekuerzte Variante von main.tex: Zielumfang etwa 30 Seiten Text
+%  (Kapitel 1-8, ohne Titelei, Literatur und Anhang).
+%  Experiment 3 (P2-Kopf) ist in \\iffalse geparkt; einziges Experiment ist die
+%  Okklusionsablation.
+%
+%  Uebersetzen:  make e2     (latexmk -pdf -bibtex)
+% ===========================================================================
+\documentclass[11pt,a4paper,oneside,numbers=noenddot,
+               listof=totoc]{scrreprt}
+
+\input{praeambel}
+
+% Gleitobjekte dichter packen: bei diesem tabellenlastigen Text spart das
+% mehrere Seiten, ohne den Satzspiegel zu veraendern.
+\renewcommand{\topfraction}{0.92}
+\renewcommand{\bottomfraction}{0.75}
+\renewcommand{\textfraction}{0.07}
+\renewcommand{\floatpagefraction}{0.80}
+\setcounter{topnumber}{3}
+\setcounter{bottomnumber}{2}
+\setcounter{totalnumber}{5}
+
+\begin{document}
+
+% ------------------------------- Titelei ----------------------------------
+\input{kapitel_e2/00_titel}
+
+\pagenumbering{roman}
+\input{kapitel_e2/00_kurzfassung}
+
+\tableofcontents
+\listoffigures
+\listoftables
+
+% ------------------------------- Hauptteil --------------------------------
+\cleardoublepage
+\pagenumbering{arabic}
+
+\input{kapitel_e2/01_einleitung}
+\input{kapitel_e2/02_theorie}
+\input{kapitel_e2/03_augmentierung_grundlagen}
+\input{kapitel_e2/04_datengrundlage}
+\input{kapitel_e2/05_pipeline}
+\input{kapitel_e2/06_trainingszeit}
+\input{kapitel_e2/07_auswertung}
+\input{kapitel_e2/08_diskussion}
+
+% ------------------------------- Verzeichnisse ----------------------------
+\printbibliography[heading=bibintoc,title={Literaturverzeichnis}]
+
+\appendix
+\input{kapitel_e2/09_anhang}
+
+\end{document}

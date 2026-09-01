@@ -1,0 +1,45 @@
+% ===========================================================================
+%  Bachelorarbeit
+%  Datenaugmentierung fuer die CNN-basierte Detektion von
+%  Rohrprofil-Stirnflaechen an gestapelten Bauzaunfeldern
+%
+%  Uebersetzen:  make          (latexmk -pdf -bibtex)
+%  oder:         make manual   (pdflatex / bibtex / pdflatex / pdflatex)
+% ===========================================================================
+\documentclass[11pt,a4paper,oneside,parskip=half,numbers=noenddot,
+               listof=totoc]{scrreprt}
+
+\input{praeambel}
+
+\begin{document}
+
+% ------------------------------- Titelei ----------------------------------
+\input{kapitel/00_titel}
+
+\pagenumbering{roman}
+\input{kapitel/00_kurzfassung}
+
+\tableofcontents
+\listoffigures
+\listoftables
+
+% ------------------------------- Hauptteil --------------------------------
+\cleardoublepage
+\pagenumbering{arabic}
+
+\input{kapitel/01_einleitung}
+\input{kapitel/02_theorie}
+\input{kapitel/03_augmentierung_grundlagen}
+\input{kapitel/04_datengrundlage}
+\input{kapitel/05_pipeline}
+\input{kapitel/06_trainingszeit}
+\input{kapitel/07_auswertung}
+\input{kapitel/08_diskussion}
+
+% ------------------------------- Verzeichnisse ----------------------------
+\printbibliography[heading=bibintoc,title={Literaturverzeichnis}]
+
+\appendix
+\input{kapitel/09_anhang}
+
+\end{document}

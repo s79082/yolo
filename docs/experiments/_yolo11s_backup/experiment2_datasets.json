@@ -1,0 +1,23 @@
+{
+  "A0_keine_okklusion": {
+    "objekte": 82950,
+    "sichtbarkeit": 0.9768,
+    "teilverdeckt": 0.12,
+    "verworfen_verdeckt": 241,
+    "bilder_mit_stangen": 0.0
+  },
+  "A1_baseline": {
+    "objekte": 68281,
+    "sichtbarkeit": 0.9015,
+    "teilverdeckt": 0.2987,
+    "verworfen_verdeckt": 15312,
+    "bilder_mit_stangen": 0.5757
+  },
+  "A2_starke_okklusion": {
+    "objekte": 55833,
+    "sichtbarkeit": 0.8522,
+    "teilverdeckt": 0.4066,
+    "verworfen_verdeckt": 28108,
+    "bilder_mit_stangen": 0.8987
+  }
+}

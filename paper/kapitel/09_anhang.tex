@@ -1,0 +1,139 @@
+\chapter{Anhang}
+\label{kap:anhang}
+
+\section{Reproduktion}
+
+Alle Messwerte dieser Arbeit lassen sich mit der folgenden Befehlsfolge
+erzeugen. Die Nummerierung entspricht Tabelle~\ref{tab:kette}.
+
+\begin{footnotesize}
+\begin{verbatim}
+# 0  Sichtung (erzeugt alle Messwerte aus Kapitel 4)
+python src/analyze_data.py
+
+# 1  Objektausschnitte freistellen  -> assets/masks/, docs/matting_check.png
+python src/matting.py
+
+# 2  Okkluder-Bibliothek            -> assets/bars/, docs/bars_check.png
+python src/occluders.py
+
+# 3  Trainingsdaten                 -> synth/train/ + generation_report.json
+python src/generate.py --out synth/train --n 6000 --seed 1 --preview 8
+python src/generate.py --out synth/sval  --n  400 --seed 99
+
+# 4  Training
+python src/train.py --name baseline
+
+# 5  Auswertung (nativer Massstab, eigene Metriken + Kreuzvergleich)
+python src/evaluate.py --weights runs/baseline/weights/best.pt \
+    --splits val,test --crosscheck --vis docs/qual_SPLIT_NAME.jpg \
+    --out docs/experiments/final_eval.json
+
+# 6  Experimente
+python src/experiment.py infer          # Experiment 1  (Abschnitt 7.4, 7.5)
+python src/experiment.py ablation-data  # Experiment 2  (Abschnitt 7.6)
+python src/experiment.py ablation-train
+python src/experiment.py ablation-eval
+python src/train.py --name yolo26s    --model yolo26s.pt
+python src/train.py --name yolo26s_p2 --model yolo26s-p2.yaml \
+    --pretrained yolo26s.pt
+python src/experiment.py models         # Experiment 3  (Abschnitt 7.7)
+
+# 7  Diagramme und Tabellen
+python src/report.py
+
+# 8  Abbildungen dieses Dokuments aufbereiten
+python paper/tools/abbildungen_vorbereiten.py
+python paper/tools/fig_boxversatz.py
+\end{verbatim}
+\end{footnotesize}
+
+\section{Umgebungshinweis}
+
+Eine Einschränkung der Ausführungsumgebung ist für die Reproduktion relevant und
+wird hier festgehalten, weil sie einen Trainingsparameter erzwingt: In der
+verwendeten Kombination aus \code{opencv-python}~5.0.0.93 und \code{torch}~2.13
+verklemmt sich der fork-basierte DataLoader der Werkzeugkette reproduzierbar beim
+ersten Batch, sobald \code{workers > 0} gesetzt ist. Getestet und jeweils
+erfolglos: \code{cv2.setNumThreads(0)}, deaktiviertes OpenCL, gesetzte
+\code{OMP\_NUM\_THREADS}- und \code{MKL\_NUM\_THREADS}-Grenzen sowie die
+Startmethode \code{spawn}. Das Training läuft deshalb mit \code{workers=0} und
+hält stattdessen alle dekodierten Bilder im Arbeitsspeicher
+(\code{cache='ram'}, 6000 Bilder $\approx$ 18\,GB). Der Cache wird von einem
+Thread-Pool gefüllt und ist von dem Deadlock nicht betroffen; der Wegfall der
+JPEG-Dekodierung im Hauptprozess ist dort der größte einzelne Zeitgewinn
+(gemessen Faktor 1,6).
+
+\section{Gemessene Anteile aus dem Erzeugungsbericht}
+
+Die folgenden Werte stammen unverändert aus
+\code{synth/train/generation\_report.json} und sind die Belegquelle für alle
+Ist-Anteile in Kapitel~\ref{kap:pipeline}. Anteile mit dem Zusatz
+\emph{je Instanz} beziehen sich auf die 173\,100 gerenderten Instanzen, solche
+mit \emph{je Bild} auf die 6000 Bilder.
+
+\begin{footnotesize}
+\begin{verbatim}
+n_images                      6000        instances_rendered      173100
+canvas                        1024        instances_labeled       136384
+boxes_total                 136384        dropped_occluded         30801
+boxes_per_image_mean          22.73       dropped_offscreen         3846
+mean_visibility_all_rendered   0.7569     dropped_tiny               228
+mean_visibility_labeled        0.9002
+
+inst_rotation      (je Instanz)  1.0000    negative_image  (je Bild)  0.0973
+inst_oval          (je Instanz)  0.5707    img_has_bars    (je Bild)  0.5835
+inst_dent          (je Instanz)  0.1814    img_clutter     (je Bild)  0.3157
+inst_perspective   (je Instanz)  0.3020    recess          (je Bild)  0.8738
+inst_photometric   (je Instanz)  0.9976    bg_fliplr       (je Bild)  0.5047
+inst_gamma         (je Instanz)  0.7969    bg_flipud       (je Bild)  0.1487
+inst_hsv           (je Instanz)  0.6973    bg_rot          (je Bild)  0.3428
+inst_harmonize     (je Instanz)  0.8482    glob_bc         (je Bild)  0.8958
+inst_blur          (je Instanz)  0.5983    glob_hsv        (je Bild)  0.6897
+inst_noise         (je Instanz)  0.6988    glob_blur       (je Bild)  0.3435
+inst_shadow        (je Instanz)  0.4931    glob_motion     (je Bild)  0.0988
+inst_stub          (je Instanz)  0.8801    glob_noise      (je Bild)  0.8015
+inst_occluded (je Label)         0.3009    glob_vignette   (je Bild)  0.2502
+\end{verbatim}
+\end{footnotesize}
+
+Zwei Werte bedürfen der Erläuterung, weil sie nicht als Anteil lesbar sind.
+\code{recess} zählt die \emph{Anzahl} der abgedunkelten Mulden je Bild und nicht
+den Anteil der Bilder mit Mulde: Der Sollwert ist 0,55 je Cluster, die erwartete
+Clusterzahl beträgt $0{,}45 \cdot 1 + 0{,}35 \cdot 2 + 0{,}20 \cdot 3 = 1{,}75$,
+und unter Berücksichtigung der 9,7\,\% Negativbilder ergibt sich
+$0{,}55 \cdot 1{,}75 \cdot 0{,}903 = 0{,}869$ -- was den gemessenen Wert 0,8738
+erklärt. \code{img\_has\_bars} ist dagegen ein echter Anteil; der Sollwert 0,65
+reduziert sich durch die Negativbilder auf
+$0{,}65 \cdot 0{,}903 = 0{,}587$ und trifft damit den gemessenen Wert 0,5835.
+
+\section{Herkunft der Abbildungen}
+
+\begin{table}[htbp]
+\centering
+\caption[Herkunft der Abbildungen]{Herkunft der Abbildungen. Alle werden von den
+genannten Skripten erzeugt und von
+\code{paper/tools/abbildungen\_vorbereiten.py} für den Satz aufbereitet.}
+\label{tab:abbherkunft}
+\scriptsize
+\begin{tabularx}{\textwidth}{@{}L{0.25\textwidth}L{0.33\textwidth}X@{}}
+\toprule
+\textbf{Abbildung} & \textbf{Datei} & \textbf{erzeugt von} \\
+\midrule
+\ref{abb:realstapel} Stapelaufnahme & \code{PXL\_2025\dots.jpg} & Kameraaufnahme \\
+\ref{abb:rezeptivesfeld} rezeptives Feld & TikZ & dieses Dokument \\
+\ref{abb:boxrotation} Boxaufblähung & TikZ & dieses Dokument \\
+\ref{abb:pipeline} Pipelineaufbau & TikZ & dieses Dokument \\
+\ref{abb:matting} Matting & \code{matting\_check.png} & \code{matting.py} \\
+\ref{abb:okkluder} Okkluder & \code{bars\_check.png} & \code{occluders.py} \\
+\ref{abb:labelcheck} Labelkontrolle & \code{label\_check.png} & \code{generate.py} \\
+\ref{abb:synthbeispiele} synth.\ Bilder & \code{previews/*.jpg} & \code{generate.py --preview} \\
+\ref{abb:training} Trainingsverlauf & \code{fig\_training.png} & \code{report.py} \\
+\ref{abb:prkurven} PR-Kurven & \code{fig\_pr\_curves.png} & \code{report.py} \\
+\ref{abb:qualitativ} Qualitativbilder & \code{qual\_*.jpg} & \code{evaluate.py --vis} \\
+\ref{abb:imgsz} Auflösungssweep & \code{fig\_imgsz\_sweep.png} & \code{report.py} \\
+\ref{abb:ablbeispiele} Ablationsbeispiele & \code{fig\_ablation\_beispiele.png} & \code{report.py} \\
+\ref{abb:ablation} Ablationsergebnis & \code{fig\_ablation.png} & \code{report.py} \\
+\bottomrule
+\end{tabularx}
+\end{table}

@@ -1,0 +1,156 @@
+\chapter{Datengrundlage}
+\label{kap:daten}
+
+Alle Parameter der folgenden Kapitel berufen sich auf Messungen am verfügbaren
+Quellmaterial. Dieses Kapitel dokumentiert sie; sie sind über
+\code{src/analyze\_data.py} reproduzierbar.
+
+\section{Annotationsdefinition}
+\label{sec:annotation}
+
+Vor jeder Messung steht die Frage, was ein Objekt ist. Aus der Sichtung der
+beiden handannotierten Realbilder ergibt sich eine Definition, die die gesamte
+Pipeline prägt:
+
+\begin{quote}
+Annotiert ist ausschließlich die \textbf{sichtbare Stirnfläche} eines
+Rundrohrprofils -- heller verzinkter Kranz, dunkle Bohrung. Rohrschäfte in
+Seitenansicht, Gitterknoten und dunkle Löcher im Maschendraht sind
+\textbf{keine} Objekte, obwohl sie ähnlich aussehen. Die Box umschließt den
+\textbf{sichtbaren} Teil (modale Box), nicht den geschätzten vollständigen Kreis.
+\end{quote}
+
+Beide Festlegungen sind folgenreich: Die erste bestimmt, welche Strukturen als
+harte Negative benötigt werden, die zweite, wie die Boxen im Generator berechnet
+werden. Die Unterscheidung modal / amodal ist in der Literatur etabliert
+\parencite{li2016amodal,zhu2017amodal}; amodale Boxen umschließen auch verdeckte
+Teile. Erzeugte der Generator amodale Boxen, während die Realbilder modal
+annotiert sind, entstünde ein systematischer Größenversatz -- ein Verstoß gegen
+Anforderung~A5.
+
+\section{Quellmaterial}
+\label{sec:quellmaterial}
+
+\absatz{Objektausschnitte.} Verfügbar sind neun aus Realaufnahmen
+ausgeschnittene Rohrprofile der Größe $28\times30$ bis $43\times38$ Pixel. Sechs
+zeigen eine dunkle Bohrung (offenes Rohr), drei eine helle (Sonnenlicht fällt in
+die Röhre oder das Ende ist gestaucht); beide Formen kommen in den Realbildern
+vor, weshalb gleichverteilt aus allen neun gezogen wird. Die aus dem
+Ellipsenmodell gewonnenen Achsverhältnisse streuen zwischen 0,83 und 1,14
+(Abschnitt~\ref{sec:matting}). Kritisch ist Befund~1 in Tabelle~\ref{tab:befunde}: Alle neun sind zwar RGBA-Dateien, ihr Alphakanal ist
+aber durchgängig 255 -- es handelt sich um rechteckige Ausschnitte, bei denen
+13--35\,\% der Fläche nicht zum Objekt gehören.
+
+\absatz{Hintergründe.} Von den sieben Hintergrundaufnahmen sind vier
+\emph{Clean Plates}: Aufnahmen derselben Objektart, aus denen die Stirnflächen
+herausgeschnitten wurden -- Wände aus Rohrschäften \emph{ohne} Stirnflächen, mit
+den gemessenen Rohrdurchmessern 16/18/21/20\px{}. Sie liefern gleichzeitig den
+photometrisch passenden Kontext, das Rohmaterial der Okkluder-Bibliothek und
+echte Negativbeispiele und werden deshalb bevorzugt gezogen: In 80\,\% der
+Bilder stammt der Hintergrund aus dieser Gruppe, was je Clean Plate 20\,\% und
+je Fremdszene 6,7\,\% ergibt -- ein dreifaches Gewicht je Bild. In der
+Terminologie von Gleichung~\eqref{eq:bendavid} senken sie unmittelbar den
+Divergenzterm: Der Hintergrund ist nicht \emph{ähnlich} der Zieldomäne, er
+\emph{ist} sie. Die drei Fremdszenen (Kieswerk, Betonplatten, Betondeck mit
+Maschendrahtzaun) sind primär als hartes Negativmaterial wertvoll -- der
+Maschendraht ist genau die Struktur, die nach der Annotationsdefinition kein
+Objekt ist und dennoch als Falschpositiv droht. Schwäche des Materials: Alle vier
+Clean Plates zeigen dieselbe Stapelart bei bedecktem bis diffusem Licht -- kein
+harter Sonnenschein, keine Nässe, kein Schnee.
+
+\section{Bewertungsdaten und ihre Statistik}
+\label{sec:valtest}
+
+Zur Bewertung stehen zwei vollständig handannotierte Realaufnahmen zur
+Verfügung: \code{val} ($2459\times1174$, 88 Objekte) für die Modellauswahl und
+\code{test} ($1600\times900$, 86 Objekte) ausschließlich für die Endbewertung.
+
+\begin{table}[htbp]
+\centering
+\caption[Gemessene Statistik der realen Labels]{Gemessene Statistik der realen
+Labels ($n = 174$). Als Objektdurchmesser dient $\sqrt{\text{Fläche}}$; alle
+Abstände sind in Objektdurchmessern (\Oe) angegeben und damit skaleninvariant
+direkt als Generatorparameter verwendbar. NN = nächster Nachbar.}
+\label{tab:statistik}
+\footnotesize
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{Größe} & \textbf{\code{val}} & \textbf{\code{test}} \\
+\midrule
+Durchmesser (px) & 20,6--35,8, \textbf{Median 27,4} & 12,2--31,9, \textbf{Median 19,6} \\
+Seitenverhältnis $w/h$ & p10 0,97, Median 1,08, p90 1,31 & p10 0,85, Median 1,09, p90 1,22 \\
+Objektfläche gesamt & 2,48\,\% des Bildes & 2,69\,\% \\
+am Bildrand angeschnitten & 0\,\% & 5,8\,\% \\
+\midrule
+NN-Abstand (in \Oe) & p10 0,86, Median 1,09, p90 1,78 & p10 0,83, Median 1,24, p90 2,51 \\
+Nachbarn innerhalb $5\,\Oe$ & Median 10, max 14 & Median 10, max 20 \\
+berührt NN ($<1{,}2$\,\Oe) & 61,4\,\% & 46,5\,\% \\
+Größenverhältnis zum NN & Median 1,05, p90 1,14 & Median 1,05, p90 1,17 \\
+Nachbarrichtung & quasi isotrop, Häufung $90$--$150^\circ$ & quasi isotrop \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Bei 20--36\px{} Kantenlänge in Bildern von 1600--2459\px{} Breite handelt es sich
+um Kleinobjekte im Sinne der COCO-Konvention \parencite{lin2014coco}. Nach
+Gleichung~\eqref{eq:deff} schrumpfen sie bei \code{imgsz}=640 auf 5--9\px{} und
+liegen damit unter der Auflösung der P3-Ebene -- die Inferenzauflösung wird
+deshalb in Abschnitt~\ref{sec:imgsz} systematisch untersucht.
+
+\section{Befunde und die daraus abgeleiteten Parameter}
+\label{sec:messungmapping}
+
+Tabelle~\ref{tab:befunde} fasst zusammen, welcher Befund welchen
+Pipelineparameter festlegt. Sie ist die Belegbrücke zu
+Kapitel~\ref{kap:pipeline} und macht zugleich sichtbar, welche Parameter
+\emph{nicht} durch eine Messung gedeckt sind.
+
+\begin{table}[htbp]
+\centering
+\caption[Befunde und abgeleitete Parameter]{Befunde der Datensichtung und die
+daraus abgeleiteten Parameter. Belegart: \emph{M} = Messung an den Realdaten,
+\emph{P} = physikalische Randbedingung, \emph{L} = Literatur, \emph{A} =
+Annahme.}
+\label{tab:befunde}
+\footnotesize
+\begin{tabularx}{\textwidth}{@{}L{0.30\textwidth}XL{0.05\textwidth}@{}}
+\toprule
+\textbf{Befund / Messwert} & \textbf{abgeleiteter Parameter} & \textbf{Art} \\
+\midrule
+\textbf{1} Alphakanal durchgängig 255; 13--35\,\% Fremdkontext &
+eigene Matting-Stufe mit weicher Alphamaske (Signatur~S1) & P \\
+\textbf{2} sechs dunkle, drei helle Bohrungen; Achsverhältnis der Ausschnitte
+0,83--1,14 &
+Gleichverteilung über alle neun Ausschnitte; Ovalisierung überhaupt vorsehen & A/M \\
+\textbf{3} vier Clean Plates der Zieldomäne; Maschendraht und Schotter in den
+Fremdszenen &
+80\,\% Ziehgewicht auf Clean Plates; 10\,\% Negativbilder & M \\
+\textbf{4} Rohrdurchmesser der Clean Plates 16--21\px{} &
+Kopplung von Zoom und Objektgröße & P \\
+\textbf{5} Objektdurchmesser 12,2--35,8\px{} &
+Generatorbereich 12--44\px{} (reale Spanne plus 25\,\% Reserve) & M \\
+\textbf{6} Seitenverhältnis p10--p90 = 0,85--1,31 &
+Ovalisierung bei 57\,\% der Instanzen, oblat:prolat = 45:12 & M \\
+\textbf{7} Größenverhältnis zum Nachbarn im Median 1,05 &
+eine Basisgröße pro Cluster, je Instanz nur $\pm 8\,\%$ & M \\
+\textbf{8} hinter jeder Stirnfläche führt ein Rohrschaft weg &
+Rohrschaft bei 88\,\% der Instanzen (Tabelle~\ref{tab:parameter}, T5) & P \\
+\textbf{9} NN-Abstand Median 1,09--1,24\,\Oe; 5,8\,\% angeschnittene Labels in
+\code{test} &
+Gitterabstände des Layoutmodells; Clusterzentrum darf außerhalb der Leinwand
+liegen, Randregel 15\,\% & M \\
+\midrule
+\textbf{10} keine Messung verfügbar &
+Anteil verformter Profile (18\,\%), Schrägansicht (30\,\%), Schlagschatten
+(49\,\%) & A \\
+\textbf{11} je \emph{ein} Bild pro Split &
+Bootstrap-Konfidenzintervalle statt Punktschätzungen
+(Abschnitt~\ref{sec:bootstrap}) & M \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Befund~11 ist die größte methodische Schwäche der Arbeit: Je ein Bild pro Split
+ist für eine belastbare Metrikangabe zu wenig, und beide Bilder zeigen dieselbe
+Objektart bei ähnlichem Wetter. Alle berichteten Zahlen sind entsprechend als
+Punktschätzungen mit erheblicher Unsicherheit zu lesen.

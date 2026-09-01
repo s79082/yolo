@@ -1,0 +1,5 @@
+path: /home/mso/source/yolo-gen
+train: synth/abl_A0_keine_okklusion/images
+val: data/val/images
+names:
+  0: rohrprofil

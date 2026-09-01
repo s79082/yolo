@@ -1,0 +1,6 @@
+{
+  "scale": 1.8,
+  "conf": 0.413,
+  "tta": false,
+  "quelle": "F1-optimal auf val bei scale=1.8, cnn/docs/experiments/pipenet_eval.json"
+}
