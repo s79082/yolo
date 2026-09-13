@@ -1,0 +1,17 @@
+\begin{table}[htbp]
+\centering
+\caption[Ablation B: Herkunft der Okkluder]{Ablation~B -- Herkunft der Okkluderbalken. Die drei Datensätze sind bis auf die RGB-Werte innerhalb der Stangenmasken identisch; Labelzahl, Sichtbarkeit und Verdeckungsanteil stimmen deshalb exakt überein. Fett der jeweils beste Wert einer Spalte.}
+\label{tab:ablationB}
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}lrrr|rrr|rr@{}}
+\toprule
+\textbf{Arm} & \multicolumn{3}{c|}{\textbf{Datensatz}} & \multicolumn{3}{c|}{\code{test}} & \multicolumn{2}{c}{\code{val}} \\
+ & \textbf{Labels} & \textbf{Sichtb.} & \textbf{teilverd.} & \mAPfifty{} & $F_1$ & $R$ & \mAPfifty{} & $F_1$ \\
+\midrule
+B0 photogr. & 68\,281 & 0{,}901 & 29{,}9\,\% & 0{,}961 & 0{,}932 & \textbf{0{,}921} & \textbf{0{,}974} & \textbf{0{,}944} \\
+B1 prozedural & 68\,281 & 0{,}901 & 29{,}9\,\% & \textbf{0{,}963} & \textbf{0{,}941} & 0{,}899 & 0{,}944 & 0{,}913 \\
+B2 naiv & 68\,281 & 0{,}901 & 29{,}9\,\% & 0{,}914 & 0{,}885 & 0{,}820 & 0{,}964 & 0{,}922 \\
+\bottomrule
+\end{tabular}
+\end{table}

@@ -3,10 +3,10 @@
 \markboth{Kurzfassung}{Kurzfassung}
 \thispagestyle{plain}
 
-Gestapelte mobile Bauzaunfelder sollen automatisiert gezählt werden. Gezählt wird
-über die Detektion der Stirnflächen ihrer Rahmenrohre -- kleine, untereinander
-nahezu identische Kreisringe, die dicht gepackt und wechselseitig verdeckt
-auftreten. Für dieses Zielobjekt existieren keine annotierten Datensätze, und die
+An gestapelten mobilen Bauzaunfeldern sind die Stirnflächen der Rahmenrohre zu
+detektieren: kleine, untereinander nahezu identische Kreisringe, die dicht
+gepackt und wechselseitig verdeckt auftreten.
+Für dieses Zielobjekt existieren keine annotierten Datensätze, und die
 Handannotation hunderter Kleinobjekte pro Bild ist teuer. Der hier verfolgte
 Ansatz umgeht das Problem vollständig: Trainiert wird \emph{ausschließlich} auf
 synthetischen Bildern, die aus neun freigestellten Objektausschnitten und sieben
@@ -14,35 +14,57 @@ Hintergrundaufnahmen erzeugt werden; validiert und getestet wird auf echten
 Aufnahmen.
 
 Damit verschiebt sich der methodische Schwerpunkt von der Netzarchitektur auf die
-\textbf{Augmentierungs- und Synthese-Pipeline}: Sie ist in diesem Aufbau nicht
-Beiwerk zu einem vorhandenen Datensatz, sondern erzeugt die Trainingsverteilung
-vollständig. Die Arbeit behandelt daher zunächst die theoretischen Grundlagen der
+\textbf{Augmentierungs- und Synthese-Pipeline}: Sie erzeugt die Trainingsverteilung vollständig.
+Die Arbeit behandelt daher zunächst die theoretischen Grundlagen der
 Datenaugmentierung -- Augmentierung als Kodierung von Invarianzen, als
 Rauschregularisierung und als Mittel gegen \enquote{Shortcut Learning} -- und
-entwickelt daraus ein Leitprinzip für den vorliegenden Fall: Jede Transformation
-muss entweder eine an den Realdaten \emph{gemessene} Eigenschaft nachbilden, eine
-\emph{physikalische Randbedingung} respektieren oder eine konkrete
-\emph{Abkürzung} schließen, über die das Netz sonst \enquote{hier wurde etwas
-eingeklebt} anstelle von \enquote{hier ist ein Rohrende} lernen könnte.
+entwickelt daraus eine Begründungspflicht: Jeder Parameter stützt sich auf genau
+eine von drei Quellen -- eine an den Realdaten \emph{gemessene} Eigenschaft, eine
+\emph{physikalische Randbedingung} des Aufnahmegegenstands oder ein in der
+\emph{Literatur} belegtes Argument; liegt keine davon vor, wird der Wert
+ausdrücklich als \emph{Annahme} gekennzeichnet. Ziel ist, jede Abkürzung zu
+schließen, über die das Netz sonst \enquote{hier wurde etwas eingeklebt} anstelle
+von \enquote{hier ist ein Rohrende} lernen könnte. Die resultierende Pipeline
+umfasst 36 dokumentierte Transformationen mit 43 Parameterwerten (6000 Bilder,
+173\,100 gerenderte Instanzen, 136\,384 gelabelte Objekte): 9 sind gemessen,
+8 literaturgestützt, 3 physikalisch begründet, 9 gemischt und \textbf{14
+ausdrücklich als Annahme gekennzeichnet}.
 
-Die resultierende Pipeline umfasst 36 dokumentierte Transformationen in neun
-Stufen. Für jede werden der gewählte Parameterbereich, der gemessene Ist-Anteil
-im erzeugten Datensatz (6000 Bilder, 173\,100 gerenderte Instanzen, 136\,384
-gelabelte Objekte) und die Begründung angegeben. Kernpunkte sind eine
-label-exakte Sichtbarkeitsrechnung über die Malreihenfolge, eine an den
-Rohrdurchmesser des Hintergrunds gekoppelte Objektgröße, ein aus der
-Nachbarschaftsstatistik der Realbilder kalibriertes Layoutmodell und vier
-physikalisch unterschiedlich motivierte Okklusionsquellen.
+Auf zwei realen Aufnahmen erreicht das Verfahren \mAPfifty{} von
+\textbf{\zrefValMap} und \textbf{\zrefTestMap} bei einem besten $F_1$ von
+\zrefValFf{} und \zrefTestFf; \code{test} berührt Training und Modellauswahl
+nie. Der Sim-to-Real-Abstand -- die Differenz zum synthetischen
+Validierungssplit -- beträgt \zsimRealVal{} bzw.\ \zsimRealTest\PP{} und ist
+damit weit von dem Muster entfernt, das reines Artefaktlernen erzeugen würde.
 
-Die Bewertung erfolgt auf zwei unberührten realen Aufnahmen und liefert drei
-belastbare Befunde. Erstens: Der Sim-to-Real-Abstand ist messbar und beträgt
-9,6\PP{} \mAPfifty{} (0,982 synthetisch gegen 0,886/0,888 real) -- klein genug,
-dass das Verfahren praktisch funktioniert, und groß genug, um zu belegen, dass
-das Netz nicht bloß Einfügeartefakte gelernt hat. Zweitens: Der dominierende
-Parameter der gesamten Arbeit ist nicht eine Augmentierungsentscheidung, sondern
-die Inferenzauflösung; \mAPfifty{} steigt von 0,435 bei 640\px{} auf 0,904 bei
-1600\px{}. Drittens: In einer kontrollierten Ablation über drei
-Okklusionsstufen verbessert stärkere Verdeckung in den Trainingsdaten das
-Ergebnis \emph{monoton} über zwei Splits und drei Metriken -- und das, obwohl der
-stärkste Arm 33\,\% weniger Labels enthält. Der Zählfehler auf den realen
-Aufnahmen liegt bei 2,3\,\%.
+Geprüft wird die Pipeline anschließend an ihrer aufwendigsten Stufe, der
+Verdeckung -- und dort an der Frage, die bis dahin nur \emph{begründet} war:
+\textbf{woraus die Verdecker bestehen dürfen}. Die aus Realaufnahmen
+geschnittene Okkluder-Bibliothek wird durch zwei prozedural erzeugte ersetzt,
+eine an ihr kalibrierte und eine naive. Weil alle drei Datensätze aus demselben
+Seed stammen, sind ihre Labeldateien byte-identisch -- ein gepaarter Versuch, in
+dem ausschließlich die Pixelwerte innerhalb der Verdeckermasken variieren.
+
+Sein Ergebnis ist der Hauptbefund dieser Arbeit. Ein naiv gezeichneter,
+flächig grauer Balken kostet auf dem unberührten Testbild
+\textbf{\zablBTestGap\PP{} \mAPfifty} und \zablBTestGapFf\PP{} $F_1$ -- mehr,
+als der Verdeckungsgrad überhaupt bewegt --, und der Verlust sitzt fast
+vollständig beim kleinsten Objektdrittel, wo der Rückruf von
+\zBZeroTestRecKlein{} auf \zBTwoTestRecKlein{} fällt. Ein an fünf messbaren
+Kennwerten kalibriertes Zylindermodell erreicht dagegen dieselbe Leistung wie
+die photographische Bibliothek. Die Begründung, mit der die Pipeline ihre
+aufwendige Okkluder-Vorstufe rechtfertigt, ist damit in der Sache bestätigt und
+in ihrer starken Form widerlegt: Entscheidend ist nicht die \emph{Herkunft} der
+Verdeckerpixel, sondern ob ihre Statistik zur Umgebung passt.
+
+Zwei weitere Befunde ergänzen das Bild. Der größte Einzeleffekt der Arbeit ist
+keine Augmentierungsentscheidung, sondern die Inferenzauflösung: \mAPfifty{} auf
+\code{val} steigt von \zswValNiedrig{} bei 640\px{} auf \zswValBest{} --
+\zswValGain\PP. Und die Fehleranalyse deckt einen systematischen Größenversatz
+von \zboxValOff{} bis \zboxTestOff\px{} zwischen Generatorlabel und
+Handannotation auf; er erklärt den auffällig niedrigen \mAPseven{}-Wert auf dem
+Testbild -- eine Sensitivitätsrechnung hebt ihn von \zsensTestMapSOrig{} auf
+\zsensTestMapSNeu{}, ohne dass am Modell etwas geändert wird -- und lässt
+\mAPfifty{} und $F_1$ unberührt. Bei programmatisch erzeugten Labels wird die
+Labelkonvention damit selbst zu einer messbaren Größe.
+

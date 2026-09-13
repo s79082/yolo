@@ -1,153 +1,38 @@
-# Ergebnisse
+# Ergebnisse — zwei Ablationen der Augmentierung auf `yolo26s-p2`
 
-Automatisch aus `docs/experiments/*.json` erzeugt (`python src/report.py`). Die Interpretation, Fehleranalyse und die Einschraenkungen stehen in [DISKUSSION.md](DISKUSSION.md); die Inferenzparameter in [INFERENZ.md](INFERENZ.md).
+Automatisch erzeugt von `src/report_neu.py`. Alle Zahlen bei
+nativem Maßstab, gegen den korrigierten Annotationsstand
+(`val` 98, `test` 89 Objekte).
 
-## Trainingsverlauf
+## Referenzmodell (6000 Bilder, 60 Epochen)
 
-![](fig_training.png)
-
-## Endergebnis (bestes Modell, nativer Massstab)
-
-| Split | imgsz | mAP50 | mAP75 | mAP50-95 | bestes F1 | conf* | P | R | mittl. IoU (TP) | Zaehlung |
-|---|---|---|---|---|---|---|---|---|---|---|
-| val | native | 0.8864 | 0.7928 | 0.5973 | 0.8621 | 0.336 | 0.872 | 0.852 | 0.824 | 86/88 |
-| test | native | 0.8875 | 0.3196 | 0.4372 | 0.8941 | 0.263 | 0.905 | 0.884 | 0.748 | 84/86 |
-| sval | native | 0.9824 | 0.9347 | 0.8279 | 0.9642 | 0.450 | 0.972 | 0.956 | 0.899 | 7128/7248 |
-
-![](fig_pr_curves.png)
-
-### Qualitativ (gruen = TP, rot = FP, blau = FN)
-
-![](qual_val_PXL_20251204_073853552.jpg)
-
-![](qual_test_test5.jpg)
-
-## Experiment 1a - Inferenzaufloesung
-
-![](fig_imgsz_sweep.png)
-
-| Split | imgsz | mAP50 | mAP50-95 | bestes F1 | R | P | mittl. IoU | pred | gt | s |
-|---|---|---|---|---|---|---|---|---|---|---|
-| val | 640 | 0.4349 | 0.2014 | 0.5072 | 0.398 | 0.700 | 0.711 | 50 | 88 | 1.69 |
-| val | 800 | 0.7929 | 0.4281 | 0.7682 | 0.659 | 0.921 | 0.737 | 63 | 88 | 0.08 |
-| val | 960 | 0.8523 | 0.4980 | 0.8395 | 0.773 | 0.919 | 0.773 | 74 | 88 | 0.08 |
-| val | 1024 | 0.8683 | 0.5461 | 0.8757 | 0.841 | 0.914 | 0.802 | 81 | 88 | 0.08 |
-| val | 1280 | 0.8869 | 0.5767 | 0.8605 | 0.841 | 0.881 | 0.808 | 84 | 88 | 0.08 |
-| val | 1600 | 0.9038 | 0.6064 | 0.8495 | 0.898 | 0.806 | 0.820 | 98 | 88 | 0.08 |
-| val | 1920 | 0.8925 | 0.6129 | 0.8511 | 0.909 | 0.800 | 0.830 | 100 | 88 | 0.09 |
-| val | 2240 | 0.8801 | 0.5876 | 0.8427 | 0.852 | 0.833 | 0.825 | 90 | 88 | 0.09 |
-| val | 2464 | 0.8864 | 0.5973 | 0.8621 | 0.852 | 0.872 | 0.824 | 86 | 88 | 0.10 |
-| test | 640 | 0.5242 | 0.3346 | 0.6202 | 0.465 | 0.930 | 0.790 | 43 | 86 | 0.07 |
-| test | 800 | 0.6648 | 0.3627 | 0.6986 | 0.593 | 0.850 | 0.753 | 60 | 86 | 0.07 |
-| test | 960 | 0.8892 | 0.4304 | 0.8554 | 0.826 | 0.887 | 0.733 | 80 | 86 | 0.07 |
-| test | 1024 | 0.8819 | 0.4585 | 0.8408 | 0.767 | 0.930 | 0.740 | 71 | 86 | 0.07 |
-| test | 1280 | 0.8995 | 0.4487 | 0.9068 | 0.849 | 0.973 | 0.744 | 75 | 86 | 0.07 |
-| test | 1600 | 0.8875 | 0.4372 | 0.8941 | 0.884 | 0.905 | 0.748 | 84 | 86 | 0.09 |
-| test | 1920 | 0.9279 | 0.4482 | 0.9167 | 0.895 | 0.939 | 0.745 | 82 | 86 | 0.08 |
-| test | 2240 | 0.9284 | 0.4570 | 0.9202 | 0.872 | 0.974 | 0.744 | 77 | 86 | 0.07 |
-| test | 2464 | 0.9267 | 0.4537 | 0.9277 | 0.895 | 0.963 | 0.743 | 80 | 86 | 0.09 |
-
-## Experiment 1b - NMS-IoU
-
-| Variante | Split | imgsz | Wert | mAP50 | mAP50-95 | bestes F1 | s |
-|---|---|---|---|---|---|---|---|
-|  | val | 1920 | 0.3 | 0.8971 | 0.6196 | 0.8556 | 0.00 |
-|  | test | 1920 | 0.3 | 0.9326 | 0.4527 | 0.9167 | 0.00 |
-|  | val | 1920 | 0.45 | 0.8945 | 0.6163 | 0.8511 | 0.00 |
-|  | test | 1920 | 0.45 | 0.9312 | 0.4501 | 0.9167 | 0.00 |
-|  | val | 1920 | 0.6 | 0.8922 | 0.6136 | 0.8511 | 0.00 |
-|  | test | 1920 | 0.6 | 0.9294 | 0.4476 | 0.9167 | 0.00 |
-|  | val | 1920 | 0.7 | 0.8925 | 0.6129 | 0.8511 | 0.00 |
-|  | test | 1920 | 0.7 | 0.9279 | 0.4482 | 0.9167 | 0.00 |
-|  | val | 1920 | 0.8 | 0.8868 | 0.6093 | 0.8421 | 0.00 |
-|  | test | 1920 | 0.8 | 0.9340 | 0.4493 | 0.9167 | 0.00 |
-|  | val | 1920 | 0.9 | 0.8667 | 0.6003 | 0.8221 | 0.00 |
-|  | test | 1920 | 0.9 | 0.9275 | 0.4502 | 0.8902 | 0.00 |
-
-## Experiment 1c - max_det
-
-| Variante | Split | imgsz | Wert | mAP50 | mAP50-95 | bestes F1 | s |
-|---|---|---|---|---|---|---|---|
-|  | val | 1920 | 50 | 0.7346 | 0.5546 | 0.6812 | 0.00 |
-|  | test | 1920 | 50 | 0.7878 | 0.4400 | 0.7353 | 0.00 |
-|  | val | 1920 | 100 | 0.8846 | 0.6366 | 0.8511 | 0.00 |
-|  | test | 1920 | 100 | 0.9435 | 0.4927 | 0.9167 | 0.00 |
-|  | val | 1920 | 200 | 0.8917 | 0.6227 | 0.8511 | 0.00 |
-|  | test | 1920 | 200 | 0.9316 | 0.4649 | 0.9167 | 0.00 |
-|  | val | 1920 | 300 | 0.8919 | 0.6173 | 0.8511 | 0.00 |
-|  | test | 1920 | 300 | 0.9297 | 0.4566 | 0.9167 | 0.00 |
-|  | val | 1920 | 1000 | 0.8925 | 0.6129 | 0.8511 | 0.00 |
-|  | test | 1920 | 1000 | 0.9279 | 0.4482 | 0.9167 | 0.00 |
-
-## Experiment 1d - TTA und FP16
-
-| Variante | Split | imgsz | Wert | mAP50 | mAP50-95 | bestes F1 | s |
-|---|---|---|---|---|---|---|---|
-| plain | val | 1920 | False | 0.8925 | 0.6129 | 0.8511 | 0.06 |
-| plain | test | 1920 | False | 0.9279 | 0.4482 | 0.9167 | 0.07 |
-| tta | val | 1920 | True | 0.9139 | 0.6180 | 0.8989 | 0.13 |
-| tta | test | 1920 | True | 0.9341 | 0.4720 | 0.9176 | 0.11 |
-| fp16 | val | 1920 | False | 0.8925 | 0.6129 | 0.8511 | 0.06 |
-| fp16 | test | 1920 | False | 0.9279 | 0.4482 | 0.9167 | 0.06 |
-| tta+fp16 | val | 1920 | True | 0.9139 | 0.6180 | 0.8989 | 0.09 |
-| tta+fp16 | test | 1920 | True | 0.9341 | 0.4720 | 0.9176 | 0.10 |
-
-## Bootstrap-Konfidenzintervall (mAP50)
-
-Resampling raeumlicher Kacheln, 400 Wiederholungen. Notwendig, weil je Split nur ein Bild vorliegt.
-
-| Split | Mittel | Std | 95 %-CI | Kacheln |
-|---|---|---|---|---|
-| val | 0.8923 | 0.0506 | [0.7659, 0.9652] | 23 |
-| test | 0.9106 | 0.0356 | [0.8435, 0.9743] | 25 |
-
-## Experiment 3 - Modellfamilie
-
-![](fig_models.png)
-
-### Nativer Massstab
-
-| Modell | Split | Par. (M) | mAP50 | mAP75 | mAP50-95 | bestes F1 | P | R | Zaehlung |
-|---|---|---|---|---|---|---|---|---|---|
-| yolo11s | val | 9.43 | 0.8864 | 0.7928 | 0.5973 | 0.8621 | 0.872 | 0.852 | 86/88 |
-| yolo11s | test | 9.43 | 0.8875 | 0.3196 | 0.4372 | 0.8941 | 0.905 | 0.884 | 84/86 |
-| yolo26s | val | 9.95 | 0.9311 | 0.7954 | 0.6244 | 0.8913 | 0.854 | 0.932 | 96/88 |
-| yolo26s | test | 9.95 | 0.9051 | 0.3326 | 0.4270 | 0.8876 | 0.904 | 0.872 | 83/86 |
-| yolo26s-p2 | val | 9.66 | 0.9359 | 0.7502 | 0.6065 | 0.8973 | 0.856 | 0.943 | 97/88 |
-| yolo26s-p2 | test | 9.66 | 0.9415 | 0.3873 | 0.4500 | 0.9333 | 0.975 | 0.895 | 79/86 |
-
-### Bei der je Modell auf **val** gewaehlten imgsz
-
-| Modell | imgsz | val mAP50 | val mAP50-95 | test mAP50 | test mAP50-95 | test F1 | test Zaehlung |
-|---|---|---|---|---|---|---|---|
-| yolo11s | 1920 | 0.8925 | 0.6129 | 0.9279 | 0.4482 | 0.9167 | 82/86 |
-| yolo26s | 1600 | 0.9391 | 0.6377 | 0.9051 | 0.4270 | 0.8876 | 83/86 |
-| yolo26s-p2 | 1920 | 0.9400 | 0.6417 | 0.9471 | 0.4492 | 0.9341 | 81/86 |
-
-## Experiment 2 - Okklusionsanteil
-
-Dasselbe Bild (identischer Seed) aus allen drei Armen:
-
-![](fig_ablation_beispiele.png)
-
-![](fig_ablation.png)
-
-### Erzeugte Datensaetze
-
-| Arm | Objekte | mittl. Sichtbarkeit | teilverdeckt | Labels wegen Verdeckung verworfen | Bilder mit Stangen |
+| Split | mAP@0.5 | mAP@0.75 | mAP@0.5:0.95 | bestes F1 | P / R |
 |---|---|---|---|---|---|
-| A0_keine_okklusion | 82950 | 0.9768 | 0.12 | 241 | 0.0 |
-| A1_baseline | 68281 | 0.9015 | 0.2987 | 15312 | 0.5757 |
-| A2_starke_okklusion | 55833 | 0.8522 | 0.4066 | 28108 | 0.8987 |
+| `val` | 0.9474 | 0.7939 | 0.6197 | 0.9101 | 0.945 / 0.878 |
+| `test` | 0.9688 | 0.3680 | 0.4767 | 0.9364 | 0.964 / 0.910 |
+| `sval` | 0.9836 | 0.9485 | 0.8391 | 0.9613 | 0.968 / 0.954 |
 
-### Ergebnis
+## Ablation A — Okklusionsanteil
 
-| Arm | Split | mAP50 | mAP50-95 | bestes F1 | P | R | Zaehlung |
-|---|---|---|---|---|---|---|---|
-| A0_keine_okklusion | val | 0.8882 | 0.6056 | 0.8556 | 0.808 | 0.909 | 99/88 |
-| A0_keine_okklusion | test | 0.8987 | 0.4179 | 0.8957 | 0.948 | 0.849 | 77/86 |
-| A1_baseline | val | 0.9235 | 0.6087 | 0.8639 | 0.901 | 0.830 | 81/88 |
-| A1_baseline | test | 0.9111 | 0.4521 | 0.9036 | 0.938 | 0.872 | 80/86 |
-| A2_starke_okklusion | val | 0.9296 | 0.6203 | 0.9011 | 0.872 | 0.932 | 94/88 |
-| A2_starke_okklusion | test | 0.9190 | 0.4543 | 0.9102 | 0.938 | 0.884 | 81/86 |
+| Arm | Labels | Sichtb. | teilverd. | val mAP@0.5 | val mAP@0.5:0.95 | test mAP@0.5 | test mAP@0.5:0.95 | test F1 | best. Epoche |
+|---|---|---|---|---|---|---|---|---|---|
+| A0 ohne | 82950 | 0.9768 | 12.0 % | 0.9527 | 0.6384 | 0.9578 | 0.5057 | 0.9294 | 21 |
+| A1 Baseline | 68281 | 0.9015 | 29.9 % | 0.9739 | 0.6471 | 0.9611 | 0.4814 | 0.9318 | 28 |
+| A2 stark | 55833 | 0.8522 | 40.7 % | 0.9572 | 0.6170 | 0.9638 | 0.4567 | 0.9239 | 29 |
+
+## Ablation B — Herkunft der Okkluder
+
+| Arm | Labels | Sichtb. | teilverd. | val mAP@0.5 | val mAP@0.5:0.95 | test mAP@0.5 | test mAP@0.5:0.95 | test F1 | best. Epoche |
+|---|---|---|---|---|---|---|---|---|---|
+| B0 photogr. | 68281 | 0.9015 | 29.9 % | 0.9739 | 0.6471 | 0.9611 | 0.4814 | 0.9318 | 28 |
+| B1 prozedural | 68281 | 0.9015 | 29.9 % | 0.9442 | 0.5853 | 0.9630 | 0.4806 | 0.9412 | 20 |
+| B2 naiv | 68281 | 0.9015 | 29.9 % | 0.9642 | 0.6537 | 0.9140 | 0.4697 | 0.8848 | 15 |
+
+## Boxgrößenversatz
+
+| Split | Paare | Objekt-Ø (Median) | pred/GT | GT − pred | Zentrumsversatz |
+|---|---|---|---|---|---|
+| `val` | 97 | 26.8 px | 0.944 | +1.58 px | 0.056 Ø |
+| `test` | 88 | 17.9 px | 0.897 | +2.00 px | 0.051 Ø |
+| `sval` | 7224 | 24.0 px | 1.003 | -0.08 px | 0.021 Ø |
 

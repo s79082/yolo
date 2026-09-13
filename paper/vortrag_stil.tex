@@ -1,0 +1,279 @@
+% ===========================================================================
+%  Stil des Verteidigungsvortrags -- von vortrag.tex geladen.
+%
+%  Leitgedanke: EINE Aussage pro Folie, gross gesetzt.  Die Grundschrift ist
+%  deshalb die 14pt-Klasse und nicht 10 oder 11pt; Aufzaehlungen laufen in
+%  \large.  Was hier nicht als Makro vorgesehen ist, gehoert nicht auf eine
+%  Folie, sondern in den Sprechtext (\note) oder auf eine Zusatzfolie.
+%
+%  Die mitgelieferten beamer-Themen bringen Navigationsleisten und
+%  Schattenkaesten mit, die auf einem Projektor nur Platz kosten -- deshalb
+%  das Standardthema als Grundlage und alles Sichtbare hier definiert.
+% ===========================================================================
+\usetheme{default}
+\usecolortheme{default}
+\setbeamertemplate{navigation symbols}{}
+
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[utf8]{inputenc}
+  \usepackage[T1]{fontenc}
+  \usepackage{lmodern}
+\else
+  \usepackage{fontspec}
+\fi
+\usepackage[ngerman]{babel}
+\usepackage[german=quotes]{csquotes}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{graphicx}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,calc,fit}
+\usepackage{appendixnumberbeamer}
+
+% --------------------------------------------------------------------------
+%  Farben.  akzent traegt Titel und Hervorhebung, gut/warn die Richtung eines
+%  Effekts, die Belegart-Marker die Beweislage.
+% --------------------------------------------------------------------------
+\definecolor{akzent}{RGB}{20,64,116}
+\definecolor{akzenthell}{RGB}{72,124,180}
+\definecolor{gut}{RGB}{22,110,60}
+\definecolor{warn}{RGB}{176,58,20}
+\definecolor{grau}{RGB}{115,115,115}
+\definecolor{hgrau}{RGB}{243,244,246}
+
+\setbeamercolor{structure}{fg=akzent}
+\setbeamercolor{frametitle}{fg=akzent,bg=}
+\setbeamercolor{framesubtitle}{fg=grau,bg=}
+\setbeamercolor{footline}{fg=grau}
+\setbeamercolor{alerted text}{fg=warn}
+
+\setbeamerfont{frametitle}{size=\Large,series=\bfseries}
+\setbeamerfont{framesubtitle}{size=\normalsize,series=\mdseries}
+\setbeamerfont{footline}{size=\tiny}
+\setbeamerfont{itemize/enumerate body}{size=\large}
+\setbeamerfont{itemize/enumerate subbody}{size=\normalsize}
+\setbeamerfont{description item}{series=\bfseries}
+
+% Flache Striche statt Kugeln: laeuft bei grosser Schrift ruhiger.
+\newcommand{\markerI}{\color{akzenthell}\rule[0.30ex]{0.55em}{1.1pt}}
+\newcommand{\markerII}{\color{grau}\rule[0.30ex]{0.38em}{0.8pt}}
+\setbeamertemplate{itemize item}{\markerI}
+\setbeamertemplate{itemize subitem}{\markerII}
+\setbeamertemplate{enumerate item}{\color{akzent}\bfseries\insertenumlabel.}
+
+\setbeamersize{text margin left=1.1em,text margin right=1.1em}
+
+% Die Aufzaehlung des Hauptteils.  Bei 14pt-Grundschrift kleben Punkte mit
+% dem beamer-Standardabstand aneinander; enumitem waere der uebliche Weg,
+% bricht aber beamers \insertenumlabel (\labelenumi -> {\labelenumi},
+% Endlosrekursion).  Deshalb eine eigene Liste: der Abstand ist damit exakt
+% bekannt, und genau darauf stuetzt sich das Hoehenbudget weiter unten.
+%   \begin{punkte}          Hauptteil, luftig
+%   \begin{punkte}[0.25em]  Zusatzfolien, dicht
+\newenvironment{punkte}[1][0.55em]{%
+  \begin{list}{\markerI}{%
+    \setlength{\leftmargin}{1.6em}%
+    \setlength{\labelwidth}{0.8em}%
+    \setlength{\labelsep}{0.7em}%
+    \setlength{\itemsep}{#1}%
+    \setlength{\parsep}{0pt}%
+    \setlength{\topsep}{0.4em}%
+    \setlength{\partopsep}{0pt}%
+  }}{\end{list}}
+
+% --------------------------------------------------------------------------
+%  Folientitel mit Trennlinie, Fusszeile mit Abschnitt und Foliennummer.
+% --------------------------------------------------------------------------
+\makeatletter
+\setbeamertemplate{frametitle}{%
+  \nointerlineskip\vskip0.85em%
+  \begin{beamercolorbox}[wd=\paperwidth,leftskip=\beamer@leftmargin,
+                         rightskip=\beamer@rightmargin]{frametitle}%
+    \usebeamerfont{frametitle}\insertframetitle%
+    \ifx\insertframesubtitle\@empty\else%
+      \\[0.2em]{\usebeamerfont{framesubtitle}%
+        \usebeamercolor[fg]{framesubtitle}\insertframesubtitle}%
+    \fi%
+    \\[0.3em]{\color{akzent!22}\rule{\dimexpr\paperwidth-\beamer@leftmargin-\beamer@rightmargin\relax}{1pt}}%
+  \end{beamercolorbox}%
+  \vskip0.6em%
+}
+\setbeamertemplate{footline}{%
+  \begin{beamercolorbox}[wd=\paperwidth,ht=2.4ex,dp=1.6ex,
+                         leftskip=\beamer@leftmargin,
+                         rightskip=\beamer@rightmargin]{footline}%
+    \usebeamerfont{footline}%
+    \insertshorttitle\hfill\insertsectionhead\hfill%
+    \insertframenumber\,/\,\inserttotalframenumber%
+  \end{beamercolorbox}%
+}
+\makeatother
+
+% --------------------------------------------------------------------------
+%  Makros -- dieselben Namen wie in praeambel.tex, damit Textbausteine und
+%  Zahlen aus kapitel/ unveraendert uebernommen werden koennen.
+% --------------------------------------------------------------------------
+\newcommand{\code}[1]{\texttt{#1}}
+\newcommand{\px}{\,px}
+\newcommand{\PP}{\,\textnormal{\%-Punkte}}  % \textnormal, damit der Bindestrich
+                                            % im Mathemodus kein Minus wird
+\newcommand{\mAPfifty}{mAP@0{,}5}
+\newcommand{\mAPseven}{mAP@0{,}75}
+\newcommand{\mAPall}{mAP@0{,}5{:}0{,}95}
+\newcommand{\Oe}{\ensuremath{\varnothing}}
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+\newcolumntype{R}[1]{>{\raggedleft\arraybackslash}p{#1}}
+
+% Belegart: M gemessen, P physikalisch, L Literatur, A Annahme.
+\newcommand{\bM}{\textcolor{gut}{\textbf{M}}}
+\newcommand{\bP}{\textcolor{akzent}{\textbf{P}}}
+\newcommand{\bL}{\textcolor{akzenthell}{\textbf{L}}}
+\newcommand{\bA}{\textcolor{warn}{\textbf{A}}}
+
+% --------------------------------------------------------------------------
+%  Das Hoehenbudget einer Folie -- an dieser Klasse gemessen, nicht geschaetzt.
+%
+%  \textheight ist 241 pt, \textwidth 425 pt (14,97 cm).  Davon gehen ab:
+%    Folientitel ohne Untertitel   ~50 pt      Fusszeile   ~14 pt
+%    Folientitel mit  Untertitel   ~71 pt
+%  Es bleiben also 177 pt (ohne Untertitel) bzw. 156 pt (mit Untertitel).
+%
+%  Was das kostet:
+%    ein Aufzaehlungspunkt (\large, einzeilig)   22 pt  + 9 pt Abstand
+%    eine Umbruchzeile darin                     22 pt
+%    \fuss{}                                    ~34 pt
+%    \grosszahl{}{}{}                           ~124 pt
+%    \zweizahl{}{}{}{}                           ~89 pt
+%    \botschaft{} je Zeile                       ~39 pt
+%
+%  Daraus die Obergrenzen, die beim Schreiben gelten:
+%    mit Untertitel     4 Punkte   ODER 3 Punkte + \fuss
+%    ohne Untertitel    5 Punkte   ODER 4 Punkte + \fuss
+%    Grosszahl + \fuss  nur ohne Untertitel
+%
+%  Wer mehr braucht, hat zwei Folien -- nicht eine kleinere Schrift.
+%  'make vortrag-pruefen' nennt jede Folie, die die Grenze reisst.
+% --------------------------------------------------------------------------
+
+% --------------------------------------------------------------------------
+%  Folientypen.  Jeder steht fuer genau eine Art von Aussage; zusammen sind
+%  sie die einzigen erlaubten Bauformen einer Folie im Hauptteil.
+% --------------------------------------------------------------------------
+
+% (1) Botschaft: ein Satz, der die Folie ganz fuellt.  Fuer die Kernsaetze.
+\newcommand{\botschaft}[1]{%
+  \vfill
+  {\LARGE\baselineskip=1.35\baselineskip\color{akzent}#1\par}
+  \vfill}
+
+% (2) Grosszahl: die Zahl ist der Inhalt, nicht ihre Tabellenzeile.
+%     #1 Wert, #2 Beschriftung, #3 Zusatz (darf leer sein)
+\newcommand{\grosszahl}[3]{%
+  \begin{center}
+    {\fontsize{62}{66}\selectfont\bfseries\color{akzent}#1}\\[0.35em]
+    {\Large #2}%
+    \ifx\relax#3\relax\else\\[0.2em]{\normalsize\color{grau}#3}\fi
+  \end{center}}
+
+% (3) Zwei Zahlen nebeneinander -- fuer val gegen test.
+\newcommand{\zweizahl}[4]{%
+  \begin{center}
+  \begin{minipage}{0.46\textwidth}\centering
+    {\fontsize{56}{62}\selectfont\bfseries\color{akzent}#1}\\[0.35em]{\large #2}
+  \end{minipage}\hfill
+  \begin{minipage}{0.46\textwidth}\centering
+    {\fontsize{56}{62}\selectfont\bfseries\color{akzent}#3}\\[0.35em]{\large #4}
+  \end{minipage}
+  \end{center}}
+
+% (3b) Drei Zahlen -- fuer das verfuegbare Quellmaterial 9 / 7 / 2.
+\newcommand{\dreizahl}[6]{%
+  \begin{center}
+  \begin{minipage}{0.30\textwidth}\centering
+    {\fontsize{54}{60}\selectfont\bfseries\color{akzent}#1}\\[0.3em]{\large #2}
+  \end{minipage}\hfill
+  \begin{minipage}{0.30\textwidth}\centering
+    {\fontsize{54}{60}\selectfont\bfseries\color{akzent}#3}\\[0.3em]{\large #4}
+  \end{minipage}\hfill
+  \begin{minipage}{0.30\textwidth}\centering
+    {\fontsize{54}{60}\selectfont\bfseries\color{akzent}#5}\\[0.3em]{\large #6}
+  \end{minipage}
+  \end{center}}
+
+% (3c) Von-nach-Zahl: der Effekt ist der Sprung, nicht der Endwert.
+\newcommand{\sprungzahl}[5]{%
+  \begin{center}
+    {\Large\color{grau}#1}\quad
+    {\fontsize{42}{46}\selectfont\bfseries\color{grau}#2}\;
+    {\fontsize{42}{46}\selectfont\color{akzenthell}$\rightarrow$}\;
+    {\fontsize{42}{46}\selectfont\bfseries\color{akzent}#3}\\[0.4em]
+    {\Large #4}%
+    \ifx\relax#5\relax\else\\[0.2em]{\normalsize\color{grau}#5}\fi
+  \end{center}}
+
+% (3d) Schlagwortreihe: sechs Begriffe als Inhalt, ohne Erklaerung.
+%      Die Erklaerung steht im Sprechtext und auf der Zusatzfolie.
+\newcommand{\schlagworte}[1]{%
+  \begin{center}\large
+    \begingroup\setlength{\tabcolsep}{0.55em}#1\endgroup
+  \end{center}}
+
+% (4) Fussnotiz einer Folie: die eine Einschraenkung, die dazugehoert.
+%     Bewusst klein und grau -- sie ist Beiwerk, nicht Inhalt.
+% Regel: hoechstens zwei Zeilen.  Wer drei braucht, gehoert in den
+% Sprechtext -- \fuss traegt eine Einschraenkung, nie ein Argument.
+\newcommand{\fuss}[1]{%
+  \par\vspace{0.5em}
+  {\color{akzent!18}\rule{0.30\linewidth}{0.7pt}}\par\vspace{0.25em}
+  {\footnotesize\color{grau}#1\par}}
+
+% (4b) Abbildung mit Hoehendeckel.  \bild deckelt auf eine Hoehe, die mit
+%      Titel UND \fuss noch passt; \bildgross auf eine, die ohne \fuss passt.
+%      keepaspectratio, damit breite Plots an der Breite und hohe Fotos an
+%      der Hoehe begrenzt werden.
+\newcommand{\bild}[1]{%
+  \begingroup\centering
+    \includegraphics[width=\textwidth,height=0.50\textheight,
+                     keepaspectratio]{#1}\par
+  \endgroup}
+\newcommand{\bildgross}[1]{%
+  \begingroup\centering
+    \includegraphics[width=\textwidth,height=0.54\textheight,
+                     keepaspectratio]{#1}\par
+  \endgroup}
+
+% (5) Abschnittstrenner.
+\newcommand{\trenner}[2]{%
+  \begin{frame}[plain,noframenumbering]
+    \vfill
+    \begin{center}
+      {\color{grau}\large #1}\\[0.5em]
+      {\color{akzent}\Huge\bfseries #2}
+    \end{center}
+    \vfill
+  \end{frame}}
+
+% (6) Hervorgehobener Kasten fuer eine einzelne kurze Aussage.
+\newcommand{\kasten}[1]{%
+  \begingroup\setlength{\fboxsep}{0.7em}%
+  \noindent\colorbox{hgrau}{\begin{minipage}{\dimexpr\linewidth-1.4em\relax}%
+    \centering#1%
+  \end{minipage}}\endgroup}
+
+% (7) Budgetmarker.  Alle drei Entwuerfe nannten dasselbe Risiko: Auf den
+%     Ablationsfolien liegen 0,961 und 0,969 nur wenige Folien auseinander,
+%     stammen aber aus verschiedenen Budgets.  Der Marker steht deshalb auf
+%     JEDER Ablationsfolie an derselben Stelle.
+\newcommand{\budgetmarker}{%
+  \par\nointerlineskip
+  \hfill\raisebox{0pt}[0pt][0pt]{%
+    \colorbox{hgrau}{\footnotesize\color{grau}%
+      \,3000 Bilder $\cdot$ 30 Epochen $\cdot$ nicht mit dem Referenzmodell
+      vergleichbar\,}}\par\nointerlineskip}
+
+% Zusatzfolien im Anhang duerfen dicht sein -- sie werden nur in der
+% Diskussion gezeigt und dann gelesen, nicht vorgetragen.
+% Referenzmaterial, aus der Naehe gelesen -- nicht projizierte Prosa.
+\newcommand{\zusatzdicht}{\fontsize{7.5}{9}\selectfont}

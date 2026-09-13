@@ -1,0 +1,21 @@
+{
+  "B0_photographisch": {
+    "labels": "951f6e23e65486f1",
+    "images": "c39a869fbc26c9fa",
+    "n_labels": 3000
+  },
+  "B1_prozedural": {
+    "labels": "951f6e23e65486f1",
+    "images": "e392289e91de695f",
+    "n_labels": 3000
+  },
+  "B2_prozedural_naiv": {
+    "labels": "951f6e23e65486f1",
+    "images": "9f5f1906f7caa18b",
+    "n_labels": 3000
+  },
+  "_urteil": {
+    "labels_identisch": true,
+    "bilder_verschieden": true
+  }
+}

@@ -1,0 +1,17 @@
+\begin{table}[htbp]
+\centering
+\caption[Ablation A: Okklusionsanteil]{Ablation~A -- Okklusionsanteil. Links die erzeugten Datensätze, rechts das Ergebnis bei nativem Maßstab. Alle Arme: yolo26s-p2, 3000 Bilder, 30 Epochen, gleicher Seed. Fett der jeweils beste Wert einer Spalte.}
+\label{tab:ablationA}
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}lrrr|rrr|rr@{}}
+\toprule
+\textbf{Arm} & \multicolumn{3}{c|}{\textbf{Datensatz}} & \multicolumn{3}{c|}{\code{test}} & \multicolumn{2}{c}{\code{val}} \\
+ & \textbf{Labels} & \textbf{Sichtb.} & \textbf{teilverd.} & \mAPfifty{} & $F_1$ & $R$ & \mAPfifty{} & $F_1$ \\
+\midrule
+A0 ohne & 82\,950 & 0{,}977 & 12{,}0\,\% & 0{,}958 & 0{,}929 & 0{,}888 & 0{,}953 & 0{,}909 \\
+A1 Baseline & 68\,281 & 0{,}901 & 29{,}9\,\% & 0{,}961 & \textbf{0{,}932} & 0{,}921 & \textbf{0{,}974} & \textbf{0{,}944} \\
+A2 stark & 55\,833 & 0{,}852 & 40{,}7\,\% & \textbf{0{,}964} & 0{,}924 & \textbf{0{,}955} & 0{,}957 & 0{,}938 \\
+\bottomrule
+\end{tabular}
+\end{table}

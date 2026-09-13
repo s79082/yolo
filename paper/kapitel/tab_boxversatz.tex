@@ -1,0 +1,15 @@
+\begin{table}[htbp]
+\centering
+\caption[Größenversatz der Boxen]{Vergleich der vorhergesagten mit der annotierten Boxgröße. Als Boxgröße dient $\sqrt{\text{Fläche}}$, der Zentrumsversatz ist in Objektdurchmessern angegeben. \code{sval} ist der synthetische Split, dessen Labels der Generator selbst erzeugt hat.}
+\label{tab:boxversatz}
+\footnotesize
+\begin{tabular}{@{}lrrrrr@{}}
+\toprule
+\textbf{Split} & \textbf{Paare} & \textbf{Objekt-\Oe{} (Median)} & \textbf{pred/GT} & \textbf{GT $-$ pred} & \textbf{Zentrumsversatz} \\
+\midrule
+\code{test} (real) & 88 & 17{,}9\px & 0{,}897 & $+2{,}00$\px & 0{,}051\,\Oe \\
+\code{val} (real) & 97 & 26{,}8\px & 0{,}944 & $+1{,}58$\px & 0{,}056\,\Oe \\
+\code{sval} (synthetisch) & 7224 & 24{,}0\px & \textbf{1{,}003} & $-0{,}08$\px & 0{,}021\,\Oe \\
+\bottomrule
+\end{tabular}
+\end{table}

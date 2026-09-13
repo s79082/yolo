@@ -1,0 +1,7 @@
+# in jedem Bild Stangen, mehr Fremdkoerper, mehr quer davor liegende Rohre
+path: /home/mso/source/yolo-gen
+train: synth/abl_A2_starke_okklusion/images
+val: data/val/images
+test: data/test/images
+names:
+  0: rohrprofil

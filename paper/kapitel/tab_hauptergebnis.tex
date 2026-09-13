@@ -1,0 +1,15 @@
+\begin{table}[htbp]
+\centering
+\caption[Hauptergebnis]{Ergebnis des Referenzmodells (\code{yolo26s-p2}, 6000 Bilder, 60 Epochen) bei nativem Maßstab. $c^*$ ist die $F_1$-optimale Konfidenzschwelle, $P$ und $R$ sind Precision und Rückruf an diesem Betriebspunkt.}
+\label{tab:hauptergebnis}
+\footnotesize
+\begin{tabular}{@{}lrrrrrrr@{}}
+\toprule
+\textbf{Split} & \mAPfifty{} & \mAPseven{} & \mAPall{} & \textbf{bestes $F_1$} & $c^*$ & $P$\,/\,$R$ & \textbf{mittl.\ IoU} \\
+\midrule
+\code{val} (real) & \textbf{0{,}947} & 0{,}794 & 0{,}620 & 0{,}910 & 0{,}345 & 0{,}945\,/\,0{,}878 & 0{,}809 \\
+\code{test} (real) & \textbf{0{,}969} & 0{,}368 & 0{,}477 & 0{,}936 & 0{,}317 & 0{,}964\,/\,0{,}910 & 0{,}744 \\
+\code{sval} (synth.) & \textbf{0{,}984} & 0{,}948 & 0{,}839 & 0{,}961 & 0{,}387 & 0{,}968\,/\,0{,}954 & 0{,}904 \\
+\bottomrule
+\end{tabular}
+\end{table}

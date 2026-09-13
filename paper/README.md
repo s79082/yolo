@@ -5,15 +5,46 @@ YOLO26, Anwendung) und den neu ergänzten Praxisteil mit dem Schwerpunkt
 **Datenaugmentierung** — allgemeine Grundlagen, die konkrete Synthese-Pipeline
 mit Begründung jedes Parameters, und die Auswertung.
 
-## Zwei Varianten
+## Aufbau
 
-| Datei | Umfang | Inhalt |
-|---|---|---|
-| `main.tex` → `main.pdf` | 76 S. Text, 94 S. gesamt | Langfassung. Experiment 3 als Dreiervergleich yolo11s / yolo26s / yolo26s-p2; alle Parametertabellen im Text |
-| `main_p2_kurz.tex` → `main_p2_kurz.pdf` | **41 S. Text**, 61 S. gesamt | Kurzfassung. Experiment 3 auf **yolo26s gegen yolo26s-p2** reduziert und dafür ausgebaut (Architektur, Rechnung zu Kandidatenzellen, zwei eigene Abbildungen, Auflösungsabhängigkeit). Die vollständigen Parametertabellen stehen im Anhang |
+Ein Dokument: `main.tex` bindet die Kapitel aus `kapitel/` ein. Dort liegen
+neben dem Fließtext auch `zahlen.tex` und die Ergebnistabellen `tab_*.tex`,
+beide erzeugt von `src/report_neu.py` bzw. `src/analyse_ablationB.py`. Jede
+Zahl steht damit an genau einer Stelle.
 
-Beide teilen `praeambel.tex`, `literatur.bib` und `abbildungen/`; die
-Kapiteldateien liegen getrennt in `kapitel/` bzw. `kapitel_kurz/`.
+Frühere Fassungen (Langfassung, Kurzfassung, yolo11s-Vorgänger) sind entfernt;
+sie liegen im letzten Commit unter `paper/kapitel`, `paper/kapitel_kurz` und
+`paper/kapitel_e2` und lassen sich mit `git show HEAD:<pfad>` wieder ansehen.
+
+### Woher die Zahlen kommen
+
+Jede im Fließtext genannte Messzahl steht in `kapitel/zahlen.tex` und wird
+von `neu/src/report_neu.py` erzeugt — ebenso alle Ergebnistabellen
+(`kapitel/tab_*.tex`). Wird ein Lauf wiederholt, genügt
+
+```bash
+.venv/bin/python neu/src/report_neu.py
+```
+
+im Projektwurzelverzeichnis, damit Text und Tabellen wieder zu den Daten passen.
+Eine Zahl, für die noch kein Lauf vorliegt, erscheint im PDF als **??**.
+
+### Herkunft der Zahlenwerte
+
+Anhangabschnitt **A.6** (Tabelle A.4) nennt für jede Klasse von Zahlenwerten die
+Quelle und das Programm, das sie erzeugt — von der Objektstatistik über die
+Pipelineparameter und die Modellkennzahlen bis zu den Metriken. Als Prüfhilfe
+beim Schreiben:
+
+```bash
+python3 tools/zahlen_audit.py
+```
+
+Das Skript zerlegt die Kapitel in Sätze und meldet jeden Satz, der eine Zahl
+enthält, aber keinen Herkunftsmarker (Verweis auf Messung, Gleichung, Tabelle,
+Literatur oder die Kennzeichnung als gesetzter Wert). Es ist eine
+Erinnerungshilfe, kein Urteil — viele Treffer sind korrekt, weil die Herkunft im
+Nachbarsatz oder in der Abschnittseinleitung steht.
 
 ## Übersetzen
 
@@ -21,14 +52,10 @@ Kapiteldateien liegen getrennt in `kapitel/` bzw. `kapitel_kurz/`.
 make
 ```
 
-```bash
-make kurz
-```
+Erzeugt `build/main.pdf` und kopiert das Ergebnis nach `paper/main.pdf`. Ohne
+`latexmk` geht auch `make manual`.
 
-Erzeugen `build/*.pdf` und kopieren das Ergebnis ins Projektverzeichnis. Ohne
-`latexmk` geht auch `make manual` (nur für die Langfassung).
-
-Weitere Ziele: `make beide` baut beide Fassungen, `make pruefen` zählt die
+Weitere Ziele: `make pruefen` zählt die
 Warnungen (offene Referenzen, Overfull-Boxen) aus den Logdateien, `make clean`
 räumt auf.
 
@@ -64,7 +91,6 @@ sudo apt install texlive-latex-recommended texlive-latex-extra texlive-lang-germ
 | `kapitel/07_auswertung.tex` | 7 Auswertung: Metriken, Hauptergebnis, Sim-to-Real-Abstand, Experimente 1–3, Bootstrap, Fehleranalyse |
 | `kapitel/08_diskussion.tex` | 8 Diskussion: Belegstärke, Grenzen, Ausblick, Fazit |
 | `kapitel/09_anhang.tex` | Anhang: Reproduktion, Umgebungshinweis, Rohwerte des Erzeugungsberichts |
-| `kapitel_kurz/*.tex` | Kapiteldateien der Kurzfassung (gleiche Gliederung, gestraffter Text; Experiment 3 = P2-Vergleich) |
 | `abbildungen/` | aufbereitete Abbildungen (JPEG/PNG) |
 | `tools/abbildungen_vorbereiten.py` | erzeugt `abbildungen/` aus `docs/` und den Rohdaten |
 | `tools/fig_p2.py` | erzeugt `abbildungen/p2_sweep.png` aus `docs/experiments/experiment3_models_imgsz.json` |

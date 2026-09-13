@@ -1,0 +1,216 @@
+% ======================================================================
+%  Kapitel: Datengrundlage  --  korrigierte und gekuerzte Fassung
+%
+%  Kapitelfragment, keine eigene Praeambel. Vorausgesetzt werden die
+%  bereits in der Arbeit definierten Makros und Umgebungen:
+%    \code{...}     Monospace-Auszeichnung
+%    \absatz{...}   Absatzueberschrift
+%    \px            Pixel-Einheit
+%    \Oe            Objektdurchmesser als Einheit
+%    L{...}         linksbuendiger Spaltentyp fester Breite (array/tabularx)
+%  sowie biblatex (\parencite) und die Pakete booktabs, tabularx.
+%
+%  Querverweise auf Kapitel 3 verwenden die Labels der korrigierten
+%  Kapitelfassung: eq:deff (3.8), eq:gridmiss (3.11), eq:bendavid (3.12).
+%  Der Verweis \ref{subsec:kleine-objekte} zeigt dort auf
+%  \label{subsec:kleine-objekte} -- Labelnamen ggf. angleichen.
+% ======================================================================
+
+\chapter{Datengrundlage}
+\label{kap:daten}
+
+Alle Parameter der folgenden Kapitel berufen sich auf Messungen am verfügbaren
+Quellmaterial. Dieses Kapitel dokumentiert sie. Sämtliche Zahlenwerte sind mit
+\code{src/analyze\_data.py} an den Quelldateien gemessen und in
+\code{docs/datensichtung.json} abgelegt.
+
+\section{Annotationsdefinition}
+\label{sec:annotation}
+
+Vor jeder Messung steht die Frage, was ein Objekt ist. Aus der Sichtung der
+beiden handannotierten Realbilder ergibt sich eine Definition, die die gesamte
+Pipeline prägt:
+
+\begin{quote}
+Annotiert ist ausschließlich die \textbf{sichtbare Stirnfläche} eines
+Rundrohrprofils -- heller verzinkter Kranz, dunkle Bohrung. Rohrschäfte in
+Seitenansicht, Gitterknoten und dunkle Löcher im Maschendraht sind
+\textbf{keine} Objekte, obwohl sie ähnlich aussehen. Die Box umschließt den
+\textbf{sichtbaren} Teil (modale Box), nicht den geschätzten vollständigen Kreis.
+\end{quote}
+
+Beide Festlegungen sind folgenreich: Die erste bestimmt, welche Strukturen als
+harte Negative benötigt werden, die zweite, wie die Boxen im Generator berechnet
+werden. Die Unterscheidung modal / amodal ist in der Literatur etabliert
+\parencite{li2016amodal,zhu2017amodal}; amodale Boxen umschließen auch verdeckte
+Teile. Erzeugte der Generator amodale Boxen, während die Realbilder modal
+annotiert sind, entstünde ein systematischer Größenversatz -- ein Verstoß gegen
+Anforderung~A5.
+
+\section{Quellmaterial}
+\label{sec:quellmaterial}
+
+\absatz{Objektausschnitte.} Verfügbar sind neun aus Realaufnahmen
+ausgeschnittene Rohrprofile der Größe $28\times30$ bis $43\times38$ Pixel. Sechs
+zeigen eine dunkle Bohrung (offenes Rohr), drei eine helle (Sonnenlicht fällt in
+die Röhre oder das Ende ist gestaucht); beide Formen kommen in den Realbildern
+vor, weshalb gleichverteilt aus allen neun gezogen wird. Die aus dem
+Ellipsenmodell gewonnenen Achsverhältnisse der Ausschnitte streuen zwischen 0,83
+und 1,14 (Abschnitt~\ref{sec:matting}). Kritisch ist Befund~1 in
+Tabelle~\ref{tab:befunde}: Alle neun sind zwar RGBA-Dateien, ihr Alphakanal ist
+aber durchgängig 255 -- es handelt sich um rechteckige Ausschnitte, bei denen
+13--35\,\% der Fläche nicht zum Objekt gehören.
+
+\absatz{Hintergründe.} Von den sieben Hintergrundaufnahmen sind vier
+\emph{Clean Plates}: Wände aus Rohrschäften derselben Objektart \emph{ohne}
+Stirnflächen, mit den gemessenen Rohrdurchmessern 16/18/21/20\px{}. Sie liefern
+gleichzeitig photometrisch passenden Kontext, das Rohmaterial der
+Okkluder-Bibliothek und echte Negativbeispiele und werden deshalb bevorzugt
+gezogen: In 80\,\% der Bilder stammt der Hintergrund aus dieser Gruppe, was je
+Clean Plate 20\,\% und je Fremdszene 6,7\,\% ergibt -- ein dreifaches Gewicht je
+Bild. In der Terminologie von Gleichung~\eqref{eq:bendavid} verkleinern sie
+denjenigen Anteil des Divergenzterms, der auf den Hintergrund zurückgeht: Dieser
+ist nicht \emph{ähnlich} der Zieldomäne, er stammt aus ihr. Die Komposition
+selbst bleibt davon unberührt und ist weiterhin eine Divergenzquelle
+(Signaturen~S1--S6).
+
+Die drei Fremdszenen (Kieswerk, Betonplatten, Betondeck mit Maschendrahtzaun)
+sind primär als hartes Negativmaterial wertvoll -- der Maschendraht ist genau
+die Struktur, die nach der Annotationsdefinition kein Objekt ist und dennoch als
+Falschpositiv droht. Schwäche des Materials: Alle vier Clean Plates zeigen
+dieselbe Stapelart bei bedecktem bis diffusem Licht -- kein harter
+Sonnenschein, keine Nässe, kein Schnee.
+
+\section{Bewertungsdaten und ihre Statistik}
+\label{sec:valtest}
+
+Zur Bewertung stehen zwei vollständig handannotierte Realaufnahmen zur
+Verfügung: \code{val} ($2459\times1174$, 98 Objekte) für die Modellauswahl und
+\code{test} ($1600\times900$, 89 Objekte) ausschließlich für die Endbewertung.
+Beide Annotationen wurden nach der ersten Auswertungsrunde noch einmal
+durchgesehen und ergänzt; alle berichteten Zahlen beziehen sich auf den so
+korrigierten Stand mit zusammen 187 Objekten.
+
+\begin{table}[htbp]
+\centering
+\caption[Gemessene Statistik der realen Labels]{Gemessene Statistik der realen
+Labels ($n = 187$). Als Objektdurchmesser dient $\sqrt{\text{Fläche}}$; alle
+Abstände sind in Objektdurchmessern (\Oe) angegeben und damit skaleninvariant
+direkt als Generatorparameter verwendbar. NN = nächster Nachbar.}
+\label{tab:statistik}
+\footnotesize
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{Größe} & \textbf{\code{val}} & \textbf{\code{test}} \\
+\midrule
+Anzahl Objekte & 98 & 89 \\
+Durchmesser (px) & 12,2--35,8, \textbf{Median 26,8} & 6,4--31,9, \textbf{Median 17,0} \\
+\quad p05 / p90 & 19,1 / 33,0 & 12,2 / 27,4 \\
+Seitenverhältnis $w/h$ & p10 0,97, Median 1,09, p90 1,40 & p10 0,82, Median 1,08, p90 1,22 \\
+Objektfläche gesamt & 2,60\,\% des Bildes & 2,65\,\% \\
+am Bildrand angeschnitten & 2,0\,\% & 6,7\,\% \\
+\midrule
+NN-Abstand (in \Oe) & p10 0,86, Median 1,11, p90 1,78 & p10 0,78, Median 1,26, p90 2,72 \\
+Nachbarn innerhalb $5\,\Oe$ & Median 10, max 15 & Median 10, max 20 \\
+NN näher als $1{,}2\,\Oe$ & 60,2\,\% & 44,9\,\% \\
+Größenverhältnis zum NN & Median 1,05, p90 1,18 & Median 1,07, p90 1,38 \\
+Nachbarrichtung & quasi isotrop, Häufung $90$--$150^\circ$ & quasi isotrop \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Mit Durchmessern von 6--36\px{} liegen die Objekte überwiegend unterhalb der
+COCO-Grenze für Kleinobjekte von $32^2$\px{} Fläche \parencite{lin2014coco};
+lediglich das obere Ende von \code{val} überschreitet sie. Nach
+Gleichung~\eqref{eq:deff} schrumpfen die Mediane beider Splits bei
+\code{imgsz}=640 auf etwa 7\px, die Hauptmasse zwischen p05 und p90 auf
+5--11\px. Damit liegt praktisch die gesamte Objektmasse in der Größenordnung des
+P3-Strides von 8\px{} oder darunter, und der in
+Gleichung~\eqref{eq:gridmiss} beschriebene Fall wird für den Großteil der
+Instanzen geometrisch möglich. Die Inferenzauflösung wird deshalb in
+Abschnitt~\ref{sec:imgsz} systematisch untersucht.
+
+Zwei Zahlen der Tabelle sind für die weiteren Kapitel besonders wichtig.
+Erstens sind vier der 89 Objekte in \code{test} schon im \emph{nativen} Maßstab
+kleiner als 12\px, zwei davon kleiner als die kritische Größe $S\sqrt{2}$ aus
+Gleichung~\eqref{eq:gridmiss}, die für den P3-Stride $S=8$ der Werkzeugkette
+\parencite{ultralyticsdocs} bei 11,3\px{} liegt. Für
+diese Objekte existieren nach der idealisierten Betrachtung in
+Abschnitt~\ref{subsec:kleine-objekte} Gitterlagen, in denen kein Zentrum der
+P3-Ebene innerhalb des Objekts liegt. Das ist keine Detektionsgrenze, aber ein
+konkreter Anlass für die Modellwahl in Abschnitt~\ref{sec:p2kopf}. Zweitens sind
+die beiden Bilder \emph{nicht} austauschbar: \code{test} enthält kleinere
+Objekte (Median 17,0 gegen 26,8\px), lockerere Packung (NN-Median 1,26 gegen
+1,11\,\Oe) und mehr angeschnittene Boxen (6,7 gegen 2,0\,\%). Der schwierigere
+Split ist damit gerade derjenige, den Training und Modellauswahl nie berühren --
+was bei der Lektüre der Ergebnisse zu berücksichtigen ist.
+
+\section{Befunde und die daraus abgeleiteten Parameter}
+\label{sec:messungmapping}
+
+Tabelle~\ref{tab:befunde} fasst zusammen, welcher Befund welchen
+Pipelineparameter festlegt. Sie ist die Belegbrücke zu
+Kapitel~\ref{kap:pipeline} und macht zugleich sichtbar, welche Parameter
+\emph{nicht} durch eine Messung gedeckt sind. Die Spalte \emph{Art} bezieht sich
+dabei auf die Begründung des \emph{abgeleiteten Parameters}, nicht auf die des
+Befunds; eine Doppelangabe wie \emph{M/A} bedeutet, dass der Befund gemessen,
+der konkrete Zahlenwert des Parameters aber gewählt ist.
+
+\begin{table}[htbp]
+\centering
+\caption[Befunde und abgeleitete Parameter]{Befunde der Datensichtung und die
+daraus abgeleiteten Parameter. Belegart: \emph{M} = Messung an den Realdaten,
+\emph{P} = physikalische Randbedingung, \emph{L} = Literatur, \emph{A} =
+Annahme.}
+\label{tab:befunde}
+\footnotesize
+\begin{tabularx}{\textwidth}{@{}L{0.30\textwidth}XL{0.05\textwidth}@{}}
+\toprule
+\textbf{Befund / Messwert} & \textbf{abgeleiteter Parameter} & \textbf{Art} \\
+\midrule
+\textbf{1} Alphakanal durchgängig 255; 13--35\,\% Fremdkontext &
+eigene Matting-Stufe mit weicher Alphamaske (Signatur~S1) & M \\
+\textbf{2} sechs dunkle, drei helle Bohrungen; Achsverhältnis der Ausschnitte
+0,83--1,14 &
+Gleichverteilung über alle neun Ausschnitte; Ovalisierung überhaupt vorsehen & M/A \\
+\textbf{3} vier Clean Plates der Zieldomäne; Maschendraht und Schotter in den
+Fremdszenen &
+80\,\% Ziehgewicht auf Clean Plates; 10\,\% Negativbilder (Gewichte gewählt) & M/A \\
+\textbf{4} Rohrdurchmesser der Clean Plates 16--21\px{} &
+Kopplung von Zoom und Objektgröße & M/P \\
+\textbf{5} Objektdurchmesser 6,4--35,8\px, p05 der beiden Splits 19,1 bzw.\
+12,2\px{} &
+Generatorbereich 12--44\px: untere Grenze $=$ p05 von \code{test}, obere
+$=$ Maximum $+\,25\,\%$ Reserve (Faktor gewählt); die vier Objekte unter
+12\px{} in \code{test} deckt erst die Trainingsskalierung ab & M/A \\
+\textbf{6} Seitenverhältnis p10--p90 $=$ 0,82--1,40 &
+Ovalisierung bei 57\,\% der Instanzen, oblat:prolat $=$ 45:12; Quote als
+Anpassung an das p10--p90-Band gewählt & M/A \\
+\textbf{7} Größenverhältnis zum Nachbarn: Median 1,05, p90 1,18 (\code{val});
+Median 1,07, p90 1,38 (\code{test}) &
+eine Basisgröße pro Cluster, je Instanz nur $\pm 8\,\%$; abgeleitet aus dem p90
+von \code{val}, das p90 von \code{test} wird damit nicht abgedeckt & M/A \\
+\textbf{8} hinter jeder Stirnfläche führt ein Rohrschaft weg, ist aber nicht
+immer sichtbar &
+\emph{sichtbarer} Schaft bei 88\,\% der Instanzen (Tabelle~\ref{tab:parameter},
+T5), Anteil gewählt; Schaftmaterial aus der photographischen
+Okkluder-Bibliothek & P/A \\
+\textbf{9} NN-Abstand Median 1,11--1,26\,\Oe; 6,7\,\% angeschnittene Labels in
+\code{test} &
+Gitterabstände des Layoutmodells; Clusterzentrum darf außerhalb der Leinwand
+liegen, Randregel 15\,\% (Wert gewählt) & M/A \\
+\midrule
+\textbf{10} keine Messung verfügbar &
+Anteil verformter Profile (18\,\%), Schrägansicht (30\,\%), Schlagschatten
+(49\,\%) & A \\
+\textbf{11} je \emph{ein} Bild pro Split &
+Bootstrap-Konfidenzintervalle statt Punktschätzungen
+(Abschnitt~\ref{sec:bootstrap}) & M \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Befund~11 ist die größte methodische Schwäche der Arbeit: Je ein Bild pro Split
+ist für eine belastbare Metrikangabe zu wenig, und beide Bilder zeigen dieselbe
+Objektart bei ähnlichem Wetter. Alle berichteten Zahlen sind entsprechend als
+Punktschätzungen mit erheblicher Unsicherheit zu lesen.

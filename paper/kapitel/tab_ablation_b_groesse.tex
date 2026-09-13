@@ -1,0 +1,16 @@
+\begin{table}[htbp]
+\centering
+\caption[Rückruf nach Objektgröße]{Rückruf am $F_1$-optimalen Betriebspunkt, getrennt nach Objektgröße. \enquote{klein} ist das kleinste Drittel des jeweiligen Splits (Schwelle 14,9\px{} auf \code{test}, 25,4\px{} auf \code{val}). Der Verlust des naiven Okkluders konzentriert sich fast vollständig auf die kleinen Objekte -- also auf die, die tief im Stapel liegen und dort von anderen Rohren gekreuzt werden.}
+\label{tab:ablationBgroesse}
+\footnotesize
+\begin{tabular}{@{}lrrr|rrr@{}}
+\toprule
+\textbf{Arm} & \multicolumn{3}{c}{\code{test}} & \multicolumn{3}{c}{\code{val}} \\
+ & klein & groß & FN & klein & groß & FN \\
+\midrule
+B0 photographisch & 0{,}800 & 0{,}983 & 7 & 0{,}909 & 0{,}969 & 5 \\
+B1 prozedural & 0{,}767 & 0{,}966 & 9 & 0{,}848 & 0{,}938 & 9 \\
+B2 naiv & 0{,}567 & 0{,}949 & 16 & 0{,}879 & 0{,}923 & 9 \\
+\bottomrule
+\end{tabular}
+\end{table}

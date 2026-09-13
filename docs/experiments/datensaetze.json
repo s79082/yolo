@@ -1,0 +1,67 @@
+{
+  "A0_keine_okklusion": {
+    "datensatz": "synth/abl_A0_keine_okklusion",
+    "beschreibung": "ohne quer liegende Stangen, ohne Fremdkoerper, kein Schaft vor einer Stirnflaeche",
+    "bilder": 3000,
+    "instanzen_gerendert": 86617,
+    "labels": 82950,
+    "mittlere_sichtbarkeit": 0.9768,
+    "teilverdeckt": 0.12,
+    "verworfen_verdeckt": 241,
+    "bilder_mit_stangen": 0.0,
+    "schaft_je_instanz": 0.8805,
+    "okkluder": "photographisch"
+  },
+  "A1_baseline": {
+    "datensatz": "synth/abl_A1_baseline",
+    "beschreibung": "Baseline der Pipeline; zugleich Arm B0 der zweiten Ablation",
+    "bilder": 3000,
+    "instanzen_gerendert": 86617,
+    "labels": 68281,
+    "mittlere_sichtbarkeit": 0.9015,
+    "teilverdeckt": 0.2987,
+    "verworfen_verdeckt": 15312,
+    "bilder_mit_stangen": 0.5757,
+    "schaft_je_instanz": 0.8805,
+    "okkluder": "photographisch"
+  },
+  "A2_starke_okklusion": {
+    "datensatz": "synth/abl_A2_starke_okklusion",
+    "beschreibung": "in jedem Bild Stangen, mehr Fremdkoerper, mehr quer davor liegende Rohre",
+    "bilder": 3000,
+    "instanzen_gerendert": 86617,
+    "labels": 55833,
+    "mittlere_sichtbarkeit": 0.8522,
+    "teilverdeckt": 0.4066,
+    "verworfen_verdeckt": 28108,
+    "bilder_mit_stangen": 0.8987,
+    "schaft_je_instanz": 0.8795,
+    "okkluder": "photographisch"
+  },
+  "B1_prozedural": {
+    "datensatz": "neu/synth/abl_B1_proz_balken",
+    "beschreibung": "Okkluder prozedural erzeugt (Zylindermodell, an B0 kalibriert)",
+    "bilder": 3000,
+    "instanzen_gerendert": 86617,
+    "labels": 68281,
+    "mittlere_sichtbarkeit": 0.9015,
+    "teilverdeckt": 0.2987,
+    "verworfen_verdeckt": 15312,
+    "bilder_mit_stangen": 0.5757,
+    "schaft_je_instanz": 0.8805,
+    "okkluder": "prozedural_physikalisch"
+  },
+  "B2_prozedural_naiv": {
+    "datensatz": "neu/synth/abl_B2_proz_balken_naiv",
+    "beschreibung": "Okkluder prozedural erzeugt, naiv (konstantes Grau)",
+    "bilder": 3000,
+    "instanzen_gerendert": 86617,
+    "labels": 68281,
+    "mittlere_sichtbarkeit": 0.9015,
+    "teilverdeckt": 0.2987,
+    "verworfen_verdeckt": 15312,
+    "bilder_mit_stangen": 0.5757,
+    "schaft_je_instanz": 0.8805,
+    "okkluder": "prozedural_naiv"
+  }
+}

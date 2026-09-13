@@ -1,648 +1,282 @@
 \chapter{Theoretische Grundlagen}
 \label{kap:theorie}
 
-\section{Convolutional Neural Networks (CNNs)}
+\section{Convolutional Neural Networks}
 \label{sec:cnn}
 
-\subsection{Motivation und Grundidee}
-
-Convolutional Neural Networks (CNNs, dt.\ Faltungsnetzwerke) sind eine spezielle
-Klasse künstlicher neuronaler Netze, die für die Verarbeitung von Daten mit
-gitterartiger Topologie -- insbesondere Bildern -- entwickelt wurden
-\parencite{goodfellow2016}. Während klassische vollvernetzte Netze
-(Multilayer Perceptrons) jedes Pixel eines Bildes mit jedem Neuron der
-Folgeschicht verbinden und dadurch bei hochauflösenden Bildern eine
-unpraktikabel große Zahl an Parametern erzeugen, nutzen CNNs drei zentrale
-Prinzipien, um diese Problematik zu umgehen: lokale rezeptive Felder, geteilte
-Gewichte (weight sharing) und räumliches Subsampling \parencite{lecun1998}.
-
-Die Grundannahme dahinter ist, dass relevante Bildmerkmale -- etwa Kanten, Ecken
-oder Texturen -- lokal auftreten und translationsinvariant sind: Eine Kante ist
-eine Kante, unabhängig davon, an welcher Bildposition sie erscheint. Ein
-gelerntes Filter kann daher über das gesamte Bild hinweg wiederverwendet werden.
-
-\subsection{Die drei Grundprinzipien im Detail}
+\subsection{Grundprinzipien}
 \label{sec:prinzipien}
 
-Die drei genannten Prinzipien sind keine Implementierungsdetails, sondern
-kodieren strukturelles Vorwissen über Bilddaten in die Netzarchitektur
-(sogenannter \emph{induktiver Bias}). Sie werden im Folgenden formal hergeleitet.
-
-\absatz{Notation.} Ein Grauwertbild wird als Funktion $x: \Omega \to \mathbb{R}$
-auf dem diskreten Gitter $\Omega = \{0,\dots,H-1\} \times \{0,\dots,W-1\}$
-aufgefasst; $x[i,j]$ bezeichnet den Wert an Position $(i,j)$. Eine Netzschicht
-ist eine Abbildung, die eine Eingabe mit $C_{\text{in}}$ Kanälen auf eine
-Ausgabe mit $C_{\text{out}}$ Kanälen überführt.
-
-\absatz{Lokale rezeptive Felder.} In einer vollvernetzten Schicht berechnet sich
-die Aktivierung eines Neurons $k$ aus \emph{allen} Eingangspixeln:
-\begin{equation}
-y_k = \sigma\!\left(\sum_{(i,j)\in\Omega} w_k[i,j]\,x[i,j] + b_k\right)
-\label{eq:fc}
-\end{equation}
-
-Die Parameterzahl einer solchen Schicht beträgt
-$C_{\text{out}} \cdot H \cdot W + C_{\text{out}}$. Für $H = W = 640$ und
-lediglich $C_{\text{out}} = 100$ Neuronen ergeben sich bereits über 40~Millionen
-Gewichte. Neben dem unmittelbaren Speicher- und Rechenaufwand ist dabei vor allem
-die \textbf{Stichprobeneffizienz} problematisch: Ein vollvernetztes Netz besitzt
-keinerlei architektonisches Vorwissen darüber, dass dasselbe visuelle Muster an
-unterschiedlichen Bildpositionen dieselbe Bedeutung trägt, und müsste diese
-Eigenschaft für jede Position separat aus Daten erlernen. Der entsprechende
-Bedarf an Trainingsbeispielen ist in der Praxis kaum zu decken.
-
-\begin{figure}[htbp]
-\centering
-\begin{tikzpicture}[scale=0.52, every node/.style={transform shape}]
-  % ---- Panel a: vollvernetzt ----
-  \begin{scope}[shift={(0,0)}]
-    \foreach \i in {0,...,5}{\foreach \j in {0,...,5}{
-      \fill[blue!12] (\i,\j) rectangle ++(1,1);
-      \draw[gray!55,very thin] (\i,\j) rectangle ++(1,1);}}
-    \node (outa) at (8.6,3) [circle,draw,fill=orange!25,minimum size=8mm] {$y_k$};
-    \foreach \i in {0,...,5}{\foreach \j in {0,...,5}{
-      \draw[gray!45,very thin] (\i+0.5,\j+0.5) -- (outa);}}
-    \node[below] at (3,-0.35) {(a) vollvernetzt: $H\!\cdot\!W$ Gewichte je Neuron};
-  \end{scope}
-  % ---- Panel b: Faltung ----
-  \begin{scope}[shift={(12.5,0)}]
-    \foreach \i in {0,...,5}{\foreach \j in {0,...,5}{
-      \draw[gray!55,very thin] (\i,\j) rectangle ++(1,1);}}
-    \foreach \i in {2,3,4}{\foreach \j in {2,3,4}{
-      \fill[blue!30] (\i,\j) rectangle ++(1,1);
-      \draw[gray!70,very thin] (\i,\j) rectangle ++(1,1);}}
-    \draw[very thick,orange!80!black] (2,2) rectangle (5,5);
-    \node (outb) at (8.6,3) [circle,draw,fill=orange!25,minimum size=8mm] {$y[i,j]$};
-    \foreach \i in {2,3,4}{\foreach \j in {2,3,4}{
-      \draw[gray!60,very thin] (\i+0.5,\j+0.5) -- (outb);}}
-    \node[below] at (3,-0.35) {(b) Faltung: $k^2$ Gewichte je Neuron};
-  \end{scope}
-\end{tikzpicture}
-\caption[Vollvernetzte Schicht gegen Faltungsschicht]{Lokale rezeptive Felder.
-(a)~In einer vollvernetzten Schicht nach Gleichung~\eqref{eq:fc} ist jedes
-Ausgabeneuron mit allen $H\cdot W$ Eingangspixeln verbunden. (b)~In einer
-Faltungsschicht nach Gleichung~\eqref{eq:conv} beschränkt sich die Summation auf
-eine $k\times k$-Nachbarschaft; für $k=3$ sinkt die Zahl der Verbindungen je
-Ausgabeneuron bei $640\times640$ Eingabe von 409\,600 auf 9. Zugleich wird
-derselbe Kernel an allen Positionen verwendet (Weight Sharing), sodass die
-Parameterzahl der Schicht unabhängig von der Bildgröße wird.}
-\label{abb:rezeptivesfeld}
-\end{figure}
-
-Die klassische statistische Lerntheorie führt hohe Parameterzahlen darüber
-hinaus auf eine erhöhte Modellkapazität und damit auf eine Neigung zur
-Überanpassung zurück \parencite[Kap.~5]{goodfellow2016}. Für tiefe neuronale
-Netze ist dieser Zusammenhang allerdings nicht ungebrochen gültig:
-\textcite{zhang2017rethinking} zeigen experimentell, dass gängige Faltungsnetze
-zufällige Beschriftungen der Trainingsdaten vollständig memorieren können und
-dennoch auf realen Daten gut generalisieren -- ein Befund, der die klassische
-Kapazitätsargumentation als alleinige Erklärung in Frage stellt. Der belastbare
-Vorteil lokaler rezeptiver Felder liegt daher weniger in einer Vermeidung von
-Überanpassung an sich als in der beschriebenen Stichprobeneffizienz und im
-deutlich reduzierten Rechenaufwand.
-
-In einer Faltungsschicht wird die Summation stattdessen auf eine lokale
-Nachbarschaft $\mathcal{N}_{k \times k}$ der Größe $k \times k$ beschränkt:
-\begin{equation}
-y[i,j] = \sigma\!\left(\sum_{(u,v)\in\mathcal{N}_{k\times k}} w[u,v]\,
-x[i+u,\,j+v] + b\right)
-\label{eq:conv}
-\end{equation}
-
-Die Anzahl der Verbindungen je Ausgabeneuron sinkt damit von $H \cdot W$ auf
-$k^2$ -- für $k = 3$ von 409\,600 auf 9 (Abbildung~\ref{abb:rezeptivesfeld}).
-Die Rechtfertigung liegt in der lokalen Korrelationsstruktur natürlicher Bilder:
-Die Autokorrelation benachbarter Pixelwerte fällt mit wachsendem Abstand rasch
-ab, sodass weit entfernte Pixel für lokale Merkmalsentscheidungen kaum
-Information beitragen \parencite{lecun1998}.
-
-Das theoretische rezeptive Feld wächst mit der Netztiefe. Bezeichnet $r_\ell$
-seine Kantenlänge nach Schicht $\ell$, $k_\ell$ die Kernelgröße und $s_\ell$ die
-Schrittweite, so gilt die Rekursion
-\begin{equation}
-r_\ell = r_{\ell-1} + (k_\ell - 1)\prod_{m=1}^{\ell-1} s_m,
-\qquad r_0 = 1.
-\label{eq:rf}
-\end{equation}
-
-Bei reinen $3\times3$-Faltungen mit $s_m = 1$ wächst $r_\ell$ lediglich linear
-($r_\ell = 2\ell + 1$); erst durch Schrittweiten $s_m = 2$ wächst das Produkt
-exponentiell, sodass das rezeptive Feld schnell große Bildbereiche umfasst.
-Hieraus entsteht die in Abschnitt~\ref{sec:hierarchie} beschriebene
-Merkmalshierarchie. Zu beachten ist, dass das \emph{effektive} rezeptive Feld
-kleiner ausfällt als dieses theoretische Maß:
-\textcite{luo2016} zeigen, dass der Einfluss
-$\partial y_{\text{Zentrum}} / \partial x[i,j]$ annähernd gaußförmig zum Zentrum
-hin abfällt und nur ein Bruchteil des theoretischen Felds tatsächlich zur
-Ausgabe beiträgt.
-
-\absatz{Geteilte Gewichte (Weight Sharing).} Ohne Gewichtsteilung besäße jede
-Position $(i,j)$ einen eigenen Kernel $w_{ij}$, was auf $H \cdot W \cdot k^2$
-Parameter je Merkmalskarte führte. Weight Sharing bedeutet formal, dass
-$w_{ij} = w$ für alle $(i,j)$ gilt; die Schicht wird dadurch zur diskreten
-Faltung (genauer: Kreuzkorrelation)
-\begin{equation}
-y[i,j] = (w * x)[i,j] = \sum_{u,v} w[u,v]\,x[i+u,\,j+v],
-\end{equation}
-mit lediglich $k^2$ Parametern je Kernel. Für eine Schicht mit $C_{\text{in}}$
-Eingangs- und $C_{\text{out}}$ Ausgangskanälen ergeben sich
-$C_{\text{out}} \cdot C_{\text{in}} \cdot k^2 + C_{\text{out}}$ Parameter --
-unabhängig von der Bildgröße. Dies ist der entscheidende Unterschied zur
-vollvernetzten Schicht, deren Parameterzahl mit $H \cdot W$ skaliert.
-
-Die zentrale Eigenschaft ist die \textbf{Translationsäquivarianz}. Bezeichnet
-$(T_\tau x)[i,j] = x[i-\tau_1,\,j-\tau_2]$ die Verschiebung um $\tau$, so gilt
-für die Faltungsoperation $f$:
-\begin{equation}
-f(T_\tau x) = T_\tau f(x).
-\label{eq:aequivarianz}
-\end{equation}
-
-Eine Verschiebung der Eingabe führt also zu einer identischen Verschiebung der
-Ausgabe-Merkmalskarte. Die Rechtfertigung ist die (näherungsweise) Stationarität
-natürlicher Bildstatistik: Die relevanten lokalen Merkmale sind ortsunabhängig --
-eine Kante bleibt eine Kante, unabhängig von ihrer Position. Zu betonen ist,
-dass Äquivarianz nicht Invarianz bedeutet; Letztere entsteht erst durch das
-nachfolgend beschriebene Subsampling.
-
-Aus der Gewichtsteilung folgen drei praktische Konsequenzen: erstens eine
-erhöhte Dateneffizienz, da ein Muster, das nur an wenigen Positionen in den
-Trainingsdaten vorkommt, dennoch überall erkannt wird; zweitens eine
-Einschränkung des Hypothesenraums, da die Nebenbedingung $w_{ij} = w$ nur noch
-translationsäquivariante Abbildungen zulässt -- eine Beschränkung, die dem
-tatsächlichen Charakter der Aufgabe entspricht und in diesem Sinne als
-struktureller Prior wirkt; drittens die Notwendigkeit mehrerer Kernel je
-Schicht, da ein Kernel genau ein Muster repräsentiert
+Convolutional Neural Networks beruhen auf drei Prinzipien: \emph{lokale
+rezeptive Felder}, \emph{geteilte Gewichte} und \emph{räumliche
+Unterabtastung}. Sie sind keine Implementierungsdetails, sondern kodieren
+strukturelles Vorwissen über Bilddaten in die Netzarchitektur -- Lokalität,
+Stationarität und Toleranz gegenüber kleinen Verschiebungen
 \parencite{lecun1998,goodfellow2016}.
 
-\absatz{Räumliches Subsampling.} Für die Objekterkennung ist häufig
-\emph{Invarianz} gegenüber kleinen Verschiebungen erwünscht, also
-$f(T_\tau x) \approx f(x)$ für kleine $\|\tau\|$. Diese entsteht durch
-stufenweise Reduktion der räumlichen Auflösung -- klassisch durch Pooling über
-ein Fenster $\mathcal{P}$ der Größe $p \times p$ mit Schrittweite $s$:
-\begin{equation}
-y[i,j] = \max_{(u,v)\in\mathcal{P}} x[s\cdot i + u,\; s\cdot j + v]
-\qquad \text{(Max-Pooling)}
-\end{equation}
+\absatz{Lokale rezeptive Felder und geteilte Gewichte.} Statt jedes
+Ausgabeneuron mit allen $H \cdot W$ Eingangspixeln zu verbinden, beschränkt eine
+Faltungsschicht die Summation auf eine $k \times k$-Nachbarschaft und verwendet
+denselben Kernel an allen Positionen. Die Parameterzahl einer Schicht wird
+dadurch unabhängig von der Bildgröße, und dasselbe Muster wird überall erkannt,
+auch wenn es in den Trainingsdaten nur an wenigen Positionen vorkommt. Der
+belastbare Vorteil liegt in dieser \emph{Stichprobeneffizienz}, nicht in der
+Kapazitätsbeschränkung: \textcite{zhang2017rethinking} zeigen, dass gängige
+Faltungsnetze zufällige Beschriftungen vollständig memorieren können und dennoch
+generalisieren. Die Operation ist \emph{translationsäquivariant} -- eine
+verschobene Eingabe erzeugt eine identisch verschobene Ausgabe --, was durch die
+näherungsweise Stationarität natürlicher Bildstatistik gerechtfertigt ist. Die Faltung
+ ist dabei translationsäquivariant, während nachfolgendes Downsampling die räumliche
+ Präzision reduziert und dadurch eine gewisse Robustheit gegenüber kleinen Verschiebungen 
+ erzeugen kann
 
-In modernen Architekturen wie YOLO26 wird dieselbe Auflösungsreduktion
-überwiegend durch Faltungen mit Schrittweite $s = 2$ realisiert. In beiden Fällen
-bleibt lediglich erhalten, \emph{ob} ein Merkmal innerhalb des Fensters auftrat,
-nicht seine exakte Position: Für Verschiebungen $\|\tau\|_\infty < p$ innerhalb
-desselben Pooling-Fensters bleibt die Ausgabe unverändert
-\parencite{lecun1998,goodfellow2016}.
+\absatz{Räumliches Subsampling -- die für diese Arbeit entscheidende Stufe.} Für
+die Objekterkennung ist Invarianz gegenüber kleinen Verschiebungen erwünscht.
+Sie entsteht durch stufenweise Reduktion der räumlichen Auflösung -- klassisch
+durch Max-Pooling, in modernen Architekturen wie YOLO26 überwiegend durch
+Faltungen mit Schrittweite $s = 2$. Erhalten bleibt dabei nur, \emph{ob} ein
+Merkmal im Fenster auftrat, nicht seine exakte Position. Nach $L$ solchen Stufen
+beträgt die \textbf{Gesamtschrittweite} $S = \prod_\ell s_\ell = 2^L$.
 
-Die Ausgabegröße nach einer Schicht mit Kernelgröße $k$, Schrittweite $s$ und
-Randauffüllung $p_{\text{pad}}$ beträgt
-\begin{equation}
-H_{\text{out}} = \left\lfloor
-\frac{H_{\text{in}} + 2p_{\text{pad}} - k}{s} \right\rfloor + 1,
-\end{equation}
-woraus für $s = 2$ näherungsweise eine Halbierung je Stufe folgt. Nach $L$
-solchen Stufen beträgt die Gesamtschrittweite $S = \prod_{\ell} s_\ell = 2^L$;
-die Zahl der räumlichen Positionen sinkt dabei um den Faktor $S^2$, was den mit
-der Tiefe wachsenden Kanalzahlen entgegenwirkt.
+Der Preis ist ein Verlust an Ortsinformation, und der wird bei kleinen Objekten
+kritisch. Eine Zelle der Merkmalsebene mit Gesamtschrittweite $S$ entspricht
+einem Bildbereich von $S \times S$ Pixeln; ein Objekt mit Durchmesser $d$ belegt
+dort nur $d/S$ Zellen. Für \(d<S\) erstreckt sich das Objekt im Mittel über weniger
+ als eine Gitterzelle und ist damit nur durch sehr wenige räumliche Positionen repräsentiert.
+  Eine zuverlässige Lokalisierung wird dadurch zunehmend erschwert. Für die feinste
+Standard-Detektionsebene P3 in YOLO26 gilt $S = 8$ -- das kleinste Rohrprofil in
+\code{test} misst 6,4 Pixel und unterschreitet diese Grenze. „Das Verhältnis \(d/S\) 
+dient in dieser Arbeit als zentrale geometrische Kenngröße für die räumliche Repräsentierbarkeit
+ kleiner Objekte es begründet
+die Multi-Skalen-Fusion moderner Detektoren (Abschnitt~\ref{sec:neck}) und die
+drei möglichen Gegenmaßnahmen, die alle dasselbe Verhältnis vergrößern: Eine
+höhere Eingabeauflösung und Kachelung erhöhen $d$, ein zusätzlicher
+Detektionskopf senkt $S$ (Abschnitt~\ref{sec:p2kopf}).
 
-Der Preis ist ein Verlust an Ortsinformation, der bei kleinen Objekten kritisch
-wird. Eine Zelle der Merkmalsebene mit Gesamtschrittweite $S$ entspricht einem
-Bildbereich von $S \times S$ Pixeln. Ein Objekt mit Durchmesser $d$ Pixeln
-belegt dort nur $d/S$ Zellen; für $d < S$ ist es kleiner als eine einzelne Zelle
-und kann strukturell nicht mehr zuverlässig lokalisiert werden. Konkret gilt für
-die feinste Detektionsebene P3 mit $S = 8$: Ein Rohrprofil mit $d = 6$ Pixeln
-unterschreitet diese Grenze. Dieser Zusammenhang begründet sowohl die
-Multi-Skalen-Fusion moderner Detektoren (Abschnitt~\ref{sec:neck}) als auch die
-in Abschnitt~\ref{sec:schwaechen} diskutierten Gegenmaßnahmen der erhöhten
-Eingabeauflösung bzw.\ Kachelung, die beide $d$ relativ zu $S$ vergrößern.
-
-\absatz{Zusammenspiel.} Die drei Prinzipien reduzieren die Parameterzahl in
-aufeinander aufbauenden Schritten: Lokale rezeptive Felder senken die
-Verbindungen je Neuron von $H \cdot W$ auf $k^2$, Weight Sharing eliminiert die
-Abhängigkeit der Parameterzahl von der Bildgröße, und Subsampling reduziert die
-Zahl der zu verarbeitenden Positionen um $S^2$ und erzeugt zugleich lokale
-Translationsinvarianz. Gemeinsam kodieren sie genau jene Annahmen, die für
-Bilddaten zutreffen: Lokalität, Stationarität und Toleranz gegenüber kleinen
-Verschiebungen. \textcite{lecun1998} formulierten diese Prinzipien am Beispiel
-der Architektur LeNet-5 zur Ziffernerkennung; sie gelten in modernen
-Detektionsarchitekturen bis hin zu YOLO26 unverändert fort.
-
-\subsection{Aufbau eines CNNs}
-
-Ein typisches CNN besteht aus einer Abfolge folgender Schichttypen:
-
-\absatz{Faltungsschichten (Convolutional Layers).} Kernstück des CNNs ist die
-diskrete Faltungsoperation. Ein Filterkern (Kernel), typischerweise der Größe
-$3\times3$ oder $5\times5$, wird über das Eingabebild bzw.\ die Merkmalskarte
-(Feature Map) geschoben. An jeder Position wird das Skalarprodukt zwischen
-Kernelgewichten und dem darunterliegenden Bildausschnitt berechnet. Das Ergebnis
-ist eine neue Merkmalskarte, die angibt, wie stark das vom Kernel
-repräsentierte Muster an der jeweiligen Position ausgeprägt ist. Die Gewichte der
-Kernel werden nicht manuell festgelegt, sondern im Training mittels
-Backpropagation gelernt \parencite{lecun1998,goodfellow2016}.
-
-\absatz{Aktivierungsfunktionen.} Auf jede Faltung folgt eine nichtlineare
-Aktivierungsfunktion, ohne die das Netz nur lineare Abbildungen lernen könnte.
-In modernen CNNs hat sich die Rectified Linear Unit (ReLU),
-$f(x) = \max(0, x)$, sowie deren Varianten (z.\,B.\ SiLU/Swish) durchgesetzt, da
-sie das Problem verschwindender Gradienten abmildert und effizient zu berechnen
-ist \parencite{krizhevsky2012}.
-
-\absatz{Pooling-Schichten.} Pooling-Operationen (meist Max-Pooling) reduzieren
-die räumliche Auflösung der Merkmalskarten, indem sie z.\,B.\ aus jedem
-$2\times2$-Bereich nur den Maximalwert übernehmen. Dies verringert den
-Rechenaufwand, vergrößert das rezeptive Feld nachfolgender Schichten und sorgt
-für eine gewisse Robustheit gegenüber kleinen Verschiebungen
-\parencite{goodfellow2016}.
-
-\absatz{Vollvernetzte Schichten (Fully Connected Layers).} Am Ende klassischer
-CNN-Architekturen fassen vollvernetzte Schichten die extrahierten Merkmale
-zusammen und bilden sie z.\,B.\ auf Klassenwahrscheinlichkeiten ab. In modernen
-Detektionsarchitekturen werden sie zunehmend durch faltungsbasierte
-Prädiktionsköpfe ersetzt.
-
-\subsection{Hierarchische Merkmalsextraktion}
+\subsection{Merkmalshierarchie und Objektdetektion}
 \label{sec:hierarchie}
 
-Ein wesentliches Merkmal tiefer CNNs ist der hierarchische Aufbau der gelernten
-Repräsentationen: Frühe Schichten reagieren auf einfache Primitive wie Kanten
-und Farbverläufe, mittlere Schichten kombinieren diese zu Texturen und
-Teilstrukturen (z.\,B.\ Rundungen, Rohrprofile), und tiefe Schichten
-repräsentieren komplexe, semantische Objektbestandteile
-\parencite{zeiler2014}. Diese automatische, datengetriebene Merkmalsextraktion
-tritt an die Stelle des in der klassischen Bildverarbeitung manuell zu
-entwerfenden Feature Engineering (etwa der Hough-Transformation zur
-Kreiserkennung); das Lernen von Repräsentationen direkt aus Rohdaten gilt als
-ein wesentlicher Grund für die Leistungssprünge tiefer Netze bei
-Erkennungsaufgaben mit hoher Klassenzahl und großer Erscheinungsvarianz
-\parencite{lecun2015}, wie sie erstmals im ImageNet-Wettbewerb 2012 gegenüber
-merkmalsbasierten Verfahren demonstriert wurden \parencite{krizhevsky2012}. Die
-Überlegenheit ist allerdings an diese Bedingungen geknüpft: Bei eng umrissenen
-Aufgaben mit geometrisch einfachen, gut modellierbaren Objekten können klassische
-Verfahren vergleichbare oder bessere Ergebnisse bei erheblich geringerem Daten-
-und Rechenaufwand erzielen.
+Auf jede Faltung folgt eine nichtlineare Aktivierung -- heute überwiegend die
+Rectified Linear Unit $f(x) = \max(0,x)$ oder Varianten wie SiLU
+\parencite{krizhevsky2012} --, ohne die das Netz nur lineare Abbildungen lernen
+könnte. Aus der Stapelung entsteht ein hierarchischer Aufbau der
+Repräsentationen: Frühe Schichten reagieren auf Kanten und Farbverläufe, mittlere
+auf Texturen und Teilstrukturen, tiefe auf semantische Objektbestandteile
+\parencite{zeiler2014}. Diese datengetriebene Merkmalsextraktion tritt an die
+Stelle des manuell entworfenen Feature Engineering und gilt als wesentlicher
+Grund für die Leistungssprünge tiefer Netze \parencite{lecun2015}. Am Ende
+klassischer Architekturen fassen vollvernetzte Schichten die Merkmale zusammen;
+in modernen Detektoren sind sie vollständig durch Faltungen ersetzt
+(Abschnitt~\ref{sec:neck}). Residualverbindungen \parencite{he2016} ermöglichen
+das stabile Training sehr tiefer Netze und sind Standardbaustein nahezu aller
+CNN-Backbones.
 
-Den Durchbruch tiefer CNNs markierte AlexNet, das den ImageNet-Wettbewerb 2012
-mit deutlichem Abstand gewann \parencite{krizhevsky2012}. Nachfolgende
-Architekturen wie VGG \parencite{simonyan2015} und ResNet \parencite{he2016}
-vertieften die Netze weiter; insbesondere die von ResNet eingeführten
-Residualverbindungen (Skip Connections) ermöglichten das stabile Training sehr
-tiefer Netze und sind heute Standardbausteine nahezu aller CNN-Backbones -- auch
-in der YOLO-Familie.
-
-\subsection{Objektdetektion mit CNNs}
-
-Für die vorliegende Arbeit ist nicht die reine Bildklassifikation relevant,
-sondern die Objektdetektion: das gleichzeitige Lokalisieren (Bounding Box) und
-Klassifizieren mehrerer Objekte in einem Bild. Hier haben sich zwei Paradigmen
-etabliert:
-
-\begin{itemize}
-  \item \textbf{Zweistufige Detektoren} (z.\,B.\ R-CNN, Faster R-CNN) erzeugen
-  zunächst Regionsvorschläge (Region Proposals) und klassifizieren diese
-  anschließend \parencite{ren2015}. Sie erreichen hohe Genauigkeit, sind jedoch
-  vergleichsweise langsam.
-  \item \textbf{Einstufige Detektoren} (z.\,B.\ SSD \parencite{liu2016ssd},
-  YOLO) formulieren die Detektion als einmaliges Regressionsproblem: Ein
-  einziges Netz sagt in einem Durchlauf direkt Bounding Boxes und
-  Klassenwahrscheinlichkeiten für das gesamte Bild vorher
-  \parencite{redmon2016}. Dies ermöglicht Echtzeitfähigkeit bei nur geringen
-  Genauigkeitseinbußen.
-\end{itemize}
-
-Ein klassisches Element einstufiger Detektoren ist die Non-Maximum Suppression
-(NMS): Da das Netz pro Objekt typischerweise mehrere überlappende Boxen
-vorhersagt, werden in einem Nachverarbeitungsschritt redundante Detektionen
-anhand ihrer Überlappung (Intersection over Union, IoU) unterdrückt. Wie in
-Abschnitt~\ref{sec:yolo26} gezeigt wird, ist gerade dieser Schritt bei dicht
-gepackten, gleichartigen Objekten -- wie gestapelten Bauzäunen -- eine
-potenzielle Fehlerquelle.
+Für diese Arbeit ist nicht die Klassifikation relevant, sondern die
+\textbf{Objektdetektion}: das gleichzeitige Lokalisieren und Klassifizieren
+mehrerer Objekte. Zweistufige Detektoren erzeugen zunächst Regionsvorschläge und
+klassifizieren diese anschließend \parencite{ren2015}; einstufige Detektoren
+formulieren die Detektion als einmaliges Regressionsproblem und sagen in einem
+Durchlauf direkt Boxen und Klassenwahrscheinlichkeiten vorher
+\parencite{redmon2016,liu2016ssd}, was Echtzeitfähigkeit bei geringen
+Genauigkeitseinbußen ermöglicht. Klassisch nachgeschaltet ist die
+Non-Maximum Suppression (NMS), die redundante überlappende Detektionen anhand
+ihrer Intersection over Union unterdrückt -- bei dicht gepackten gleichartigen
+Objekten eine potenzielle Fehlerquelle.
 
 \section{YOLO26}
 \label{sec:yolo26}
 
-\subsection{Einordnung in die YOLO-Familie}
+\subsection{Einordnung}
 
-\enquote{You Only Look Once} (YOLO) wurde 2016 von \textcite{redmon2016} als
-erster echtzeitfähiger einstufiger Detektor vorgestellt. Seither wurde die
-Architektur in zahlreichen Iterationen weiterentwickelt; ab YOLOv8 übernahm das
-Unternehmen Ultralytics die Rolle des primären Maintainers und etablierte
-ankerfreie Prädiktionsköpfe, entkoppelte Detektionsköpfe und eine
-produktionsreife Werkzeugkette \parencite{sapkota2025}. YOLO26 wurde im
-September 2025 auf der YOLO Vision 2025 vorgestellt und ist das aktuellste
-Mitglied dieser Familie. Es ist explizit auf Effizienz, Genauigkeit und einfache
-Bereitstellung auf Edge- und leistungsschwachen Geräten ausgelegt
-\parencite{sapkota2025,ultralytics2026}.
+\enquote{You Only Look Once} wurde 2016 als erster echtzeitfähiger einstufiger
+Detektor vorgestellt \parencite{redmon2016}; ab YOLOv8 übernahm Ultralytics die
+Weiterentwicklung und etablierte ankerfreie, entkoppelte Detektionsköpfe
+\parencite{sapkota2025}. YOLO26 wurde im September 2025 vorgestellt und
+unterscheidet sich von YOLO11 durch vier koordinierte Änderungen: ein
+Dual-Head-Design für NMS-freie Inferenz, den Wegfall der Distribution Focal Loss,
+ProgLoss zusammen mit STAL sowie den MuSGD-Optimierer
+\parencite{jocher2026yolo26,sapkota2025}.
 
-\subsection{Zentrale architektonische Neuerungen}
+Für diese Arbeit ist davon eine Änderung einschlägig: Die
+\emph{Small-Target-Aware Label Assignment} garantiert positive Labelzuweisungen
+auch für sehr kleine Objekte -- genau das Problem klassischer
+Zuweisungsstrategien, das Abschnitt~\ref{sec:ioukleinobjekt} quantifiziert.
 
-YOLO26 unterscheidet sich von seinen Vorgängern (insbesondere YOLO11) durch vier
-koordinierte Änderungen an Architektur und Trainingsverfahren
-\parencite{ultralytics2026,sapkota2025}:
-
-\absatz{End-to-End-Inferenz ohne NMS.} YOLO26 verwendet ein Dual-Head-Design:
-Neben einem klassischen One-to-Many-Kopf, der im Training zusätzliche
-Supervision liefert, besitzt das Netz einen One-to-One-Prädiktionskopf, der pro
-Objekt genau eine Detektion ausgibt. Zur Inferenzzeit ist dieser Kopf der
-Standard, wodurch die NMS-Nachverarbeitung vollständig entfällt. Das reduziert
-die Latenz, vereinfacht den Export (ONNX, TensorRT, CoreML, TFLite, OpenVINO) und
-eliminiert den IoU-Schwellwert der NMS als fehleranfälligen Hyperparameter.
-
-\absatz{Wegfall der Distribution Focal Loss (DFL).} Frühere YOLO-Versionen
-modellierten Boxkoordinaten als diskrete Verteilungen (DFL), was den
-Detektionskopf verkomplizierte und den Regressionsbereich beschränkte. YOLO26
-entfernt die DFL vollständig, was einen leichteren Kopf mit unbeschränktem
-Regressionsbereich ergibt und den Modellexport vereinfacht.
-
-\absatz{ProgLoss und STAL.} Die Progressive Loss (ProgLoss) verlagert die
-Supervision im Trainingsverlauf zunehmend auf den zur Inferenz genutzten
-One-to-One-Kopf. Die Small-Target-Aware Label Assignment (STAL) garantiert, dass
-auch sehr kleine Objekte im Training positive Labelzuweisungen erhalten -- ein
-bekanntes Problem klassischer Zuweisungsstrategien, bei denen kleinste Objekte
-mitunter ohne positives Trainingssignal bleiben. Beide Maßnahmen verbessern
-gezielt die Erkennung kleiner Objekte.
-
-\absatz{MuSGD-Optimierer.} Für das Training kombiniert YOLO26 den aus dem
-Training großer Sprachmodelle adaptierten Muon-Optimierer mit klassischem SGD
-(MuSGD), was eine stabilere und schnellere Konvergenz ermöglicht.
-
-\subsection{Modellvarianten und Leistung}
-\label{sec:varianten}
-
-YOLO26 ist in fünf Skalierungen verfügbar (n/s/m/l/x) und erreicht auf dem
-COCO-Benchmark 40,9--57,5 mAP bei Latenzen von 1,7--11,8\,ms (T4-GPU,
-TensorRT). Die Nano-Variante ist auf CPUs bis zu 43\,\% schneller als YOLO11n,
-was den Fokus auf Edge-Deployment unterstreicht \parencite{ultralytics2026}.
-Neben der Objektdetektion unterstützt YOLO26 als Multi-Task-Framework auch
-Instanzsegmentierung, Posenschätzung, Klassifikation und orientierte
-Objektdetektion (OBB) in einer einheitlichen Pipeline \parencite{sapkota2025}.
-Zusätzlich existieren YAML-Konfigurationen mit einem zusätzlichen
-P2-Detektionskopf, der eine höher aufgelöste Merkmalsebene für sehr kleine
-Objekte bereitstellt \parencite{ultralytics2026}.
-
-\subsection{Architektur im Detail: Backbone, Neck, Head}
+\subsection{Backbone, Neck, Head und die Merkmalspyramide}
 \label{sec:neck}
 
-YOLO26 folgt der für einstufige Detektoren üblichen Dreiteilung
-\textbf{Backbone $\to$ Neck $\to$ Head}. Das Backbone ist ein tiefes CNN, das
-aus dem Eingabebild (standardmäßig $640\times640\times3$) eine Hierarchie von
-Merkmalskarten extrahiert; das Neck fusioniert diese Karten über mehrere
-Auflösungsstufen hinweg; der Head übersetzt sie in Bounding Boxes und
-Klassenwahrscheinlichkeiten. Das gesamte Netz besteht aus einem einzigen
-Vorwärtsdurchlauf -- daher der Name \enquote{You Only Look Once}
-\parencite{redmon2016}.
+YOLO26 folgt der Dreiteilung \textbf{Backbone $\to$ Neck $\to$ Head}. Das
+Backbone reduziert die räumliche Auflösung stufenweise per Stride-2-Faltungen
+($1024 \to 512 \to 256 \to 128 \to 64 \to 32$ bei $1024$\px{} Eingabe), während
+die Kanalzahl wächst -- räumliche Präzision wird gegen semantische Tiefe
+getauscht.
 
-\absatz{Faltungsschichten im Backbone.} Jede Faltungsschicht besteht aus
-lernbaren Kerneln (typisch $3\times3$), die über die Eingabe geschoben werden und
-an jeder Position das Skalarprodukt mit dem darunterliegenden Bildausschnitt
-bilden. Drei Eigenschaften machen dies für die Detektion wirkungsvoll: Erstens
-die \textbf{Gewichtsteilung} -- derselbe Kernel wird an jeder Bildposition
-angewendet, wodurch ein gelerntes Muster (z.\,B.\ eine helle horizontale Linie)
-überall im Bild mit denselben wenigen Parametern erkannt wird. Zweitens die
-\textbf{Lokalität}: Jedes Neuron \enquote{sieht} zunächst nur einen kleinen
-Bildausschnitt (sein rezeptives Feld), das mit der Netztiefe wächst -- frühe
-Schichten erfassen Kanten, tiefe Schichten größere Objektkontexte
-\parencite{zeiler2014}. Drittens die \textbf{Kanalstruktur}: Eine Schicht mit
-z.\,B.\ 64 Kerneln erzeugt 64 Merkmalskarten, von denen jede die räumliche
-Verteilung eines anderen gelernten Musters repräsentiert. Das Backbone reduziert
-die räumliche Auflösung stufenweise per Stride-2-Faltungen
-($640 \to 320 \to 160 \to 80 \to 40 \to 20$ Pixel), während die Kanalzahl wächst
--- räumliche Präzision wird gegen semantische Tiefe getauscht. Jeder Faltung
-folgen Batch-Normalisierung und eine SiLU-Aktivierung; die Blöcke sind im
-CSP-Stil mit Residualverbindungen organisiert (Aufteilung des Kanalstroms,
-parallele Verarbeitung, Wiederzusammenführung), was Gradientenfluss und
-Recheneffizienz verbessert \parencite[vgl.][]{he2016}. Am Ende des Backbones
-aggregiert ein SPPF-Modul Kontextinformation über mehrere Pooling-Größen.
+\absatz{Neck.} Das Neck verbindet die Auflösungsstufen in beide Richtungen
+(FPN/PAN-Prinzip, \cite{lin2017fpn}): Tiefe, semantisch reiche Merkmalskarten
+werden hochskaliert und mit den feinen, ortsgenauen Karten früherer Stufen
+zusammengeführt, und umgekehrt. Der Head erhält dadurch mehrere Ausgabeebenen,
+die nach Objektgröße zuständig sind. Die Standardkonfiguration liefert drei
+Ebenen P3/P4/P5 mit den Gesamtschrittweiten 8/16/32; zusätzlich existiert eine
+Konfiguration mit einer vierten, feineren Ebene \textbf{P2 mit Schrittweite~4}
+(Abbildung~\ref{abb:pyramide}). Diese Variante wird hier durchgängig verwendet;
+Abschnitt~\ref{sec:p2kopf} begründet, warum.
 
-\absatz{Neck: Multi-Skalen-Fusion.} Das Neck verbindet die Auflösungsstufen des
-Backbones in beide Richtungen (FPN/PAN-Prinzip, \cite{lin2017fpn}): Tiefe,
-semantisch reiche Merkmalskarten werden hochskaliert und mit den feinen,
-ortsgenauen Karten früherer Stufen zusammengeführt, und umgekehrt. Der Head
-erhält dadurch drei Ausgabeebenen (P3/P4/P5, entsprechend $80\times80$,
-$40\times40$ und $20\times20$ Gitterzellen), die für kleine, mittlere und große
-Objekte zuständig sind. Für die Holmzählung ist insbesondere die feine P3-Ebene
-relevant, da die Holme innerhalb einer 640er-Kachel als vergleichsweise kleine
-Objekte erscheinen.
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[x=1cm,y=1cm]
+  % ---- Merkmalsebenen als Quadrate, Seitenlaenge proportional zur Gittergroesse
+  \draw[fill=red!8,dashed,thick,red!60!black] (0,0) rectangle (4,4);
+  \draw[step=0.5,gray!35,very thin] (0,0) grid (4,4);
+  \draw[fill=blue!8] (4.7,0) rectangle (6.7,2);
+  \draw[step=0.5,gray!35,very thin] (4.7,0) grid (6.7,2);
+  \draw[fill=blue!8] (7.4,0) rectangle (8.4,1);
+  \draw[step=0.5,gray!35,very thin] (7.4,0) grid (8.4,1);
+  \draw[fill=blue!8] (9.1,0) rectangle (9.6,0.5);
 
-\absatz{Der Head und die Rolle der Fully-Connected-Schichten.} Historisch
-markiert der Prädiktionskopf den stärksten architektonischen Wandel der
-YOLO-Familie. Das ursprüngliche YOLOv1 \parencite{redmon2016} endete in zwei
-\textbf{vollvernetzten (Fully-Connected, FC) Schichten}: Die letzte
-Merkmalskarte wurde zu einem eindimensionalen Vektor \enquote{plattgedrückt},
-durch eine FC-Schicht mit 4096 Neuronen geleitet -- jedes Neuron mit jedem
-Eingang verbunden -- und anschließend auf einen $7\times7\times30$-Ausgabetensor
-abgebildet. Dies verlieh dem Netz zwar globalen Bildkontext, brachte jedoch drei
-Nachteile mit sich: Die FC-Schichten enthielten den überwiegenden Teil aller
-Netzparameter, sie fixierten die Eingabebildgröße (der plattgedrückte Vektor
-benötigt eine feste Länge) und sie zerstörten die räumliche Struktur der
-Merkmalskarten.
+  \node[below,align=center,font=\scriptsize] at (2,-0.2)
+       {\textbf{P2} $\;$ Stride 4\\$256\times256$\\65\,536 Positionen};
+  \node[below,align=center,font=\scriptsize] at (5.7,-0.2)
+       {\textbf{P3} $\;$ Stride 8\\$128\times128$\\16\,384};
+  \node[below,align=center,font=\scriptsize] at (7.9,-0.2)
+       {\textbf{P4} $\;$ 16\\$64^2$\\4\,096};
+  \node[below,align=center,font=\scriptsize] at (9.35,-0.2)
+       {\textbf{P5} $\;$ 32\\$32^2$\\1\,024};
 
-Moderne YOLO-Architekturen -- einschließlich YOLO26 -- enthalten daher
-\textbf{keine Fully-Connected-Schicht mehr}; sie sind vollständig
-faltungsbasiert (\emph{fully convolutional}). Der Prädiktionskopf besteht aus
-kleinen Faltungsstapeln, die in $1\times1$-Faltungen münden. Mathematisch
-betrachtet ist eine $1\times1$-Faltung äquivalent zu einer
-Fully-Connected-Schicht über die Kanaldimension -- der entscheidende Unterschied
-ist, dass sie \textbf{positionsgeteilt} angewendet wird: Dieselbe kleine
-\enquote{FC-Operation} verarbeitet die Kanäle jeder Gitterzelle separat, statt
-einmal global über das gesamte plattgedrückte Bild zu operieren. Jede der
-z.\,B.\ $80\times80$ Zellen der P3-Ebene sagt so lokal und unabhängig
-voneinander vier Boxkoordinaten sowie Klassen-Scores vorher. Dies erhält die
-Translationsäquivarianz der Faltung bis in die Ausgabeschicht hinein, macht das
-Netz unabhängig von einer festen Eingabegröße und reduziert die Parameterzahl um
-Größenordnungen gegenüber dem ursprünglichen FC-Ansatz -- eine notwendige
-Voraussetzung dafür, dass die Nano-Variante YOLO26n auf mobilen Endgeräten
-lauffähig ist (vgl.\ Abschnitt~\ref{sec:varianten}).
+  \node[above,font=\scriptsize,red!60!black,align=center] at (2,4.15)
+       {\emph{zusätzlich in} \code{-p2}, \emph{hier verwendet}};
+  \node[above,font=\scriptsize,align=center] at (7.0,4.15)
+       {Standardkonfiguration P3--P5};
+  \draw[decorate,decoration={brace,amplitude=4pt},gray!60!black]
+       (4.7,4.05) -- (9.6,4.05);
+  \node[font=\scriptsize,align=left,anchor=west] at (10.1,2.6)
+       {kleine\\Objekte};
+  \node[font=\scriptsize,align=left,anchor=west] at (10.1,1.2)
+       {große\\Objekte};
+  \draw[-{Latex[length=1.6mm]},gray!60!black] (10.35,2.3) -- (10.35,1.6);
+\end{tikzpicture}
+\caption[Merkmalsebenen des Detektionskopfes]{Merkmalsebenen des
+Detektionskopfes bei einer Eingabe von $1024\times1024$ Pixeln. Die
+Seitenlänge der Quadrate ist proportional zur Gittergröße. Jede Zelle einer
+Ebene mit Schrittweite $S$ entspricht einem Bildbereich von $S \times S$ Pixeln
+und sagt Boxkoordinaten sowie Klassen-Scores vorher. Die Standardkonfiguration
+nutzt \textbf{P3--P5}; die hier trainierten Modelle verwenden zusätzlich die
+links rot gestrichelt eingezeichnete Ebene \textbf{P2} mit Schrittweite~4. Die
+Abbildung zeigt zugleich, warum diese eine Ebene so viel ausmacht: P2 allein
+enthält mehr Prädiktionspositionen als P3, P4 und P5 zusammen. Genau diese
+Abhängigkeit von der Schrittweite macht Abschnitt~\ref{sec:ioukleinobjekt} zum
+Kern des Auflösungsproblems.}
+\label{abb:pyramide}
+\end{figure}
 
-Die YOLO26-spezifischen Head-Eigenschaften bauen auf dieser vollständig
-faltungsbasierten Struktur auf: Der Head ist \emph{entkoppelt} (getrennte
-Faltungszweige für Klassifikation und Boxregression) und \emph{ankerfrei} (jede
-Gitterzelle regressiert direkt Abstände zu den vier Boxrändern, statt
-Korrekturen vordefinierter Ankerboxen zu lernen). YOLO26 verzichtet zudem auf
-die in Vorgängerversionen genutzte Distribution Focal Loss; die Boxkoordinaten
-werden wieder als direkte Regressionswerte statt als diskrete Verteilungen
-vorhergesagt, was den Kopf zusätzlich verschlankt \parencite{ultralytics2026}.
-Das oben beschriebene Dual-Head-Design (One-to-Many-Zweig als zusätzliche
-Trainingssupervision, One-to-One-Zweig für die NMS-freie Inferenz) ist ebenfalls
-vollständig faltungsbasiert umgesetzt: Der One-to-One-Kopf gibt zur Laufzeit pro
-Objekt genau eine Vorhersage aus, wodurch die sonst nötige
-Non-Maximum-Suppression entfällt.
-
-Zusammenfassend lässt sich der architektonische Kernwandel wie folgt festhalten:
-Faltungsschichten extrahieren im Backbone translationsinvariante, hierarchische
-Merkmale; die historisch nachgeschaltete Fully-Connected-Schicht ist in modernen
-YOLO-Architekturen vollständig durch positionsgeteilte $1\times1$-Faltungen
-ersetzt. Dieser Übergang von einer global-dichten zu einer lokal-geteilten
-Vorhersage ist eine wesentliche Voraussetzung für die Echtzeitfähigkeit und
-Edge-Tauglichkeit von YOLO26.
-
-\section{Anwendung auf die Zählung gestapelter Bauzäune}
-\label{sec:anwendung}
-
-\subsection{Problemstellung aus Sicht der Bildverarbeitung}
-
-Im vorliegenden Anwendungsfall sollen 50--200 aufeinandergestapelte Bauzäune
-gezählt werden. Die Aufnahme erfolgt frontal auf die Stirnseite des Stapels
-(\enquote{von unten} entlang der Stapelachse), sodass pro Zaunelement im
-Wesentlichen die beiden runden Säulenprofile (Rohrenden) sowie der Querschnitt
-der verbindenden Metallstange sichtbar sind. Aus Sicht der Bildverarbeitung
-ergeben sich daraus folgende Charakteristika:
-
-\begin{enumerate}
-  \item \textbf{Hohe Objektdichte:} Pro Stapelaufnahme sind etwa 50--100
-  Rohrprofile bzw.\ Holme sichtbar, dicht gepackt auf engem Raum.
-  \item \textbf{Kleine, gleichartige Objekte:} Die einzelnen Rohrprofile sind im
-  Bild klein und untereinander nahezu identisch -- es gibt kaum individuelle
-  Merkmale zur Unterscheidung benachbarter Instanzen.
-  \item \textbf{Regelmäßige, aber gestörte Struktur:} Die Stapelung erzeugt ein
-  quasi-periodisches Muster, das jedoch durch verschobene, verkippte oder
-  verdeckte Elemente gestört sein kann.
-  \item \textbf{Perspektivische Effekte:} Je nach Kameraposition variieren Größe
-  und Form der Profile über das Bild (nahe Elemente größer, entfernte kleiner;
-  Kreise erscheinen als Ellipsen).
-\end{enumerate}
-
-\subsection{Lösungsansatz mit CNN/YOLO26}
-
-Der naheliegende Ansatz ist eine detektionsbasierte Zählung
-(\enquote{counting by detection}): Ein YOLO26-Modell wird per Transfer Learning
-(Ausgangspunkt: COCO-vortrainierte Gewichte, vgl.\ \cite{yosinski2014}) auf eine
-einzige Objektklasse -- das Rohrende bzw.\ das Säulenprofil-Paar --
-feinabgestimmt. Die Zaunanzahl ergibt sich dann entweder direkt (eine Detektion
-pro Zaun, wenn das Profilpaar als ein Objekt annotiert wird) oder als Anzahl
-detektierter Rohrenden geteilt durch zwei. Letzteres bietet eine eingebaute
-Plausibilitätsprüfung: Eine ungerade Detektionszahl bzw.\ eine Diskrepanz
-zwischen linker und rechter Profilsäule signalisiert Detektionsfehler. Da die
-Profile in zwei annähernd vertikalen Säulen angeordnet sind, kann die Zählung
-zudem säulenweise erfolgen und der Median beider Säulen als robuster Schätzer
-dienen.
-
-Die hierarchische Merkmalsextraktion des CNN-Backbones
-(Abschnitt~\ref{sec:hierarchie}) ist für diese Aufgabe gut geeignet:
-Kreisförmige Metallprofile mit charakteristischem Hell-Dunkel-Verlauf (Rohrwand,
-dunkle Öffnung, ggf.\ Verzinkungsglanz) sind visuell einfache, texturarme
-Objekte, die bereits von mittleren Netzschichten zuverlässig repräsentiert
+\absatz{Head.} Der Kopf ist vollständig faltungsbasiert: kleine
+Faltungsstapel, die in $1\times1$-Faltungen münden. Eine $1\times1$-Faltung ist
+äquivalent zu einer vollvernetzten Schicht über die Kanaldimension, wird aber
+\textbf{positionsgeteilt} angewendet -- dieselbe Operation verarbeitet die Kanäle
+jeder Gitterzelle separat. Das erhält die Translationsäquivarianz bis in die
+Ausgabeschicht und macht das Netz unabhängig von einer festen Eingabegröße. Der
+Kopf ist zusätzlich
+\emph{entkoppelt} (getrennte Zweige für Klassifikation und Boxregression) und
+\emph{ankerfrei}: Jede Gitterzelle regressiert direkt die Abstände zu den vier
+Boxrändern. Damit ist die Zahl der Gitterzellen -- und nicht die Zahl der
+Ankerboxen -- die Größe, die bestimmt, wie fein Objekte überhaupt aufgelöst
 werden können.
 
-\subsection{Stärken des Ansatzes}
+\subsection{Der P2-Detektionskopf}
+\label{sec:p2kopf}
 
-\absatz{Kleine-Objekt-Erkennung durch STAL und ProgLoss.} Die zentrale
-Herausforderung -- viele kleine Rohrenden -- adressiert YOLO26 konzeptionell
-direkt: STAL garantiert positive Labelzuweisungen auch für kleinste Objekte im
-Training, ProgLoss verbessert die Konsistenz des Inferenzkopfes. Für sehr hohe
-Stapel (kleine Profile am oberen Bildrand) kann zusätzlich die P2-Variante mit
-hochauflösendem Detektionskopf verwendet werden.
+Alle in dieser Arbeit trainierten Modelle sind \code{yolo26s-p2}. Diese Wahl ist
+kein Gegenstand der Experimente, sondern deren Konstante; sie ist an dieser
+Stelle zu begründen, weil sie unmittelbar an der Auflösungsgrenze hängt, die
+Abschnitt~\ref{sec:ioukleinobjekt} herleitet.
 
-\absatz{NMS-freie Inferenz bei dichten Objekten.} Bei dicht gepackten, sich
-berührenden gleichartigen Objekten ist die klassische NMS eine systematische
-Fehlerquelle: Ein zu niedriger IoU-Schwellwert unterdrückt korrekte Detektionen
-benachbarter Rohre (Unterzählung), ein zu hoher lässt Duplikate zu
-(Überzählung). Der End-to-End-Ansatz von YOLO26 eliminiert diesen Schwellwert
-und damit eine der kritischsten Stellschrauben für Zählanwendungen.
+\absatz{} Der Unterschied liegt allein im Neck und im Kopf. Die
+Standardkonfiguration führt den Aufwärtspfad des Feature-Pyramid-Netzwerks
+\parencite{lin2017fpn} bis P3 und schickt von dort einen Abwärtspfad über P4 zu
+P5; die \code{-p2}-Variante setzt den Aufwärtspfad um eine Stufe fort, verknüpft
+ihn mit der P2-Karte des Backbones und startet den Abwärtspfad eine Ebene tiefer.
+Der Detektionskopf erhält vier statt drei Eingänge. Weil die Eingangsbreite des
+Kopfes seine internen Kanalzahlen bestimmt und der neue, feinste Eingang schmaler
+ist als der bisherige, hat die Variante sogar \emph{weniger} Parameter als das
+Basismodell: 9\,663\,464 gegen 9\,948\,638, also $-2{,}9\,\%$. Alle Kennzahlen
+dieses Absatzes stammen aus der Modellzusammenfassung, die die Werkzeugkette beim
+Aufbau der beiden Netze ausgibt; Speicher und Laufzeit sind an den eigenen
+Trainingsläufen gemessen. Sie ist kein
+größeres, sondern ein \emph{feiner aufgelöstes} Netz.
 
-\absatz{Geringer Klassenumfang und visuelle Einfachheit.} Ein
-Ein-Klassen-Problem mit geometrisch einfachen, kontrastreichen Objekten ist ein
-vergleichsweise \enquote{gutmütiges} Detektionsproblem. Bereits kleine
-Modellvarianten (YOLO26n/s) dürften ausreichen, was schnelles Training, geringe
-Annotationskosten pro Iteration und Echtzeitfähigkeit auf mobilen Endgeräten
-(z.\,B.\ Baustellen-Smartphone) ermöglicht -- hierfür ist YOLO26 mit seinem
-Edge-Fokus und den vielfältigen Exportpfaden explizit ausgelegt.
+\absatz{}Die Prädiktionspositionen sind die Summe der
+Gitterzellen aller Detektionsebenen und damit aus der Eingabegröße abzählbar: Bei
+$1024\times1024$ vervierfachen sie sich von $128^2+64^2+32^2 = 21\,504$ auf
+$256^2 + 21\,504 = 87\,040$. Der Rechenaufwand steigt dagegen nur um 17\,\%
+(22,7 auf 26,6 GFLOPs bei $640^2$, laut Modellzusammenfassung), weil die zusätzlichen Blöcke
+auf der feinsten Ebene schmal sind. Teuer ist der \emph{Speicher}: Er wird von
+den Aktivierungen dominiert, und eine Merkmalskarte auf P2 hat viermal so viele
+Positionen wie eine auf P3. Gemessen belegt das Training bei \code{imgsz}=1024
+mit Batch~8 rund 12\,GB statt etwa 6\,GB. Das ist der eigentliche Preis der
+Variante und der Grund, warum sie nicht der Standard ist.
 
-\absatz{Interpretierbarkeit und Verifizierbarkeit.} Anders als reine
-Regressionsansätze liefert die detektionsbasierte Zählung pro Zaun eine
-sichtbare Bounding Box. Fehlzählungen sind damit visuell lokalisierbar und im
-industriellen Einsatz durch den Nutzer korrigierbar.
+\absatz{Nutzen} Der Nutzen lässt sich vor jedem Training abschätzen.
+Nach Gleichung~\eqref{eq:zellen} beträgt die erwartete Zahl der Gitterzellen,
+deren Zentrum in ein kreisförmiges Objekt vom Durchmesser $d$ fällt und die damit
+überhaupt als positive Zuweisung in Frage kommen, $\mathbb{E}[N] = \pi d^2/(4S^2)$;
+der Übergang von $S = 8$ auf $S = 4$ vervierfacht diesen Wert.
+Tabelle~\ref{tab:p2zellen} setzt ihn für die tatsächlich auftretenden
+Objektgrößen ein. Entscheidend ist nicht der Mittelwert, sondern die Spalte
+\enquote{min}: Bei $S = 8$ hat das kleinste Objekt in \code{test} im
+ungünstigsten Fall \emph{genau eine} Kandidatenzelle -- eine einzige Position,
+die es finden kann --, bei $S = 4$ sind es vier. Die Zuweisungsgrenze
+$d < S\sqrt{2}$ sinkt von 11,3\px{} auf 5,7\px{} und liegt damit vollständig
+unterhalb der hier auftretenden Objektgrößen.
 
-\subsection{Schwächen und Grenzen}
-\label{sec:schwaechen}
+\begin{table}[htbp]
+\centering
+\caption[Kandidatenzellen je Objekt]{Erwartete Zahl der Gitterzellen, deren
+Zentrum in das Objekt fällt, nach Gleichung~\eqref{eq:zellen}, bei nativem
+Maßstab. Die Spalte \enquote{min} nennt den ungünstigsten Fall über alle Lagen
+des Objektzentrums im Gitter; sie hat keine geschlossene Form und ist durch
+Absuchen der Lagen auf einem feinen Raster bestimmt.}
+\label{tab:p2zellen}
+\footnotesize
+\begin{tabular}{@{}rlrrrr@{}}
+\toprule
+$d$ (px) & Bedeutung & \multicolumn{2}{c}{P3 ($S=8$)} &
+\multicolumn{2}{c}{P2 ($S=4$)} \\
+ & & Mittel & min & Mittel & min \\
+\midrule
+11,6 & p05 des synthetischen Datensatzes & 1,7 & 1 & 6,6 & 4 \\
+12,2 & kleinstes Objekt in \code{test}   & 1,8 & 1 & 7,3 & 4 \\
+19,6 & Median \code{test}                & 4,7 & 4 & 18,9 & 16 \\
+22,5 & Median des synthetischen Datensatzes & 6,2 & 4 & 24,9 & 21 \\
+27,4 & Median \code{val}                 & 9,2 & 8 & 36,9 & 32 \\
+\bottomrule
+\end{tabular}
+\end{table}
 
-\absatz{Begrenzung der Detektionsanzahl.} Der standardmäßige One-to-One-Kopf von
-YOLO26 gibt maximal 300 Detektionen pro Bild aus \parencite{ultralytics2026}.
-Für den vorliegenden Anwendungsfall ist diese Grenze unkritisch: Auf den realen
-Aufnahmen sind pro Stapel etwa 50--100 Rohrprofile sichtbar, sodass ein
-deutlicher Sicherheitsabstand zur Obergrenze besteht. Relevant würde die
-Beschränkung erst bei Aufnahmen mehrerer Stapel in einem Bild oder bei
-Annotationsschemata, die jedes Einzelprofil separat erfassen. Für solche Fälle
-stehen als Abhilfe zur Verfügung: (a)~die Annotation zusammengehöriger Profile
-als ein Objekt, (b)~eine Erhöhung des \code{max\_det}-Parameters oder (c)~eine
-Kachelung des Bildes (Tiling/Slicing, z.\,B.\ mit SAHI
-\parencite{akyon2022sahi}), bei der Teilbilder separat detektiert und die
-Ergebnisse fusioniert werden.
+\absatz{} Ein Detektor, dem die
+Auflösung fehlt, übersieht kleine Objekte unabhängig davon, wie gut seine
+Trainingsdaten sind. Jede Verbesserung der Datenerzeugung würde dann teilweise
+nur eine Architekturschwäche kompensieren, und der gemessene Effekt wäre nicht
+der Effekt der Daten. Die Ablationen der Kapitel~\ref{kap:auswertung} laufen
+deshalb auf der feiner aufgelösten Variante -- nicht, weil sie besser
+\emph{aussieht}, sondern weil sie die Störgröße entfernt, die den Datengewinn
+sonst überlagert.
 
-\absatz{Auflösungsproblematik.} Die Standard-Eingabegröße von
-$640\times640$ Pixeln ist für die vorliegende Aufgabe knapp bemessen: Wird eine
-hochaufgelöste Stapelaufnahme auf 640\px{} herunterskaliert, schrumpfen die
-Rohrprofile auf wenige Pixel Durchmesser. Da die feinste Merkmalsebene P3 mit
-einem Stride von 8 arbeitet, belegt ein solches Objekt dort weniger als eine
-Gitterzelle und fällt unter die zuverlässige Detektionsgrenze. Zwei Strategien
-adressieren dies:
+\section{Anwendung auf gestapelte Bauzaunprofile}
+\label{sec:anwendung}
 
-\emph{(a) Erhöhte Eingabeauflösung.} Eine Vergrößerung auf beispielsweise
-\code{imgsz=2560} skaliert ein zuvor 6--8\px{} großes Profil auf 24--32\px{} und
-damit in einen gut detektierbaren Bereich. Der Rechenaufwand wächst jedoch
-quadratisch mit der Kantenlänge (Faktor 16 gegenüber 640\px{}), was eine
-deutliche Reduktion der Batch-Größe erzwingt. Zu beachten ist ferner, dass
-Trainings- und Inferenzauflösung übereinstimmen müssen, da sonst ein
-Skalenversatz zwischen gelernter und beobachteter Objektgröße entsteht.
+Ein YOLO-Modell wird per Transfer Learning von COCO-vortrainierten Gewichten
+\parencite{yosinski2014} auf eine einzige Objektklasse feinabgestimmt. Zwei
+Eigenschaften von YOLO26 passen dabei unmittelbar zum Problem: STAL und ProgLoss
+verbessern die Erkennung kleiner Objekte, und die NMS-freie Inferenz eliminiert
+einen bei dicht gepackten gleichartigen Objekten systematisch fehleranfälligen
+Hyperparameter -- ein zu niedriger IoU-Schwellwert unterdrückt korrekte
+Detektionen benachbarter Rohre, ein zu hoher lässt Duplikate zu.
 
-\emph{(b) Kachelung.} Alternativ wird das Bild in Kacheln der
-Trainingsauflösung zerlegt und jede Kachel bei nativer Bildauflösung
-verarbeitet. Die effektive Objektgröße entspricht dabei jener der
-hochauflösenden Variante, der Speicherbedarf bleibt jedoch konstant. Nachteilig
-ist der eingeschränkte Bildkontext pro Kachel sowie die Notwendigkeit,
-Detektionen aus Überlappungszonen zu fusionieren \parencite{akyon2022sahi}.
-
-Beide Strategien führen zu vergleichbarer effektiver Auflösung bei
-unterschiedlichem Ressourcenprofil; ihr Vergleich bietet sich als Ablationsstudie
-an (vgl.\ Abschnitt~\ref{sec:imgsz}).
-
-\absatz{Verdeckung und Mehrdeutigkeit.} Verkippte oder seitlich versetzte Zäune
-können benachbarte Profile teilweise verdecken; Schmutz, Rost oder Kabelbinder
-verändern das Erscheinungsbild. Zudem können Doppel- oder Fehldetektionen an
-visuell ähnlichen Strukturen (Schraubenköpfe, Rohrschellen, Löcher in
-Fußplatten) auftreten. Da bei einer Zählaufgabe jeder einzelne Fehler das
-Endergebnis direkt verfälscht, ist die Anforderung an die Detektionsgüte höher
-als bei typischen Detektionsanwendungen, in denen einzelne Fehldetektionen
-tolerierbar sind: Für eine exakte Zählung von 200 Objekten wäre eine
-Trefferquote von über 99,5\,\% nötig.
-
-\absatz{Datenbedarf und Domänenlücke.} COCO-vortrainierte Gewichte enthalten
-keine Klasse \enquote{Bauzaunprofil}; das Modell muss auf einem eigens
-annotierten Datensatz feinabgestimmt werden. Die Annotation hunderter kleiner
-Boxen pro Bild ist aufwendig, und der Datensatz muss die reale Varianz
-(Beleuchtung, Witterung, Zaunhersteller, Kamerawinkel, Stapelhöhe) abdecken, um
-Überanpassung an einen einzelnen Bautyp zu vermeiden. Genau an dieser Stelle
-setzt der Praxisteil dieser Arbeit an: Die Domänenlücke wird nicht durch
-zusätzliche Handannotation geschlossen, sondern durch eine Synthese-Pipeline,
-deren Entwurf Gegenstand der Kapitel~\ref{kap:augtheorie}
-bis~\ref{kap:trainingszeit} ist.
-
-\absatz{Perspektive und Kalibrierung.} Da die Aufnahme von unten erfolgt,
-variiert die Objektgröße systematisch über das Bild. CNNs sind zwar
-translationsinvariant, aber nicht inhärent skaleninvariant; die
-Multi-Skalen-Architektur (Feature Pyramid) von YOLO26 mildert dies, ersetzt aber
-keine konsistente Aufnahme-Geometrie. Standardisierte Aufnahmebedingungen
-(fester Abstand, definierte Blickrichtung) reduzieren die Problemkomplexität
-erheblich.
-
-\absatz{Alternative Ansätze als Referenz.} Für extrem dichte Szenen wird in der
-Literatur alternativ die dichtebasierte Zählung (Density Map Estimation /
-Crowd Counting) eingesetzt, bei der ein CNN eine Dichtekarte regressiert, deren
-Integral die Objektanzahl ergibt \parencite{lempitsky2010,zhang2016counting}.
-Dieser Ansatz skaliert besser mit der Objektanzahl, verzichtet aber auf
-instanzweise Lokalisierung und damit auf Verifizierbarkeit. Bei 50--200 gut
-separierbaren, regelmäßig angeordneten Objekten ist die detektionsbasierte
-Zählung mit YOLO26 der geeignetere Ausgangspunkt; die dichtebasierte Zählung
-bleibt als Vergleichsverfahren für die Evaluation relevant.
-
-\subsection{Zwischenfazit}
-
-CNNs liefern die methodische Grundlage, um die visuell einfachen, aber
-zahlreichen und kleinen Rohrprofile gestapelter Bauzäune robust zu erkennen.
-YOLO26 ist innerhalb der YOLO-Familie besonders geeignet, da seine
-Kerninnovationen -- NMS-freie End-to-End-Inferenz, STAL/ProgLoss für kleine
-Objekte und Edge-optimierte Effizienz -- genau die kritischen Eigenschaften des
-vorliegenden Zählproblems adressieren. Die Detektionsobergrenze des
-Standardkopfes stellt bei den beobachteten 50--100 Objekten pro Aufnahme kein
-praktisches Hindernis dar. Die wesentlichen Risiken liegen damit nicht in der
-Architektur, sondern in der Datenlage (Annotationsaufwand, Domänenabdeckung)
-sowie in der Auflösungsproblematik, die durch erhöhte Eingabeauflösung oder
-Kachelung adressiert werden muss.
+Drei Grenzen bleiben und strukturieren den Praxisteil. Die \textbf{Auflösung}
+(Abschnitt~\ref{sec:prinzipien}) wird über den P2-Kopf und die Inferenzauflösung
+adressiert (Abschnitte~\ref{sec:p2kopf} und~\ref{sec:imgsz}); die
+\textbf{Verdeckung} -- verkippte Zäune verdecken benachbarte Profile, und
+Gitterknoten, Löcher im Maschendraht und Schattenspalten drohen als
+Falschpositive -- ist Gegenstand der Ablation in Abschnitt~\ref{sec:ablationB};
+und der \textbf{Datenbedarf} wird nicht durch Handannotation gedeckt, sondern
+durch eine Synthese-Pipeline, deren Entwurf die Kapitel~\ref{kap:augtheorie}
+bis~\ref{kap:trainingszeit} füllt.

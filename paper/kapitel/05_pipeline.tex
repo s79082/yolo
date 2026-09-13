@@ -2,13 +2,11 @@
 \label{kap:pipeline}
 
 Dieses Kapitel dokumentiert die Pipeline, die aus neun Objektausschnitten und
-sieben Hintergrundaufnahmen den vollständigen Trainingsdatensatz erzeugt. Für
-jede Transformation werden der Parameterbereich, der \emph{gemessene} Anteil im
-erzeugten Datensatz und die Begründung angegeben. Die Anteile sind keine
-konfigurierten Sollwerte, sondern Ist-Werte aus dem Erzeugungsbericht
+sieben Hintergrundaufnahmen den vollständigen Trainingsdatensatz erzeugt. Die in
+Tabelle~\ref{tab:parameter} genannten Anteile sind keine konfigurierten
+Sollwerte, sondern \emph{gemessene} Ist-Werte aus dem Erzeugungsbericht
 \code{synth/train/generation\_report.json} über 6000 Bilder mit 173\,100
-gerenderten Instanzen und 136\,384 gelabelten Objekten. Wo Soll- und Ist-Wert
-auseinanderfallen, ist dies erklärbar und wird erklärt.
+gerenderten Instanzen und 136\,384 gelabelten Objekten.
 
 \section{Leitprinzip und Arbeitsteilung}
 \label{sec:leitprinzip}
@@ -17,779 +15,638 @@ auseinanderfallen, ist dies erklärbar und wird erklärt.
 schließen, über die ein CNN \enquote{hier wurde etwas eingeklebt} statt
 \enquote{hier ist ein Rohrende} lernen könnte.} Wie in
 Abschnitt~\ref{sec:shortcut} begründet, ist bei Copy-Paste-Synthese nicht zu
-wenig Variation die dominante Fehlerquelle, sondern der systematische Unterschied
-zwischen eingefügten und originalen Pixeln. Jede Transformation wird deshalb
-entweder mit einer Messung an den Realdaten (Kapitel~\ref{kap:daten}), mit einer
-physikalischen Randbedingung oder mit einer konkret benannten Abkürzung
-begründet, die sie schließt.
+wenig Variation die dominante Fehlerquelle, sondern der systematische
+Unterschied zwischen eingefügten und originalen Pixeln.
 
-\absatz{Arbeitsteilung Generator / Trainingszeit.} Das zweite Prinzip folgt
-unmittelbar aus Anforderung~A1 (Labelexaktheit). Transformationen werden dort
-ausgeführt, wo ihre Labeltransformation exakt bekannt ist:
-
-\begin{table}[htbp]
-\centering
-\caption[Arbeitsteilung Generator und Trainingszeit]{Arbeitsteilung zwischen
-Generator (offline) und Trainingszeit-Augmentierung. Kriterium ist
-ausschließlich, ob die Labeltransformation exakt bekannt ist.}
-\label{tab:arbeitsteilung}
-\small
-\begin{tabularx}{\textwidth}{@{}L{0.42\textwidth}X@{}}
-\toprule
-\textbf{Generator (offline, pro Instanz)} &
-\textbf{Trainingszeit (Ultralytics, bildweit)} \\
-\midrule
-Alles, was \emph{pro Instanz} wirkt und die Box aus der transformierten
-Alphamaske \emph{exakt neu} bestimmt: Rotation über den vollen Kreis,
-Ovalisierung, Delle, Perspektive, Photometrie, Verdeckung, Sichtbarkeitsrechnung &
-Alles, was \emph{bildweit} wirkt und Boxen nicht verfälscht: Mosaic,
-Skalierung, Translation, Spiegelung, HSV-Variation \\
-\bottomrule
-\end{tabularx}
-\end{table}
-
-Aus dieser Aufteilung folgt zwingend, dass im Training \code{degrees=0},
-\code{shear=0} und \code{perspective=0} gesetzt sind: Diese Operationen blähen
-achsparallele Boxen auf (Abschnitt~\ref{sec:boxrotation}). Im Generator dagegen
-wird die Box nach der Rotation aus der gedrehten Alphamaske neu bestimmt und ist
-damit exakt. Die genannten Invarianzen werden also nicht \emph{weggelassen},
-sondern nur an einer anderen Stelle -- und label-exakt -- erzeugt.
+\absatz{Arbeitsteilung.} Aus Anforderung~A1 folgt, wo eine Transformation
+ausgeführt wird: Der \textbf{Generator} übernimmt alles, was \emph{pro Instanz}
+wirkt und die Box aus der transformierten Alphamaske exakt neu bestimmt --
+Rotation über den vollen Kreis, Ovalisierung, Delle, Perspektive, Photometrie,
+Verdeckung, Sichtbarkeitsrechnung. Die \textbf{Trainingszeit-Augmentierung}
+übernimmt alles, was \emph{bildweit} wirkt und Boxen nicht verfälscht -- Mosaic,
+Skalierung, Translation, Spiegelung, HSV-Variation. Daraus folgt zwingend, dass
+im Training \code{degrees}, \code{shear} und \code{perspective} auf~0 stehen: Sie
+blähen achsparallele Boxen auf (Abschnitt~\ref{sec:boxrotation}). Die
+entsprechenden Invarianzen werden also nicht \emph{weggelassen}, sondern an
+anderer Stelle und label-exakt erzeugt.
 
 \begin{figure}[htbp]
 \centering
 \begin{tikzpicture}[
   box/.style={draw,rounded corners=2pt,align=center,font=\scriptsize,
-              text width=1.85cm,minimum height=8.5mm,inner sep=2.5pt,fill=blue!8},
+              text width=1.8cm,minimum height=8mm,inner sep=2.5pt,fill=blue!8},
   stage/.style={draw,rounded corners=2pt,align=center,font=\scriptsize,
-              text width=1.85cm,minimum height=9.5mm,inner sep=2.5pt,fill=orange!18},
+              text width=1.8cm,minimum height=9mm,inner sep=2.5pt,fill=orange!18},
   erg/.style={draw,rounded corners=2pt,align=center,font=\scriptsize,
-              text width=2.1cm,minimum height=9.5mm,inner sep=2.5pt,fill=green!12},
+              text width=2.0cm,minimum height=9mm,inner sep=2.5pt,fill=green!12},
   ar/.style={-{Latex[length=1.8mm]},semithick,gray!60!black}]
-  \node[box]   (cut)   at (0,1.25)  {9 Objekt-\\ausschnitte};
-  \node[box]   (bg)    at (0,-1.25) {7 Hintergrund-\\aufnahmen};
-  \node[stage] (mat)   at (2.9,1.25) {\textbf{Stufe 1}\\Matting};
-  \node[stage] (occ)   at (2.9,-1.25){\textbf{Stufe 2}\\Okkluder};
-  \node[box]   (masks) at (5.7,1.25) {9 Alphamasken\\(1{,}1\,px Kante)};
-  \node[box]   (bars)  at (5.7,-1.25){56 echte\\Rohrschäfte};
-  \node[stage] (syn)   at (8.6,0)    {\textbf{Stufe 3}\\Synthese\\T1--T9};
-  \node[erg]   (ds)    at (11.6,0)   {6000 Bilder\\136\,384 Labels};
-  \draw[ar] (cut) -- (mat);
-  \draw[ar] (bg)  -- (occ);
-  \draw[ar] (mat) -- (masks);
-  \draw[ar] (occ) -- (bars);
-  \draw[ar] (masks) -- (syn);
-  \draw[ar] (bars)  -- (syn);
-  \draw[ar] (bg.south) -- ++(0,-0.7) -| (syn.south);
+  \node[box]   (cut)   at (0,1.15)  {9 Objekt-\\ausschnitte};
+  \node[box]   (bg)    at (0,-1.15) {7 Hintergrund-\\aufnahmen};
+  \node[stage] (mat)   at (2.8,1.15) {\textbf{Stufe 1}\\Matting};
+  \node[stage] (occ)   at (2.8,-1.15){\textbf{Stufe 2}\\Okkluder};
+  \node[box]   (masks) at (5.5,1.15) {9 Alphamasken\\(1,1\,px Kante)};
+  \node[box]   (bars)  at (5.5,-1.15){56 echte\\Rohrschäfte};
+  \node[stage] (syn)   at (8.3,0)    {\textbf{Stufe 3}\\Synthese\\T1--T9};
+  \node[erg]   (ds)    at (11.1,0)   {6000 Bilder\\136\,384 Labels};
+  \draw[ar] (cut) -- (mat);   \draw[ar] (bg)  -- (occ);
+  \draw[ar] (mat) -- (masks); \draw[ar] (occ) -- (bars);
+  \draw[ar] (masks) -- (syn); \draw[ar] (bars)  -- (syn);
+  \draw[ar] (bg.south) -- ++(0,-0.65) -| (syn.south);
   \draw[ar] (syn) -- (ds);
   \node[font=\scriptsize,gray!50!black,fill=white,inner sep=1.5pt]
-        at (4.1,-2.35) {Hintergründe zusätzlich direkt};
+        at (4.0,-2.2) {Hintergründe zusätzlich direkt};
 \end{tikzpicture}
-\caption[Aufbau der Pipeline]{Aufbau der Pipeline. Die Hintergrundaufnahmen
-werden zweifach genutzt: als Quelle der Okkluder-Bibliothek (Stufe~2) und
-unmittelbar als Bildhintergrund und Fremdkörperquelle (Stufe~3).}
+\caption[Aufbau der Pipeline]{Herkunft der Bausteine und Reihenfolge der
+Stufen. Die Abbildung beantwortet die Frage, \emph{woher} das Material kommt --
+Abbildung~\ref{abb:stufen} zeigt anschließend, \emph{was} jede Stufe daraus
+macht. Zwei Punkte sind hier wesentlich: Die neun Objektausschnitte und die
+sieben Hintergrundaufnahmen sind die \emph{einzigen} Eingaben der ganzen
+Pipeline, und die Hintergründe werden zweifach genutzt -- als Quelle der
+Okkluder-Bibliothek und unmittelbar als Bildhintergrund samt
+Fremdkörperquelle. Die Stufenfolge T1--T9 ist fest; Zufall steckt
+ausschließlich in den Parametern der einzelnen Stufen, nicht in ihrer
+Reihenfolge.}
 \label{abb:pipeline}
 \end{figure}
 
-\section{Stufe 1 -- Freistellen der Objektausschnitte}
+\section{Vorstufen: Freistellen und Okkluder-Bibliothek}
 \label{sec:matting}
 
-\absatz{Problem.} Nach Befund~1 sind alle neun Ausschnitte rechteckig, 13--35\,\%
-ihrer Fläche ist Fremdkontext. Direktes Einkopieren erzeugt Signatur~S1.
+\absatz{Stufe 1 -- Matting.} Nach Befund~1 sind alle neun Ausschnitte
+rechteckig; direktes Einkopieren erzeugte Signatur~S1. Das Freistellen erfolgt
+dreistufig über ein Ellipsenmodell $(c_x, c_y, r_x, r_y, \theta)$ -- die
+Zahlenwerte dieses Absatzes sind Parameter und Messwerte von
+\code{src/matting.py}: manuelle Startwerte aus einer 14-fach vergrößerten
+Rasteransicht, numerische Verfeinerung
+per Coordinate Descent auf der radialen Kantenenergie
+$I(\text{innen}) - I(\text{außen})$ eines sechsfach upgesampelten Bildes, und
+eine Außenkantenkorrektur. Letztere ist nötig, weil die Optimierung
+konstruktionsbedingt auf dem \emph{Grat} des hellen Kranzes konvergiert und nicht
+auf seiner Außenkante; ein mittleres Radialprofil bestimmt daher den Radius, bei
+dem die Helligkeit auf 25\,\% der Kantenamplitude über Hintergrundniveau
+abgefallen ist.
 
-\absatz{Lösung.} Das Freistellen erfolgt dreistufig über ein Ellipsenmodell
-$(c_x, c_y, r_x, r_y, \theta)$ pro Ausschnitt:
+Die Wahl von 25\,\% statt des klassischen Halbwertspunkts
+\parencite{gonzalez2018} verschiebt die Maskengrenze bewusst nach außen, weil die
+Kosten asymmetrisch sind: Der helle Kranz ist das \emph{diskriminative} Merkmal
+-- ihn anzuschneiden entfernt Information, die das Netz braucht --, während ein
+etwa 1\px{} breiter Hintergrundsaum durch Feathering und Farbangleich ohnehin
+kaschiert wird. Die Aufweitung ist hart auf $[1{,}02;\,1{,}10]$ gedeckelt: Bei
+acht der neun Ausschnitte liegt der ermittelte Faktor bei 1,02--1,05, nur der
+kontrastarme neunte liefe sonst auf 1,19 und die Maske würde Hintergrund
+aufsaugen. Ergebnis sind weiche Alphamasken mit rund 1,1\px{} Übergangsbreite --
+Absicht und nicht Toleranz, denn ein 25\px{} großes Objekt hat in einer echten
+Aufnahme nie eine pixelharte Silhouette.
 
-\begin{enumerate}
-  \item \textbf{Manuelle Startwerte}, abgelesen aus einer 14-fach vergrößerten
-  Rasteransicht. Bei neun Objekten ist das exakter als jeder automatische Fit und
-  vermeidet, dass ein Fehlschlag der Optimierung unbemerkt bleibt.
-  \item \textbf{Numerische Verfeinerung} per Coordinate Descent. Maximiert wird
-  die radiale Kantenenergie $I(\text{innen}) - I(\text{außen})$ entlang der
-  Ellipse auf einem sechsfach upgesampelten, geglätteten Bild. Das Upsampling ist
-  nötig, weil die Objekte nur 28--43\px{} groß sind und eine Verschiebung um ein
-  Pixel bereits mehrere Prozent des Radius ausmacht.
-  \item \textbf{Außenkantenkorrektur.} Schritt~2 konvergiert
-  konstruktionsbedingt auf den \emph{Grat} des hellen Kranzes, nicht auf seine
-  Außenkante. Ein mittleres Radialprofil bestimmt daher zusätzlich den Radius,
-  bei dem die Helligkeit auf 25\,\% der Kantenamplitude über Hintergrundniveau
-  abgefallen ist.
-\end{enumerate}
+\absatz{Stufe 2 -- Okkluder.} Ein synthetisch \emph{gemalter} Balken hätte andere
+Textur-, Rausch- und Glanzstatistik als der Rest des Bildes -- das Netz könnte
+\enquote{Objekt liegt neben künstlichem Balken} lernen, also eine Abkürzung der
+Klasse S2--S4. Die vier Clean Plates sind dagegen Wände aus Rohrschäften
+desselben Materials, derselben Kamera und derselben Beleuchtung. Aus ihnen werden
+Okkluder gewonnen: dominante Rohrrichtung über den Struktur-Tensor
+\parencite{jaehne2005} und Drehung des Bildes (gemessen $+0{,}9$, $-1{,}6$,
+$+0{,}9$, $+6{,}6$ Grad), Hochpassfilterung des Zeilenmittelprofils zur
+Bestimmung der Rohrachsen -- ihr Abstand ist der Rohrdurchmesser
+(16/18/21/20\px, dieselben Werte, die den Maßstab verankern) --, Ausschneiden
+eines Streifens je Achse und eine weiche Kapselmaske mit 1,6\px{} Feder.
+Ergebnis sind 56 Rohrschäfte mit echter zylindrischer Schattierung und echtem
+Glanzlicht; sie dienen als Schaft \emph{hinter} jeder Stirnfläche
+(Tabelle~\ref{tab:parameter}, T5, 88\,\% der Instanzen) und als Okkluder
+\emph{vor} dem Stapel (T6, 58\,\% der Bilder).
 
-\absatz{Warum 25\,\% und nicht 50\,\%?} Der klassische Schwellwert für eine
-Kantenposition ist der Halbwertspunkt (FWHM-Konvention, \cite{gonzalez2018}). Die
-Wahl von 25\,\% verschiebt die Maskengrenze bewusst nach außen. Die Begründung
-ist asymmetrisch in den Kosten: Der helle Kranz ist das \emph{diskriminative}
-Merkmal des Objekts -- ihn anzuschneiden entfernt Information, die das Netz
-braucht. Ein etwa 1\px{} breiter Hintergrundsaum dagegen wird durch das
-anschließende Feathering und den Farbangleich (Abschnitt~\ref{sec:photometrie})
-ohnehin kaschiert. Die Aufweitung wird hart auf $[1{,}02;\,1{,}10]$ gedeckelt:
-Bei acht der neun Ausschnitte liegt der ermittelte Faktor bei 1,02--1,05; nur der
-kontrastarme \code{cutted\_8.png} liefe sonst auf 1,19 und die Maske würde
-Hintergrund aufsaugen.
-
-\absatz{Ergebnis.} Weiche Alphamasken mit rund 1,1\px{} Übergangsbreite
-(Abbildung~\ref{abb:matting}). Der weiche Übergang ist Absicht und nicht
-Toleranz: Ein 25\px{} großes Objekt hat in einer echten Aufnahme nie eine
-pixelharte Silhouette, weil Objektivunschärfe und Sensortiefpass jede Kante über
-mindestens ein Pixel verschmieren.
-
-\begin{figure}[htbp]
-\centering
-\includegraphics[width=\textwidth]{abbildungen/matting_check.jpg}
-\caption[Kontrolle des Freistellens]{Kontrolle des Freistellens für alle neun
-Ausschnitte. Je Paar links das Original mit eingezeichneter Ellipse, rechts das
-freigestellte Objekt auf neutralem Grau. Erkennbar ist die weiche Kante und der
-bewusst außen liegende Maskenrand, der den hellen Kranz vollständig einschließt.}
-\label{abb:matting}
-\end{figure}
-
-\section{Stufe 2 -- Okkluder-Bibliothek}
-\label{sec:okkluderbib}
-
-\absatz{Warum echte Rohrschäfte statt gezeichneter Balken.} Verdeckung liegt in
-der Zieldomäne durch quer liegende Rohre vor. Ein synthetisch \emph{gemalter}
-Balken hätte andere Textur-, Rausch- und Glanzstatistik als der Rest des Bildes
--- das Netz könnte \enquote{Objekt liegt neben künstlichem Balken} lernen, also
-eine Abkürzung der Klasse S2--S4. Die vier Clean Plates sind dagegen buchstäblich
-Wände aus Rohrschäften desselben Materials, derselben Kamera und derselben
-Beleuchtung. Aus ihnen lassen sich Okkluder gewinnen, deren
-Sensorsignatur identisch ist.
-
-\absatz{Verfahren.}
-\begin{enumerate}
-  \item Bestimmung der dominanten Rohrrichtung über den \textbf{Struktur-Tensor}
-  \parencite{jaehne2005}, Winkel auf $(-45^\circ, 45^\circ]$ gefaltet, Bild
-  entsprechend gedreht. Gemessen: $+0{,}9^\circ$, $-1{,}6^\circ$,
-  $+0{,}9^\circ$, $+6{,}6^\circ$.
-  \item Zeilenmittelprofil des gedrehten Bildes, Hochpassfilterung, lokale
-  Maxima als \textbf{Rohrachsen}; ihr mittlerer Abstand ist der Rohrdurchmesser.
-  Gemessen: 16, 18, 21, 20\px{} -- dieselben Werte, die
-  Tabelle~\ref{tab:hintergruende} als Maßstabsanker nennt.
-  \item Ausschneiden eines Streifens der Höhe = Achsabstand um jede Achse.
-  \item Weiche \textbf{Kapselmaske} (Rechteck mit halbrunden Enden, 1,6\px{}
-  Feder), damit die Schaftenden nicht als gerade Schnittkante enden.
-\end{enumerate}
-
-\absatz{Ergebnis.} 56 Rohrschäfte mit echter zylindrischer Schattierung und
-echtem Glanzlicht (Abbildung~\ref{abb:okkluder}). Sie werden in der Synthese
-zweifach verwendet: als Schaft \emph{hinter} jeder Stirnfläche
-(Abschnitt~\ref{sec:schaft}) und als quer liegender Okkluder \emph{vor} dem
-Stapel (Abschnitt~\ref{sec:okklusion}).
-
-\begin{figure}[htbp]
-\centering
-\includegraphics[width=0.42\textwidth]{abbildungen/okkluder_check.png}
-\caption[Okkluder-Bibliothek]{Ausschnitt aus der Okkluder-Bibliothek: aus den
-Clean Plates extrahierte echte Rohrschäfte mit zylindrischer Schattierung,
-Glanzlicht und weicher Kapselmaske.}
-\label{abb:okkluder}
-\end{figure}
+Der Umweg über echte Aufnahmen ist \emph{aufwendig}: Er kostet eine eigene
+Verarbeitungsstufe mit Struktur-Tensor, Achsdetektion und Plausibilitätsprüfung
+des Durchmessers, und er bindet die Bibliothek an die vier verfügbaren Clean
+Plates -- ein prozedural gezeichneter Balken wäre in zwanzig Zeilen Code
+geschrieben und in beliebiger Zahl und Form verfügbar. Gerechtfertigt wird der
+Aufwand allein durch das oben genannte Argument, und dieses Argument ist eine
+\emph{Annahme}: Es benennt eine plausible Abkürzung, misst sie aber nicht.
+Abschnitt~\ref{sec:ablationB} holt die Messung nach, indem er die Bibliothek
+gegen zwei prozedural erzeugte austauscht und sonst nichts verändert. Die
+Belegart von Befund~8 in Tabelle~\ref{tab:befunde} ist deshalb mit \emph{P/A}
+angegeben: Dass \emph{ein} Schaft hinter der Stirnfläche steht, ist physikalisch
+zwingend; \emph{woraus} er besteht, war bis dahin begründet, nicht belegt.
 
 \section{Stufe 3 -- Bildsynthese}
 \label{sec:synthese}
 
 Die Leinwand ist $1024\times1024$ Pixel groß und damit identisch zur
-Trainingsauflösung \code{imgsz=1024}. Das ist eine bewusste Entscheidung nach
-Anforderung~A2: Die synthetischen Bilder durchlaufen im Training \emph{keine}
-Größenänderung, die sorgfältig kalibrierte Objektgrößenverteilung bleibt exakt
-erhalten.
-
-\subsection{T1 -- Hintergrund}
-\label{sec:hintergrundstufe}
+Trainingsauflösung. Das ist eine bewusste Entscheidung nach Anforderung~A2: Die
+synthetischen Bilder durchlaufen im Training \emph{keine} Größenänderung, die
+kalibrierte Objektgrößenverteilung bleibt exakt erhalten.
+Tabelle~\ref{tab:stufen} gibt den Überblick, Tabelle~\ref{tab:parameter} im
+Anhang dokumentiert alle 36 Transformationen einzeln mit Parameterbereich,
+gemessenem Ist-Anteil und Begründung. Die folgenden Abschnitte begründen die fünf
+Stellen, an denen die Modellierung über eine Parameterwahl hinausgeht.
 
 \begin{table}[htbp]
 \centering
-\caption[T1: Hintergrundstufe]{T1 -- Hintergrundstufe. \emph{Ist} = gemessener
-Anteil je Bild im erzeugten Datensatz. Belegart wie in
-Tabelle~\ref{tab:mapping}.}
-\label{tab:t1}
+\caption[Überblick der Synthesestufen]{Überblick der neun Synthesestufen.
+Die vollständige Dokumentation aller 36 Transformationen mit Parameterbereich,
+gemessenem Ist-Anteil und Begründung steht in Tabelle~\ref{tab:parameter} im
+Anhang.}
+\label{tab:stufen}
 \footnotesize
-\begin{tabularx}{\textwidth}{@{}L{0.20\textwidth}L{0.10\textwidth}XL{0.045\textwidth}@{}}
+\begin{tabularx}{\textwidth}{@{}llX@{}}
 \toprule
-\textbf{Transformation} & \textbf{Ist} & \textbf{Begründung} & \textbf{Art} \\
+\textbf{Stufe} & \textbf{Anz.} & \textbf{Inhalt und zentrale Parameter} \\
 \midrule
-Clean Plate statt Fremdszene & 80\,\% (Soll) &
-Die vier Clean Plates sind exakt die Zieldomäne und erhalten sechsfaches
-Ziehgewicht. Die drei Fremdszenen liefern zu 20\,\% Kontextvielfalt und harte
-Negative -- \code{bg\_5.jpg} enthält den Maschendraht, der nach der
-Annotationsdefinition kein Objekt ist. & M \\
-Zoom gekoppelt an den Rohrdurchmesser & 100\,\% &
-\textbf{Physikalische Randbedingung} (Befund~6). Statt Zoom und Objektgröße
-unabhängig zu ziehen, gilt $d = d_{\text{Rohr}}(\text{bg}) \cdot z$. Ein
-Missverhältnis zwischen Stirnfläche und benachbartem Schaft wäre physikalisch
-unmöglich und trainierte eine falsche Kontext-Größen-Relation an. & P \\
-Zufallsausschnitt (Translation) & 100\,\% &
-Verhindert, dass immer derselbe Bildbereich als Hintergrund dient -- bei nur
-sieben Quellbildern die wichtigste Quelle von Hintergrundvielfalt. & L \\
-Reflect-Padding statt Kachelung & nach Bedarf &
-Wird der geforderte Ausschnitt größer als das Quellbild, so wird gespiegelt
-aufgefüllt, gedeckelt auf $1{,}35 \times$ kürzeste Kante. \code{np.tile} erzeugte
-harte achsparallele Nähte (S1); gespiegeltes Padding hat keine Kante. & L \\
-Horizontale Spiegelung & 50{,}5\,\% &
-Label-exakt und physikalisch korrekt: Ein Stapel wird von beiden Enden
-fotografiert. & P \\
-Vertikale Spiegelung & 14{,}9\,\% &
-Ebenfalls label-exakt. Bewusst seltener als horizontal, weil die Schwerkraft
-(Stapel unten, Himmel oben) eine schwache Vorzugsrichtung erzeugt. & A \\
-Kleinrotation $\pm 6^\circ$ & 34{,}3\,\% &
-Die Rohrlinien im Bild sind nie exakt achsparallel; ohne diese Variation wäre
-die Vorzugsrichtung im Datensatz künstlich diskret. Angewandt \emph{vor} dem
-Einfügen der Objekte, betrifft also keine Boxen. Begleitender Zoom 1,06 gegen
-Eckartefakte. & M \\
+T1 Hintergrund & 7 &
+Clean Plate (80\,\%), Zoom an Rohr-\Oe{} gekoppelt, Zufallsausschnitt,
+Reflect-Padding, Spiegelungen (50/15\,\%), Kleinrotation $\pm6^\circ$ \\
+T2 Instanzgeometrie & 5 &
+Rotation $0$--$360^\circ$ (100\,\%), Skalierung 12--44\px, Ovalisierung
+(57\,\%), Delle (18\,\%), Perspektive $\pm9\,\%$ (30\,\%) \\
+T3 Photometrie & 8 &
+Helligkeit, Gamma, HSV, Farbangleich (85\,\%), Unschärfe- und Rauschangleich,
+Kantenweichzeichnung, Schlagschatten (49\,\%) \\
+T4 Layout & 2 &
+gescherte Gitterpackung, 1--3 Cluster; abgedunkelte Mulde \\
+T5 Rohrschaft & 4 &
+echter Schaft hinter 88\,\% der Instanzen, parallele Richtung $\pm11^\circ$,
+Helligkeitsangleich, Tiefenmodell 75/25 \\
+T6 Okklusion & 2 &
+quer liegende Rohrstangen (58\,\% der Bilder), Fremdkörper (32\,\%) \\
+T7 Sichtbarkeit & -- &
+exakte Rechnung und Labelregeln, Abschnitt~\ref{sec:sichtbarkeit} \\
+T8 globale Bildstufe & 7 &
+Helligkeit/Kontrast, HSV, Defokus, Bewegungsunschärfe, Rauschen,
+Vignettierung, JPEG-Requantisierung (85\,\%) \\
+T9 Negativbilder & 1 &
+9,7\,\% der Bilder ohne jedes Objekt \\
 \bottomrule
 \end{tabularx}
 \end{table}
 
-Der Zoomfaktor $z$ wird so gezogen, dass der resultierende Basisdurchmesser im
-Zielbereich $[d_{\min}, d_{\max}] = [12, 44]$\px{} liegt:
+\begin{figure}[htbp]
+\centering
+\begin{subfigure}{0.315\textwidth}
+  \includegraphics[width=\textwidth]{abbildungen/stufe_T1_hintergrund.jpg}
+  \caption{T1 Hintergrund}
+\end{subfigure}\hfill
+\begin{subfigure}{0.315\textwidth}
+  \includegraphics[width=\textwidth]{abbildungen/stufe_T4_layout.jpg}
+  \caption{T4 Layout}
+\end{subfigure}\hfill
+\begin{subfigure}{0.315\textwidth}
+  \includegraphics[width=\textwidth]{abbildungen/stufe_T5_schaft.jpg}
+  \caption{T5 Rohrschaft}
+\end{subfigure}
+
+\vspace{4pt}
+\begin{subfigure}{0.315\textwidth}
+  \includegraphics[width=\textwidth]{abbildungen/stufe_T2T3_instanzen.jpg}
+  \caption{T2/T3 Instanzen}
+\end{subfigure}\hfill
+\begin{subfigure}{0.315\textwidth}
+  \includegraphics[width=\textwidth]{abbildungen/stufe_T6_okklusion.jpg}
+  \caption{T6 Okklusion}
+\end{subfigure}\hfill
+\begin{subfigure}{0.315\textwidth}
+  \includegraphics[width=\textwidth]{abbildungen/stufe_T7_sichtbarkeit.jpg}
+  \caption{T7 Sichtbarkeit}
+\end{subfigure}
+\caption[Aufbau eines synthetischen Bildes]{Aufbau eines synthetischen Bildes,
+Stufe für Stufe am selben Bild. (a)~Der gewählte Clean Plate nach Zoom,
+Ausschnitt und Spiegelung. (b)~Die gezogenen Objektzentren des Layoutmodells
+(orange), dazu zwei abgedunkelte Mulden. (c)~Die Rohrschäfte, in paralleler
+Richtung und zu 75\,\% ganz hinten gemalt. (d)~Die Stirnflächen mit
+Instanzgeometrie und Photometrie -- 82 Instanzen. (e)~Was die Okklusionsstufe
+hinzufügt, orange umrandet: sechs quer liegende Stangen und Fremdkörper.
+(f)~Das Urteil der Sichtbarkeitsrechnung: grün die 48 vergebenen Labels, rot
+die 33 verworfenen Instanzen. Die Einzelstufen T2, T3, T8 und T9 sind in den
+Abbildungen~\ref{abb:stufendetail} und~\ref{abb:stufenglobal} im Anhang
+vergrößert dargestellt. Zur Lesbarkeit ist ein Bild am oberen Ende des
+Größenbereichs gewählt (Basisdurchmesser 44\px{} statt des Medians von
+22,5\px) und mit überdurchschnittlicher Verdeckung;
+Abbildung~\ref{abb:synthbeispiele} zeigt typische Bilder. Erzeugt mit
+\code{paper/tools/fig\_stufen.py}, Seed~302.}
+\label{abb:stufen}
+\end{figure}
+
+\subsection{Fünf Modellierungsentscheidungen}
+
+\absatz{Maßstabskopplung.} Der Zoomfaktor $z$ wird so gezogen, dass der
+Basisdurchmesser im Zielbereich $[12, 44]$\px{} liegt:
 \begin{equation}
-z \sim \mathcal{U}\!\left[\;\max\!\left(0{,}55,\;
-\frac{d_{\min}}{d_{\text{Rohr}}}\right),\;
-\min\!\left(2{,}20,\;\frac{d_{\max}}{d_{\text{Rohr}}}\right)\right],
+z \sim \mathcal{U}\!\left[\max\!\left(0{,}55,\;
+\tfrac{d_{\min}}{d_{\text{Rohr}}}\right),\;
+\min\!\left(2{,}20,\;\tfrac{d_{\max}}{d_{\text{Rohr}}}\right)\right],
 \qquad d_{\text{Basis}} = d_{\text{Rohr}} \cdot z .
 \label{eq:zoom}
 \end{equation}
-Die äußeren Schranken 0,55 und 2,20 begrenzen die Vergrößerung des
-Hintergrundmaterials und damit den Verlust an Hintergrundschärfe. Für
-$d_{\text{Rohr}} = 16$\px{} ergibt Gleichung~\eqref{eq:zoom}
-$z \in [0{,}75;\,2{,}20]$, für $d_{\text{Rohr}} = 21$\px{}
-$z \in [0{,}57;\,2{,}10]$. Der Ausschnitt der Kantenlänge $1024/z$ wird
-anschließend auf die Leinwand skaliert -- beim Verkleinern flächentreu
-(\code{INTER\_AREA}), um Aliasing zu vermeiden (S3).
+Objektgröße und Hintergrundmaßstab sind damit \emph{nicht} unabhängig gezogen --
+der Kern von Anforderung~A3.
 
-\subsection{T2 -- Geometrie der Einzelinstanz}
-\label{sec:instanzgeometrie}
-
-\begin{table}[htbp]
-\centering
-\caption[T2: Instanzgeometrie]{T2 -- Geometrie der Einzelinstanz. \emph{Ist} =
-gemessener Anteil je gerenderter Instanz.}
-\label{tab:t2}
-\footnotesize
-\begin{tabularx}{\textwidth}{@{}L{0.19\textwidth}L{0.11\textwidth}XL{0.045\textwidth}@{}}
-\toprule
-\textbf{Transformation} & \textbf{Ist} & \textbf{Begründung} & \textbf{Art} \\
-\midrule
-Rotation $0$--$360^\circ$ & 100\,\% &
-Rohrenden haben keine kanonische Bildorientierung: Kamerarollwinkel und
-Stapelausrichtung sind beliebig. Die einzige Orientierungsinformation ist die
-Richtung des Glanzlichts auf dem Kranz, und die hängt vom Sonnenstand ab. Volle
-Rotationsinvarianz ist daher korrekt \emph{und kostenlos} -- es gibt keine
-Rotation, die ein unmögliches Bild erzeugt. Deshalb 100\,\% statt eines
-Bruchteils. & P \\
-Skalierung auf 12--44\px{} & 100\,\% &
-Reale Messung (Tabelle~\ref{tab:objektstatistik}): \code{val} 20,6--35,8\px{},
-\code{test} 12,2--31,9\px{}. Der Generator deckt die reale Spanne plus rund
-25\,\% Reserve nach oben ab, für Aufnahmen aus geringerem Abstand.
-Ist-Verteilung im Datensatz: p05 11,6 / Median 22,5 / p95 39,9\px{}.
-Verkleinerung flächentreu, weil bilineare Interpolation Aliasing als
-verräterisches Hochfrequenzmuster im Objekt zurückließe (S3). & M \\
-Ovalisierung & 57{,}1\,\% &
-Reale Messung: Seitenverhältnis p10--p90 = 0,97--1,31 (\code{val}) bzw.\
-0,85--1,22 (\code{test}); über die Hälfte der echten Boxen weicht um
-$\geq 5\,\%$ vom Quadrat ab. Zwei physikalische Ursachen: Schrägansicht
-projiziert den Kreis auf eine Ellipse, und Rohre sind tatsächlich gequetscht.
-Der Anteil bildet die gemessene Häufigkeit ab. Aufteilung 45\,\% oblat
-(0,66--0,97) zu 12\,\% prolat (1,03--1,30), weil Schrägansicht die Höhe
-verkürzt und häufiger ist als eine seitliche Quetschung. & M \\
-Delle & 18{,}1\,\% &
-Modelliert mechanisch beschädigte Rohrenden. \textbf{Der Anteil ist eine
-Annahme, keine Messung} -- Dellen sind in \code{val}/\code{test} nicht separat
-annotiert. 18\,\% wurde gewählt, damit das Modell die Verformung regelmäßig
-sieht (etwa jedes fünfte Objekt, im Mittel vier pro Bild), sie aber die
-Formstatistik nicht dominiert. Ein zu hoher Anteil würde die Rundheit als
-Merkmal verwässern und Falschpositive auf beliebigen dunklen Flecken erzeugen
-(vgl.\ Abschnitt~\ref{sec:auggrenzen}). & A \\
-Perspektive & 30{,}2\,\% &
-Bei Schrägblick wird der Kreisring nicht nur zur Ellipse -- der helle Kranz wird
-auf einer Seite auch \emph{breiter}, weil die Rohrinnenwand sichtbar wird. Eine
-rein anisotrope Skalierung kann das nicht abbilden. Der Anteil ist eine Annahme;
-30\,\% spiegelt die Beobachtung, dass in \code{val}/\code{test} die Mehrheit der
-Stirnflächen annähernd frontal steht. & A \\
-\bottomrule
-\end{tabularx}
-\end{table}
-
-\absatz{Skalierung und Ovalisierung.} Beide werden in einem Schritt ausgeführt.
-Ist $d_{\text{src}}$ der Durchmesser des Quellausschnitts, $d$ der Zieldurchmesser
-und $\rho$ das gezogene Achsverhältnis, so gilt
+\absatz{Skalierung und Ovalisierung} werden in einem Schritt ausgeführt. Mit
+Quelldurchmesser $d_{\text{src}}$, Zieldurchmesser $d$ und gezogenem
+Achsverhältnis $\rho$ gilt
 \begin{equation}
 s_x = \frac{d}{d_{\text{src}}\sqrt{\rho}}, \qquad
-s_y = \frac{d\,\sqrt{\rho}}{d_{\text{src}}} .
+s_y = \frac{d\,\sqrt{\rho}}{d_{\text{src}}},
+\qquad\text{also}\quad \sqrt{s_x s_y}\, d_{\text{src}} = d .
 \label{eq:oval}
 \end{equation}
-Der geometrische Mittelwert bleibt dabei erhalten:
-$\sqrt{s_x s_y}\, d_{\text{src}} = d$. Das ist kein Zufall, sondern notwendig,
-damit die Ovalisierung die kalibrierte Größenverteilung nicht verschiebt -- die
-Realmessung in Tabelle~\ref{tab:objektstatistik} verwendet mit
-$\sqrt{\text{Fläche}}$ genau dieses Maß.
+Der geometrische Mittelwert bleibt erhalten, $\sqrt{s_x s_y}\,d_{\text{src}} = d$
+-- notwendig, damit die Ovalisierung die kalibrierte Größenverteilung nicht
+verschiebt, denn die Realmessung verwendet mit $\sqrt{\text{Fläche}}$ genau
+dieses Maß. Die \emph{Box} ändert sich dabei sehr wohl, und genau deren
+Seitenverhältnis ist die an den Realdaten gemessene Größe.
 
-\absatz{Dellenmodell.} Die Einbeulung wird als glatte radiale Verschiebung
-umgesetzt. Für $K \in \{1,2\}$ Winkelsektoren mit Mittelrichtungen $\varphi_k$,
-Breiten $\sigma_k \sim \mathcal{U}[0{,}30;\,0{,}85]$\,rad und
-Eindringtiefen $a_k \sim \mathcal{U}[0{,}10;\,0{,}30]$ lautet das
-Verschiebungsfeld in Polarkoordinaten um den Objektmittelpunkt
-\begin{equation}
-u(r, \varphi) = \sum_{k=1}^{K} a_k
-\exp\!\left(-\left(\frac{\Delta\varphi_k}{\sigma_k}\right)^{2}\right)
-\left(\frac{r}{R}\right)^{2},
-\qquad \Delta\varphi_k = \operatorname{atan2}\!\big(\sin(\varphi-\varphi_k),
-\cos(\varphi-\varphi_k)\big),
-\label{eq:delle}
-\end{equation}
-und die Abtastung erfolgt an $r \cdot (1 + u)$. Die quadratische Radiusgewichtung
-$(r/R)^2$ ist der wesentliche Modellierungsentscheid: Sie hält das Zentrum ruhig
-und verformt nur den Rand. Eine gleichmäßige Verschiebung würde die dunkle
-Bohrung mitverzerren und damit das Merkmalspaar Kranz/Bohrung zerstören, statt
-nur den Umriss zu beschädigen.
-
-\absatz{Perspektive.} Umgesetzt als milde Homographie: Die vier Eckpunkte des
-Instanzausschnitts werden unabhängig um bis zu $\pm 9\,\%$ der Kantenlänge
-verschoben. Der Wert 9\,\% ist so gewählt, dass die entstehende Verzerrung
-sichtbar, aber nicht mit einer Schrägansicht von mehr als etwa $25^\circ$
-verwechselbar ist -- stärkere Verzerrungen kämen bei einer frontal auf den
-Stapel gerichteten Kamera nicht vor.
-
-\absatz{Rotation.} Die Instanz wird auf eine quadratische Leinwand der Größe
-ihrer Diagonale erweitert und um $\theta \sim \mathcal{U}[0^\circ, 360^\circ]$
-gedreht. Die Box wird anschließend nicht aus $\theta$ berechnet, sondern aus der
-gedrehten Alphamaske selbst -- damit entfällt die in
-Abschnitt~\ref{sec:boxrotation} beschriebene Aufblähung vollständig
-(Anforderung~A1).
-
-\subsection{T3 -- Photometrie und Einbettungsrealismus}
-\label{sec:photometrie}
-
-Diese Stufe schließt die Signaturen S2--S4 und S6. Sie ist der aufwendigste Teil
-der Pipeline und derjenige, dessen Wirkung optisch am wenigsten auffällt.
-
-\begin{table}[htbp]
-\centering
-\caption[T3: Photometrie und Einbettungsrealismus]{T3 -- Photometrie der
-Einzelinstanz und Einbettungsrealismus. \emph{Ist} = gemessener Anteil je
-gerenderter Instanz. Die Spalte \emph{S} nennt die geschlossene Abkürzung aus
-Abschnitt~\ref{sec:shortcut}.}
-\label{tab:t3}
-\footnotesize
-\begin{tabularx}{\textwidth}{@{}L{0.19\textwidth}L{0.07\textwidth}L{0.035\textwidth}XL{0.045\textwidth}@{}}
-\toprule
-\textbf{Transformation} & \textbf{Ist} & \textbf{S} & \textbf{Begründung} & \textbf{Art} \\
-\midrule
-Helligkeit $\times 0{,}70$--$1{,}35$ & 99{,}8\,\% & -- &
-Stirnflächen liegen je nach Stapelposition in praller Sonne oder tiefem
-Schatten. Die Spannweite ist aus den Ausschnitten selbst ablesbar: mittlere
-Kranzhelligkeit 88--156 Grauwerte. Praktisch 100\,\%, weil es keine
-\enquote{richtige} Helligkeit gibt, die bevorzugt werden dürfte. & M \\
-Gamma $0{,}75$--$1{,}35$ & 79{,}7\,\% & -- &
-Gamma statt reinem Kontrast, weil es die nichtlineare Tonwertkurve
-unterschiedlicher Kameras und JPEG-Pipelines abbildet
-\parencite{grossberg2003}. Es verändert vor allem das Verhältnis dunkle Bohrung
-$\leftrightarrow$ heller Kranz -- genau das Merkmal, auf das der Detektor sonst
-zu starr konditioniert würde. & L \\
-HSV (Ton $\pm 8^\circ$, Sättigung $\times 0{,}45$--$1{,}60$) & 69{,}7\,\% & -- &
-Verzinkter Stahl ist nahezu neutralgrau, nimmt aber Farbstiche an: Flugrost
-braun, Moos grün, blauer Himmel als Reflex. Der Farbtonhub ist bewusst klein --
-große Sprünge wären unphysikalisch. & M \\
-Farbangleich an den lokalen Hintergrund & 84{,}8\,\% & S2 &
-\textbf{Die wichtigste Anti-Abkürzungs-Maßnahme.} Ausschnitt und Hintergrund
-stammen aus verschiedenen Aufnahmen mit verschiedenem Weißabgleich und
-Belichtungsniveau; ohne Angleich bleibt ein konstanter Versatz, den ein CNN
-trivial als Einfügemarke lernt. Bewusst nur \emph{teilweise}
-(Gleichung~\eqref{eq:harmonize}). & L \\
-Unschärfeangleich ($\sigma$ 0,25--1,10\px) & 59{,}8\,\% & S3 &
-Zwei Gründe: Das skalierte Objekt ist je nach Skalierungsrichtung glatter oder
-schärfer als das Zielbild, und reale Objekte liegen je nach Stapeltiefe
-außerhalb der Schärfeebene. Schärfe ist eine der beiden Sensorsignaturen, an
-denen eingeklebte Pixel am leichtesten erkennbar sind
-\parencite{popescu2005}. & L \\
-Rauschangleich ($\times 0{,}5$--$1{,}25$ der lokalen Schätzung) & 69{,}9\,\% & S4 &
-Die zweite Sensorsignatur \parencite{lukas2006}. Beim Verkleinern eines
-Ausschnitts sinkt dessen Rauschen; der eingeklebte Bereich wäre dann messbar
-sauberer als seine Umgebung. Das Rauschniveau wird \emph{pro Einfügestelle
-gemessen} (Gleichung~\eqref{eq:noise}), nicht global gesetzt -- die Hintergründe
-liegen zwischen 6,8 und 15,2 Grauwerten Hochpassstreuung. & L \\
-Alphakante weichzeichnen ($\sigma$ 0,4--1,0\px) & 100\,\% & S1 &
-Immer. Eine pixelharte Silhouette gibt es bei 25\px{}-Objekten in echten
-Aufnahmen nicht. & P \\
-Schlagschatten & 49{,}3\,\% & S6 &
-Ohne Kontaktschatten \enquote{schwebt} ein eingeklebtes Objekt sichtbar. Rund
-50\,\%, weil bei diffusem Licht -- alle vier Clean Plates sind bedeckt
-aufgenommen -- etwa die Hälfte der realen Objekte keinen sichtbaren
-Schlagschatten wirft. & A \\
-\bottomrule
-\end{tabularx}
-\end{table}
-
-\absatz{Farbangleich.} Umgesetzt als \emph{partieller} Statistiktransfer im Stil
-des Farbtransfers von \textcite{reinhard2001}. Für jeden Farbkanal $c$ seien
-$\mu_i, \sigma_i$ Mittelwert und Streuung der Objektpixel (Alphamaske $> 0{,}5$)
-und $\mu_b, \sigma_b$ dieselben Größen des lokalen Hintergrundausschnitts. Dann
-gilt
+\absatz{Farbangleich.} Ein \emph{partieller} Statistiktransfer im Stil von
+\textcite{reinhard2001}: Mit Mittelwert und Streuung der Objektpixel
+($\mu_i, \sigma_i$) und des lokalen Hintergrunds ($\mu_b, \sigma_b$) gilt je
+Farbkanal
 \begin{equation}
 c' = \mu_i + k\,(c - \mu_i) + \alpha_\mu\,(\mu_b - \mu_i),
-\qquad
-k = 1 + \alpha_\sigma\left(\operatorname{clip}\!\left(
-\frac{\sigma_b}{\sigma_i},\, 0{,}6,\, 1{,}6\right) - 1\right)
+\quad
+k = 1 + \alpha_\sigma\!\left(\operatorname{clip}\!\left(
+\tfrac{\sigma_b}{\sigma_i},\, 0{,}6,\, 1{,}6\right) - 1\right)
 \label{eq:harmonize}
 \end{equation}
 mit $\alpha_\mu \sim \mathcal{U}[0{,}10;\,0{,}45]$ und
 $\alpha_\sigma \sim \mathcal{U}[0;\,0{,}35]$. Für
-$\alpha_\mu = \alpha_\sigma = 1$ ginge Gleichung~\eqref{eq:harmonize} in den
-vollständigen Reinhard-Transfer über. Genau das ist hier \emph{nicht} gewollt:
-Ein vollständiger Angleich würde den intrinsischen Albedo-Unterschied zwischen
-dunkler Bohrung und hellem Kranz einebnen und damit das Objekt zerstören.
-Modelliert wird also ausschließlich die \emph{Beleuchtungs- und
-Weißabgleichdifferenz} zwischen den Aufnahmen, nicht die Objektfarbe. Die
-Klemmung des Streuungsverhältnisses auf $[0{,}6;\,1{,}6]$ verhindert
-Ausreißer an Einfügestellen mit sehr homogenem Hintergrund, wo
-$\sigma_b/\sigma_i$ beliebig klein werden kann.
+$\alpha_\mu = \alpha_\sigma = 1$ ginge das in den vollständigen
+Reinhard-Transfer über -- genau das ist \emph{nicht} gewollt: Ein vollständiger
+Angleich ebnete den intrinsischen Albedo-Unterschied zwischen Bohrung und Kranz
+ein und zerstörte damit das Objekt. Modelliert wird ausschließlich die
+Beleuchtungs- und Weißabgleichdifferenz, nicht die Objektfarbe.
+
+Begründet ist damit die \emph{Richtung}, nicht der Betrag: Die vier Grenzen sind
+gesetzt und nicht hergeleitet -- nach oben so, dass der Transfer erkennbar
+partiell bleibt, nach unten bei $\alpha_\mu = 0{,}10$, damit eine ausgelöste
+Angleichung immer wirkt. Tabelle~\ref{tab:parameter} führt sie deshalb als
+Annahme. Die Klammerung von $\sigma_b/\sigma_i$ auf $[0{,}6;\,1{,}6]$ ist
+dagegen kein Modellierungsparameter, sondern eine numerische Absicherung: Bei
+einem nahezu uniformen Hintergrundfleck oder einem kontrastarmen Ausschnitt liefe
+der Faktor $k$ sonst weit von 1 fort und ebnete den Objektkontrast ein.
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[x=0.030cm,y=1.9cm]
+  \draw[gray!25,fill=gray!25,smooth]
+    plot[domain=0:255,samples=110] (\x, {0.85*exp(-((\x-70)/26)^2)})
+    -- (255,0) -- (0,0) -- cycle;
+  \draw[->,semithick] (0,0) -- (258,0);
+  \node[font=\scriptsize,anchor=north] at (215,-0.20) {Grauwert};
+  \foreach \g in {0,50,100,150,200,250}
+    \draw[semithick] (\g,0) -- (\g,-0.030) node[below,font=\scriptsize] {\g};
+  \draw[red!70!black,thick,dotted,smooth]
+    plot[domain=0:255,samples=150] (\x, {1.18*exp(-((\x-70)/12)^2)});
+  \draw[very thick,blue!60!black,smooth]
+    plot[domain=0:255,samples=150]
+    (\x, {exp(-((\x-60)/16)^2) + 0.9*exp(-((\x-155)/20)^2)});
+  \draw[very thick,orange!85!black,densely dashed,smooth]
+    plot[domain=0:255,samples=150]
+    (\x, {exp(-((\x-46)/16)^2) + 0.9*exp(-((\x-141)/20)^2)});
+  \draw[dashed,gray!55] (70,0) -- (70,1.34);
+  \node[font=\scriptsize,gray!40!black,anchor=south,fill=white,inner sep=1pt]
+       at (70,1.32) {$\mu_b$};
+  \draw[dashed,gray!55] (105,0) -- (105,1.34);
+  \node[font=\scriptsize,gray!40!black,anchor=south,fill=white,inner sep=1pt]
+       at (105,1.32) {$\mu_i$};
+  \draw[->,>=stealth,orange!85!black,thick] (105,1.13) -- (91,1.13);
+  \node[font=\scriptsize,orange!85!black,anchor=south,inner sep=1pt,
+        fill=white] at (97,1.16) {$\alpha_\mu(\mu_b - \mu_i)$};
+  \node[font=\scriptsize,blue!60!black,anchor=south,fill=white,inner sep=1pt]
+       at (58,1.03) {Bohrung};
+  \node[font=\scriptsize,blue!60!black,anchor=south,fill=white,inner sep=1pt]
+       at (158,0.93) {Kranz};
+  % Legende rechts neben der Achse
+  \begin{scope}[shift={(272,0)}]
+    \draw[very thick,blue!60!black] (0,1.15) -- (22,1.15);
+    \node[font=\scriptsize,anchor=west] at (26,1.15) {Objekt, vorher};
+    \draw[very thick,orange!85!black,densely dashed] (0,0.90) -- (22,0.90);
+    \node[font=\scriptsize,anchor=west] at (26,0.90) {teilweise angeglichen};
+    \draw[thick,red!70!black,dotted] (0,0.65) -- (22,0.65);
+    \node[font=\scriptsize,anchor=west] at (26,0.65) {vollständiger Angleich};
+    \fill[gray!25] (0,0.34) rectangle (22,0.46);
+    \node[font=\scriptsize,anchor=west] at (26,0.40) {lokaler Hintergrund};
+  \end{scope}
+\end{tikzpicture}
+\caption[Partieller Farbangleich]{Partieller Farbangleich nach
+Gleichung~\eqref{eq:harmonize}. Die Grauwertverteilung des Objekts ist
+zweigipfelig: dunkle Bohrung und heller Kranz. Der Angleich verschiebt sie um
+$\alpha_\mu(\mu_b - \mu_i)$ in Richtung des lokalen Hintergrunds, hält die
+beiden Gipfel aber auseinander. Ein vollständiger Angleich
+($\alpha_\mu = \alpha_\sigma = 1$, gepunktet) zöge sie auf die
+Hintergrundverteilung zusammen und zerstörte damit den Albedo-Unterschied, der
+das Objekt überhaupt erkennbar macht.}
+\label{abb:farbangleich}
+\end{figure}
 
 \absatz{Rauschschätzung.} Das lokale Rauschniveau wird als Streuung eines
-Hochpassrests geschätzt -- ein Verfahren in der Tradition von
-\textcite{immerkaer1996}, hier mit einem Medianfilter als Tiefpass, weil er
-Kanten weniger verschmiert als ein Gaußkern:
+Hochpassrests geschätzt \parencite[vgl.][]{immerkaer1996} -- mit einem
+Medianfilter als Tiefpass, weil er Kanten weniger verschmiert:
 \begin{equation}
 \hat{\sigma} = \operatorname{std}\!\big(g - \operatorname{median}_{3\times3}(g)\big),
-\qquad
-\sigma_{\text{Rausch}} = \max\big(0{,}5,\; \hat{\sigma} \cdot
+\quad
+\sigma_{\text{Rausch}} = \max\!\big(0{,}5,\; \hat{\sigma} \cdot
 \mathcal{U}[0{,}5;\,1{,}25]\big).
 \label{eq:noise}
 \end{equation}
-Die Multiplikation mit einem Faktor um 1 statt der direkten Verwendung von
-$\hat\sigma$ ist Absicht: Die Schätzung enthält neben dem Rauschen auch
-Texturanteile und überschätzt das Niveau an strukturreichen Stellen.
+Der Streufaktor $\mathcal{U}[0{,}5;\,1{,}25]$ variiert das eingefügte Niveau um
+die lokale Schätzung; auch hier ist die Richtung begründet und der Bereich
+gesetzt, er steht in Tabelle~\ref{tab:parameter} als Annahme. Der Boden von
+0,5 Grauwerten ist wie die Klammerung beim Farbangleich eine numerische
+Absicherung -- er verhindert einen perfekt rauschfreien Einsatz, wenn die
+Schätzung gegen null geht.
 
-\absatz{Schlagschatten.} Die Alphamaske wird mit $\sigma = 0{,}10 \cdot
-\max(h,w)$ geglättet, um $\Delta x \sim \mathcal{U}[-0{,}22;\,0{,}22]\,w$ und
-$\Delta y \sim \mathcal{U}[0{,}02;\,0{,}26]\,h$ verschoben und die Leinwand dort
-um den Faktor $1 - \kappa\,s$ mit $\kappa \sim \mathcal{U}[0{,}18;\,0{,}45]$
-abgedunkelt. Der Versatz ist in $y$ ausschließlich positiv: Bei einer von unten
-oder frontal aufgenommenen Szene mit Himmelslicht fällt der Kontaktschatten nach
-unten.
+Diese beiden Absicherungen zählen nicht zu den in Tabelle~\ref{tab:parameter}
+bilanzierten Parameterwerten: Sie behaupten nichts über die Zieldomäne, sondern
+schützen die Rechnung vor entarteten Schätzwerten. Alles, was eine Eigenschaft
+der Zieldomäne behauptet, ist dort dagegen aufgeführt und mit einer Belegart
+versehen.
 
-\subsection{T4 -- Layout}
-\label{sec:layout}
+\iffalse
 
-Das Layoutmodell ist eine \textbf{gescherte, verrauschte Gitterpackung} je
-Cluster. Pro Bild werden 1--3 Cluster gezogen (Anteile 45/35/20\,\%), dazu 0--3
-vereinzelte Profile. Innerhalb eines Clusters mit Basisdurchmesser $d_0$ liegen
-die Zentren auf
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}
+\begin{scope}[xscale=1.62,yscale=1.55]
+  \draw[->,semithick] (-0.08,0) -- (4.95,0);
+  \draw[->,semithick] (-0.08,0) -- (-0.08,1.62);
+  \node[font=\scriptsize,anchor=east,xscale=0.617,yscale=0.645]
+       at (-0.14,1.45) {$g$};
+  \draw[thick,red!70!black,dotted] (0.000,0.2551) -- (0.145,0.2541) -- (0.290,0.2271) -- (0.435,0.2004) --
+    (0.580,0.1963) -- (0.725,0.2056) -- (0.870,0.2566) -- (1.015,0.2891) --
+    (1.160,0.2462) -- (1.305,0.2303) -- (1.450,0.2628) -- (1.595,0.2713) --
+    (1.740,0.2442) -- (1.885,0.2194) -- (2.030,0.2754) -- (2.175,0.5450) --
+    (2.320,1.0254) -- (2.465,1.2601) -- (2.610,1.2605) -- (2.755,1.2525) --
+    (2.900,1.2680) -- (3.045,1.3042) -- (3.190,1.3232) -- (3.335,1.3629) --
+    (3.480,1.3736) -- (3.625,1.3221) -- (3.770,1.2653) -- (3.915,1.3052) --
+    (4.060,1.3554) -- (4.205,1.3465) -- (4.350,1.3070) -- (4.495,1.3068) --
+    (4.640,1.3038);
+  \draw[very thick,orange!85!black] (0.000,0.2743) -- (0.145,0.2501) -- (0.290,0.2277) -- (0.435,0.2131) --
+    (0.580,0.1776) -- (0.725,0.2131) -- (0.870,0.2549) -- (1.015,0.2549) --
+    (1.160,0.2100) -- (1.305,0.2100) -- (1.450,0.2790) -- (1.595,0.2790) --
+    (1.740,0.2586) -- (1.885,0.2476) -- (2.030,0.2476) -- (2.175,0.3065) --
+    (2.320,1.2658) -- (2.465,1.2658) -- (2.610,1.2702) -- (2.755,1.2254) --
+    (2.900,1.2702) -- (3.045,1.2720) -- (3.190,1.3559) -- (3.335,1.3877) --
+    (3.480,1.3877) -- (3.625,1.3598) -- (3.770,1.3312) -- (3.915,1.3312) --
+    (4.060,1.3711) -- (4.205,1.3711) -- (4.350,1.3362) -- (4.495,1.2955) --
+    (4.640,1.3362);
+  \draw[very thick,blue!60!black] (0.000,0.2501) -- (0.145,0.2743) -- (0.290,0.2277) -- (0.435,0.1776) --
+    (0.580,0.2131) -- (0.725,0.1694) -- (0.870,0.2549) -- (1.015,0.3589) --
+    (1.160,0.2100) -- (1.305,0.1996) -- (1.450,0.2898) -- (1.595,0.2790) --
+    (1.740,0.2586) -- (1.885,0.1744) -- (2.030,0.2476) -- (2.175,0.3065) --
+    (2.320,1.2658) -- (2.465,1.3378) -- (2.610,1.2205) -- (2.755,1.2702) --
+    (2.900,1.2254) -- (3.045,1.3559) -- (3.190,1.2720) -- (3.335,1.3970) --
+    (3.480,1.3877) -- (3.625,1.3598) -- (3.770,1.1705) -- (3.915,1.3312) --
+    (4.060,1.3711) -- (4.205,1.3842) -- (4.350,1.2507) -- (4.495,1.3362) --
+    (4.640,1.2955);
+\end{scope}
+\node[font=\scriptsize,anchor=north] at (3.9,-0.30)
+     {(a) Profil über eine Kante};
+\begin{scope}[shift={(8.55,1.15)},font=\scriptsize]
+  \draw[very thick,blue!60!black] (0,0.62) -- (0.42,0.62);
+  \node[anchor=west] at (0.5,0.62) {$g$};
+  \draw[very thick,orange!85!black] (0,0.31) -- (0.42,0.31);
+  \node[anchor=west] at (0.5,0.31) {$\operatorname{median}_{3\times3}(g)$};
+  \draw[thick,red!70!black,dotted] (0,0) -- (0.42,0);
+  \node[anchor=west] at (0.5,0) {Gauß-Tiefpass};
+\end{scope}
+\begin{scope}[shift={(0,-2.65)},xscale=1.62]
+  \draw[semithick,gray!55] (-0.08,0) -- (4.95,0);
+  \begin{scope}[yscale=4.2]
+    \draw[thick,red!70!black,dotted] (0.000,-0.0050) -- (0.145,0.0202) -- (0.290,0.0006) -- (0.435,-0.0228) --
+    (0.580,0.0167) -- (0.725,-0.0362) -- (0.870,-0.0017) -- (1.015,0.0698) --
+    (1.160,-0.0362) -- (1.305,-0.0307) -- (1.450,0.0270) -- (1.595,0.0077) --
+    (1.740,0.0144) -- (1.885,-0.0450) -- (2.030,-0.0277) -- (2.175,-0.2385) --
+    (2.320,0.2404) -- (2.465,0.0777) -- (2.610,-0.0400) -- (2.755,0.0177) --
+    (2.900,-0.0427) -- (3.045,0.0517) -- (3.190,-0.0511) -- (3.335,0.0342) --
+    (3.480,0.0142) -- (3.625,0.0377) -- (3.770,-0.0948) -- (3.915,0.0260) --
+    (4.060,0.0157) -- (4.205,0.0377) -- (4.350,-0.0564) -- (4.495,0.0294) --
+    (4.640,-0.0083);
+    \draw[very thick,orange!85!black] (0.000,-0.0242) -- (0.145,0.0242) -- (0.290,0.0000) -- (0.435,-0.0354) --
+    (0.580,0.0354) -- (0.725,-0.0436) -- (0.870,0.0000) -- (1.015,0.1040) --
+    (1.160,0.0000) -- (1.305,-0.0104) -- (1.450,0.0108) -- (1.595,0.0000) --
+    (1.740,0.0000) -- (1.885,-0.0732) -- (2.030,0.0000) -- (2.175,0.0000) --
+    (2.320,0.0000) -- (2.465,0.0720) -- (2.610,-0.0497) -- (2.755,0.0449) --
+    (2.900,-0.0449) -- (3.045,0.0839) -- (3.190,-0.0839) -- (3.335,0.0093) --
+    (3.480,0.0000) -- (3.625,0.0000) -- (3.770,-0.1607) -- (3.915,0.0000) --
+    (4.060,0.0000) -- (4.205,0.0131) -- (4.350,-0.0855) -- (4.495,0.0407) --
+    (4.640,-0.0407);
+    \draw[<->,red!70!black,thin] (2.06,-0.2385) -- (2.06,0.2404);
+  \end{scope}
+  \node[font=\scriptsize,red!70!black,anchor=south,xscale=0.617,
+        fill=white,inner sep=1pt] at (2.06,1.02) {$\pm19$ Grauwerte};
+  \node[font=\scriptsize,orange!85!black,anchor=west,xscale=0.617,
+        inner sep=1pt] at (2.62,0.66) {Median an der Kante: genau 0};
+  \draw[orange!85!black,thin] (2.56,0.60) -- (2.36,0.06);
+  \node[font=\scriptsize,anchor=east,xscale=0.617] at (-0.10,0.0)
+       {$g-\hat g$};
+\end{scope}
+\node[font=\scriptsize,anchor=north] at (3.9,-3.85) {(b) Hochpassrest};
+\end{tikzpicture}
+\caption[Rauschschätzung mit Medianfilter]{Warum ein Medianfilter als Tiefpass
+dient. (a)~Grauwertprofil über eine Materialkante mit 6,5 Grauwerten Rauschen;
+der Median folgt der Kante, ein Gauß-Tiefpass rundet sie ab. (b)~Der
+Hochpassrest, aus dem $\hat\sigma$ nach Gleichung~\eqref{eq:noise} geschätzt
+wird: Beim Gauß-Tiefpass erzeugt die Kante allein einen Ausschlag von $\pm19$
+Grauwerten -- das Dreifache der Rauschamplitude --, der in strukturreichen
+Ausschnitten in die Schätzung eingeht; beim Median ist der Rest an der Kante
+exakt null. Werte aus einer Simulation mit festem Seed.}
+\label{abb:rauschschaetzung}
+\end{figure}
+
+\fi
+
+\absatz{Layoutmodell.} Pro Cluster mit Basisdurchmesser $d_0$ liegen die
+Objektzentren auf einer gescherten, verrauschten Gitterpackung
 \begin{equation}
 p_{ij} = i\,s_1\,\mathbf{e}_1 + j\,s_2\,\mathbf{e}_2 + \mathbf{c}
 + \boldsymbol{\epsilon}_{ij},
-\qquad \boldsymbol{\epsilon}_{ij} \sim \mathcal{N}(\mathbf{0},
-(0{,}17\,d_0)^2 \mathbf{I}),
+\qquad \boldsymbol{\epsilon}_{ij} \sim \mathcal{N}\!\big(\mathbf{0},
+(0{,}17\,d_0)^2 \mathbf{I}\big),
 \label{eq:layout}
 \end{equation}
-mit $i = 0,\dots,n_1{-}1$, $j = 0,\dots,n_2{-}1$,
-$n_1 \in \{2,\dots,13\}$, $n_2 \in \{1,\dots,6\}$, Gitterabständen
-$s_1 \sim \mathcal{U}[0{,}98;\,1{,}60]\,d_0$ und
-$s_2 \sim \mathcal{U}[0{,}98;\,1{,}85]\,d_0$ sowie Basisrichtungen
-$\mathbf{e}_1, \mathbf{e}_2$, die einen Winkel zwischen $55^\circ$ und
-$125^\circ$ einschließen. Die Hauptrichtung liegt mit Wahrscheinlichkeit 0,6 im
-Bereich $60$--$150^\circ$, sonst gleichverteilt -- das bildet die in
-Tabelle~\ref{tab:anordnung} gemessene leichte Häufung der Nachbarrichtungen ab,
-ohne sie zu einer harten Regel zu machen.
+mit Gitterabständen ab $0{,}98\,d_0$ und Basisrichtungen $\mathbf{e}_1$,
+$\mathbf{e}_2$, deren eingeschlossener Winkel die Scherung des Gitters bestimmt.
+Die Untergrenze ist physikalisch -- Rohrzentren können sich nicht durchdringen
+--, die zwei Prozent Spiel tragen der Messkonvention Rechnung: $d_0$ ist über
+die \emph{modale} Box definiert, die bei verdeckten Objekten kleiner ausfällt als
+das Rohr selbst, weshalb schon der gemessene NN-Abstand mit p10 $=0{,}86$
+(\code{val}) bzw.\ $0{,}83\,\Oe$ (\code{test}) unter einem Durchmesser liegt.
+Die Bereiche der Einzelparameter stehen in Tabelle~\ref{tab:parameter}; sie sind
+nicht gemessen, sondern iterativ so eingestellt, dass die erzeugte Anordnung die
+in Tabelle~\ref{tab:kalibrierung} gegenübergestellten Kenngrößen der Realbilder
+trifft. Das Clusterzentrum $\mathbf{c}$ darf außerhalb der
+Leinwand liegen, sodass angeschnittene Objekte am Bildrand entstehen (Befund~9).
 
-Zwei Modellentscheidungen folgen unmittelbar aus den Messungen:
-
-\begin{itemize}
-  \item \textbf{Eine Basisgröße pro Cluster}, je Instanz nur
-  $\mathcal{U}[0{,}92;\,1{,}09]$ Streuung. Begründung: Befund~8 (gemessenes
-  Größenverhältnis benachbarter Objekte im Median 1,05). Jede Instanz unabhängig
-  zu würfeln wäre ein sofort sichtbarer Realismusfehler.
-  \item \textbf{Das Clusterzentrum darf außerhalb der Leinwand liegen}
-  ($\mathbf{c} \sim \mathcal{U}[-0{,}12;\,1{,}12]^2 \cdot 1024$), sodass
-  angeschnittene Objekte am Bildrand entstehen. Begründung: In \code{test} sind
-  5,8\,\% der Labels angeschnitten.
-\end{itemize}
-
-\absatz{Abgedunkelte Mulde.} Zusätzlich wird je Cluster mit Wahrscheinlichkeit
-0,55 eine weiche, anisotrope Gaußmulde unter das Cluster gelegt (Radius
-$2{,}5$--$7{,}0\,d_0$, Abdunklung 10--38\,\%); gemessen ergibt das im Mittel
-0,87 Mulden pro Bild. Begründung: In den echten Aufnahmen liegen die
-Stirnflächen am Stapelrand \emph{vor} dem verschatteten Stapelinneren; der
-Hintergrund hinter ihnen ist deutlich dunkler als die besonnten Schäfte davor.
-Ohne diese Abdunklung stünden die dunklen Bohrungen kontrastmäßig zu isoliert da
--- und wären damit als Gruppe leichter von echten Aufnahmen unterscheidbar.
-
-\subsection{T5 -- Rohrschaft hinter jeder Stirnfläche}
-\label{sec:schaft}
-
-Dies ist die wichtigste Einzelentscheidung der Pipeline und ein Musterbeispiel
-für Anforderung~A3.
-
-\absatz{Begründung.} Nach Befund~9 gilt in den Realbildern ausnahmslos: Hinter
-jeder annotierten Stirnfläche führt ein sichtbarer Rohrschaft weg. Ein dunkler
-Kreis mitten auf einem durchgehenden Rohr ist physikalisch unmöglich. Die erste
-Generatorversion erzeugte genau das und sah entsprechend falsch aus. Der Generator
-setzt daher bei 88,0\,\% der Instanzen einen echten Rohrschaft aus der Bibliothek
-von Stufe~2 hinter das Profil.
-
-\begin{table}[htbp]
+\begin{figure}[htbp]
 \centering
-\caption[T5: Rohrschaft]{T5 -- Rohrschaft hinter der Stirnfläche.}
-\label{tab:t5}
-\footnotesize
-\begin{tabularx}{\textwidth}{@{}L{0.20\textwidth}L{0.09\textwidth}XL{0.045\textwidth}@{}}
-\toprule
-\textbf{Parameter} & \textbf{Ist} & \textbf{Begründung} & \textbf{Art} \\
-\midrule
-Schaft vorhanden & 88{,}0\,\% der Instanzen &
-Befund~9. Der Schaft hat exakt den Durchmesser der Stirnfläche
-($\times\,0{,}96$--$1{,}06$, dasselbe Rohr), Länge $2$--$24\,\Oe$. Lange Schäfte,
-weil in den echten Bildern praktisch jedes Rohr aus dem Ausschnitt herausläuft
-oder hinter anderen Rohren verschwindet; kurze Stummel mit sichtbarer runder
-Kappe wären ein verräterisches Muster. & P \\
-Schaftrichtung je Cluster parallel ($\pm 11^\circ$) & 100\,\% &
-Alle Rohre eines Stapels liegen parallel und verkanten nur leicht. Eine
-Streuung von $\pm 18^\circ$ erzeugte sichtbar einen sternförmigen Fächer, den es
-real nicht gibt. Die Bedingung gilt \emph{innerhalb} eines Clusters; gegen die
-Rohrrichtung des Hintergrunds ist sie nicht erzwungen
-(Abschnitt~\ref{sec:grenzen}). & P \\
-Helligkeitsangleich an die Umgebung & 100\,\% &
-Die Schaftbibliothek stammt aus vier Aufnahmen mit stark unterschiedlichem
-Belichtungsniveau (Hintergrundmittel 70--102 Grauwerte). Ohne Angleich
-($\kappa = 0{,}35$--$0{,}75$ des Differenzmittels) klebten sichtbar zu dunkle
-Rohre im Bild. & M \\
-75\,\% der Schäfte ganz hinten, 25\,\% eingereiht & -- &
-\textbf{Tiefenmodell}, siehe unten. & M \\
-\bottomrule
-\end{tabularx}
-\end{table}
+\begin{tikzpicture}[x=1cm,y=1cm]
+% ================= (a) Gitterkonstruktion =================
+\begin{scope}
+  \pgfmathsetmacro{\cx}{0.62}
+  \pgfmathsetmacro{\cy}{3.00}
+  \pgfmathsetmacro{\ea}{-100}
+  \pgfmathsetmacro{\eb}{-16}
+  \pgfmathsetmacro{\sa}{0.98}
+  \pgfmathsetmacro{\sb}{1.06}
+  \pgfmathsetmacro{\rd}{0.44}
+  % gezogene Lagen
+  \foreach \i in {0,1}{\foreach \j in {0,1,2}{
+    \pgfmathsetmacro{\ix}{\cx + \i*\sa*cos(\ea) + \j*\sb*cos(\eb)}
+    \pgfmathsetmacro{\iy}{\cy + \i*\sa*sin(\ea) + \j*\sb*sin(\eb)}
+    \pgfmathsetmacro{\jx}{0.085*(mod(7*\i+3*\j,5)-2)}
+    \pgfmathsetmacro{\jy}{0.085*(mod(11*\i+5*\j,5)-2)}
+    \fill[blue!14] ({\ix+\jx},{\iy+\jy}) circle (\rd);
+    \draw[blue!60!black,thin] ({\ix+\jx},{\iy+\jy}) circle (\rd);}}
+  % ideale Gitterpunkte darueber
+  \foreach \i in {0,1}{\foreach \j in {0,1,2}{
+    \pgfmathsetmacro{\ix}{\cx + \i*\sa*cos(\ea) + \j*\sb*cos(\eb)}
+    \pgfmathsetmacro{\iy}{\cy + \i*\sa*sin(\ea) + \j*\sb*sin(\eb)}
+    \draw[gray!75!black,thin] ({\ix-0.07},{\iy-0.07}) -- ({\ix+0.07},{\iy+0.07})
+                              ({\ix-0.07},{\iy+0.07}) -- ({\ix+0.07},{\iy-0.07});}}
+  % Basisvektoren
+  \draw[->,>=stealth,very thick,orange!85!black] (\cx,\cy)
+    -- ({\cx+\sa*cos(\ea)},{\cy+\sa*sin(\ea)});
+  \node[font=\scriptsize,orange!85!black,anchor=east,inner sep=1pt,
+        fill=white]
+    at ({\cx+0.62*\sa*cos(\ea)-0.10},{\cy+0.62*\sa*sin(\ea)}) {$s_1\mathbf{e}_1$};
+  \draw[->,>=stealth,very thick,blue!65!black] (\cx,\cy)
+    -- ({\cx+\sb*cos(\eb)},{\cy+\sb*sin(\eb)});
+  \node[font=\scriptsize,blue!65!black,anchor=south,inner sep=2pt]
+    at ({\cx+0.58*\sb*cos(\eb)},{\cy+0.58*\sb*sin(\eb)}) {$s_2\mathbf{e}_2$};
+  % eingeschlossener Winkel
+  \draw[gray!60!black,thin] ({\cx+0.50*cos(\ea)},{\cy+0.50*sin(\ea)})
+    arc[start angle=\ea, end angle=\eb, radius=0.50];
+  \node[font=\scriptsize,gray!35!black,inner sep=1pt,fill=white]
+    at ({\cx+0.62*cos(-50)},{\cy+0.62*sin(-50)}) {$55^\circ\!-\!125^\circ$};
+  % Clusterzentrum
+  \fill[black] (\cx,\cy) circle (1.6pt);
+  \node[font=\scriptsize,anchor=south east,inner sep=1pt]
+    at ({\cx+0.10},{\cy+0.03}) {$\mathbf{c}$};
+  % Rauschen an einem Punkt hervorheben
+  \pgfmathsetmacro{\hx}{\cx + \sa*cos(\ea) + \sb*cos(\eb)}
+  \pgfmathsetmacro{\hy}{\cy + \sa*sin(\ea) + \sb*sin(\eb)}
+  \pgfmathsetmacro{\hjx}{0.085*(mod(7*1+3*1,5)-2)}
+  \pgfmathsetmacro{\hjy}{0.085*(mod(11*1+5*1,5)-2)}
+  \draw[red!70!black,densely dashed,thin] (\hx,\hy) circle (0.34);
+  \draw[->,>=stealth,red!70!black,semithick]
+    (\hx,\hy) -- ({\hx+\hjx},{\hy+\hjy});
+  \node[font=\scriptsize,red!70!black,anchor=north,inner sep=1pt]
+    at ({\hx},{\hy-0.50}) {$\boldsymbol{\epsilon}_{ij}$};
+  \node[font=\scriptsize,gray!40!black,anchor=north west,align=left]
+    at (-0.28,0.88)
+    {$\times$\; ideales Gitter\\$\circ$\; gezogene Lage\\
+     \textcolor{red!70!black}{gestrichelt: $2\sigma$ von
+     $\boldsymbol{\epsilon}_{ij}$}};
+  \node[font=\scriptsize,anchor=north] at (1.45,-0.10) {(a) Konstruktion};
+\end{scope}
+% ================= (b) Leinwand =================
+\begin{scope}[shift={(3.72,0)}]
+  % Geisterkreise: das Gitter setzt sich ausserhalb der Leinwand fort
+  \foreach \i in {0,1,2,3,4}{\foreach \j in {0,1,2}{
+    \pgfmathsetmacro{\jx}{0.05*(mod(7*\i+3*\j,5)-2)}
+    \pgfmathsetmacro{\jy}{0.05*(mod(11*\i+5*\j,5)-2)}
+    \pgfmathsetmacro{\bx}{5.62 + \i*0.50*cos(-152) + \j*0.62*cos(-64) + \jx}
+    \pgfmathsetmacro{\by}{3.44 + \i*0.50*sin(-152) + \j*0.62*sin(-64) + \jy}
+    \draw[gray!45,thin] (\bx,\by) circle (0.145);}}
+  \begin{scope}
+    \clip (0,0.98) rectangle (5.30,3.62);
+    \foreach \i in {0,1,2,3}{\foreach \j in {0,1}{
+      \pgfmathsetmacro{\jx}{0.05*(mod(5*\i+2*\j,5)-2)}
+      \pgfmathsetmacro{\jy}{0.05*(mod(13*\i+7*\j,5)-2)}
+      \pgfmathsetmacro{\ax}{1.22 + \i*0.47*cos(-14) + \j*0.60*cos(72) + \jx}
+      \pgfmathsetmacro{\ay}{1.92 + \i*0.47*sin(-14) + \j*0.60*sin(72) + \jy}
+      \fill[blue!14] (\ax,\ay) circle (0.145);
+      \draw[blue!60!black,thin] (\ax,\ay) circle (0.145);}}
+    \foreach \i in {0,1,2,3,4}{\foreach \j in {0,1,2}{
+      \pgfmathsetmacro{\jx}{0.05*(mod(7*\i+3*\j,5)-2)}
+      \pgfmathsetmacro{\jy}{0.05*(mod(11*\i+5*\j,5)-2)}
+      \pgfmathsetmacro{\bx}{5.62 + \i*0.50*cos(-152) + \j*0.62*cos(-64) + \jx}
+      \pgfmathsetmacro{\by}{3.44 + \i*0.50*sin(-152) + \j*0.62*sin(-64) + \jy}
+      \fill[blue!14] (\bx,\by) circle (0.145);
+      \draw[blue!60!black,thin] (\bx,\by) circle (0.145);
+      \ifdim\bx cm>5.02cm
+        \draw[very thick,orange!85!black]
+          ({\bx-0.145},{\by-0.145}) rectangle ({\bx+0.145},{\by+0.145});
+      \fi}}
+  \end{scope}
+  \draw[dashed,gray!70] (0,0.98) rectangle (5.30,3.62);
+  \node[font=\scriptsize,gray!45!black,anchor=north west] at (0.10,3.55)
+       {Leinwand $1024 \times 1024$};
+  \node[font=\scriptsize,orange!85!black,anchor=south west] at (0.10,1.04)
+       {orange: angeschnittene Boxen};
+  \fill[black] (5.62,3.44) circle (1.6pt);
+  \node[font=\scriptsize,anchor=south,inner sep=3pt] at (5.62,3.44) {$\mathbf{c}$};
+  \node[font=\scriptsize,anchor=north] at (2.65,-0.10) {(b) zwei Cluster};
+\end{scope}
+\end{tikzpicture}
+\caption[Layoutmodell]{Das Layoutmodell aus Gleichung~\eqref{eq:layout}.
+(a)~Konstruktion eines Clusters: Die Objektzentren liegen auf einem gescherten
+Gitter mit den Basisrichtungen $\mathbf{e}_1$ und $\mathbf{e}_2$, deren
+eingeschlossener Winkel zwischen $55^\circ$ und $125^\circ$ liegt; die
+Gitterabstände liegen bei $s_1 \in [0{,}98;\,1{,}60]\,d_0$ und
+$s_2 \in [0{,}98;\,1{,}85]\,d_0$. Auf jede ideale Gitterlage ($\times$) wirkt
+zusätzlich das Rauschen $\boldsymbol{\epsilon}_{ij}$, sodass die gezogene Lage
+($\circ$) um typischerweise $0{,}17\,d_0$ davon abweicht -- ohne diesen Term
+entstünden sichtbar künstliche Reihen. (b)~Pro Bild werden ein bis drei solche
+Cluster gezogen. Weil das Clusterzentrum $\mathbf{c}$ außerhalb der Leinwand
+liegen darf, ragt ein Teil des Gitters (grau) über den Bildrand hinaus; von
+diesen Objekten bleibt nur der sichtbare Teil, und ihre Boxen werden am
+Bildrand abgeschnitten. In \code{test} sind 5,8\,\% der Labels angeschnitten.}
+\label{abb:layout}
+\end{figure}
 
-\absatz{Das Tiefenmodell und wie es gefunden wurde.} Die Stirnflächen eines
-Stapels bilden eine Front; die zugehörigen Schäfte laufen von dieser Front
-\emph{weg} und liegen in der Projektion daher hinter allen Stirnflächen. Nur
-Rohre, die quer vor dem Stapel liegen, kreuzen vor anderen Enden -- in
-\code{val}/\code{test} sichtbar, aber die Minderheit.
-
-Bemerkenswert ist, wie dieser Modellparameter bestimmt wurde: nicht durch
-Anschauung, sondern über eine Messung an der erzeugten Verteilung. Mit rein
-zufälliger Tiefenordnung verdeckten die Schäfte so viele Nachbarn, dass deren
-Labels nach der Sichtbarkeitsregel wegfielen; der mittlere Abstand zum nächsten
-Nachbarn im synthetischen Datensatz stieg dadurch auf $1{,}55\,\Oe$ -- rund
-40\,\% über dem real gemessenen Wert von $1{,}09$--$1{,}24\,\Oe$. Mit dem
-75/25-Modell liegt er bei $1{,}17\,\Oe$. Der Parameter ist damit an einer
-Realmessung kalibriert, nicht geschätzt. Dieses Vorgehen -- eine erzeugte
-Statistik gegen die gemessene Statistik zu prüfen und den Generator daraufhin zu
-korrigieren -- ist die einzige Möglichkeit, den Divergenzterm
-$d_{\mathcal{H}\Delta\mathcal{H}}$ aus Gleichung~\eqref{eq:bendavid} ohne
-zusätzliche Trainingsläufe zu senken.
-
-\subsection{T6 -- Okklusion}
-\label{sec:okklusion}
-
-Verdeckung entsteht in der Pipeline aus \emph{vier} verschiedenen, jeweils
-physikalisch motivierten Quellen. Der Unterschied zu generischen
-Okklusionsverfahren wie Cutout \parencite{devries2017cutout} oder Random Erasing
-\parencite{zhong2020erasing} ist wesentlich: Dort wird Bildinhalt gelöscht, das
-Label aber unverändert gelassen. Hier verdeckt ein \emph{Objekt} mit eigener
-Textur, und die Sichtbarkeit wird berechnet und in die Labelentscheidung
-überführt (Abschnitt~\ref{sec:sichtbarkeit}). Das erzeugt nicht nur schwierigere
-positive Beispiele, sondern auch korrekte harte Negative.
-
-\begin{table}[htbp]
-\centering
-\caption[T6: Okklusionsquellen]{T6 -- die vier Okklusionsquellen.}
-\label{tab:t6}
-\footnotesize
-\begin{tabularx}{\textwidth}{@{}L{0.20\textwidth}L{0.13\textwidth}XL{0.045\textwidth}@{}}
-\toprule
-\textbf{Quelle} & \textbf{Ist} & \textbf{Begründung} & \textbf{Art} \\
-\midrule
-Andere Profile & intrinsisch &
-Bei einem NN-Abstand von $0{,}84\,\Oe$ im 10.\ Perzentil überlappen benachbarte
-Stirnflächen zwangsläufig. Die Tiefenordnung ist zufällig, das
-Verdeckungsverhältnis damit unverzerrt. & M \\
-Echte Rohrschäfte quer davor & 58{,}4\,\% der Bilder, 1--6 Stück &
-Rohre, die vor dem Stapel liegen. Breite $0{,}55$--$1{,}35\,\Oe$, Länge
-$4$--$26 \times$ Breite; zu 80\,\% bevorzugt durch ein Cluster gelegt statt ins
-Leere, weil eine Verdeckung, die kein Objekt trifft, keinen Trainingsnutzen hat. & M \\
-Eigene Schäfte (die eingereihten 25\,\%) & s.\ T5 &
-Physikalisch der häufigste Verdeckungsfall in den Realbildern. & P \\
-Fremdkörper (Laub, Draht, Schnee) & 31{,}6\,\% der Bilder, 1--4 Stück &
-Aus den Hintergründen selbst geschnitten, mit unregelmäßiger weicher Maske aus
-geglättetem Rauschen. Dass sie aus demselben Material stammen, schließt
-Signatur~S4 auch für die Okkluder. In \code{test4\_cutted.png} liegt reichlich
-Laub auf dem Stapel. & M \\
-Bildrand & $\approx 3\,\%$ der Objekte & siehe T4. & M \\
-\bottomrule
-\end{tabularx}
-\end{table}
-
-\absatz{Ergebnis.} 30,1\,\% aller gelabelten Objekte sind teilverdeckt
-(Sichtbarkeit $< 95\,\%$); die mittlere Sichtbarkeit der gelabelten Objekte
-beträgt 90,0\,\%. Über alle gerenderten Instanzen -- also einschließlich der
-verworfenen -- liegt sie bei 75,7\,\%.
-
-\subsection{T7 -- Sichtbarkeitsrechnung und Labelerzeugung}
+\section{Sichtbarkeitsrechnung und Labelerzeugung}
 \label{sec:sichtbarkeit}
 
 Kein Copy-Paste-Generator darf Labels blind vergeben: Ein Objekt, das nach dem
-Einfügen zu 95\,\% verdeckt ist, hat kein sinnvolles Label mehr. Für \emph{jede}
-Instanz wird daher die exakte Sichtbarkeit berechnet. Grundlage ist die
-Alpha-Kompositionsregel von \textcite{porter1984}: Wird die Instanz $i$ vor allen
-später gemalten Schichten $j$ überlagert, so ist der verbleibende sichtbare
-Anteil ihrer Alphamaske
+Einfügen zu 95\,\% verdeckt ist, hat kein sinnvolles Label mehr. Für
+\emph{jede} Instanz wird daher die exakte Sichtbarkeit berechnet. Grundlage ist
+die Alpha-Kompositionsregel von \textcite{porter1984}: Wird Instanz $i$ von allen
+später gemalten Schichten $j$ überlagert, so ist ihr sichtbarer Anteil
 \begin{equation}
 \alpha_i^{\text{sichtbar}} = \alpha_i \prod_{j > i} \big(1 - \alpha_j\big),
 \qquad
-v_i = \frac{\sum \alpha_i^{\text{sichtbar}}}{\sum \alpha_i},
+v_i = \frac{\textstyle\sum \alpha_i^{\text{sichtbar}}}{\textstyle\sum \alpha_i},
 \label{eq:sichtbarkeit}
 \end{equation}
-wobei das Produkt über \emph{alle} nach $i$ gemalten Schichten läuft --
+wobei das Produkt über \emph{alle} später gemalten Schichten läuft --
 einschließlich anderer Profile, Rohrschäfte und Fremdkörper. Die Buchhaltung
 läuft über die beschnittenen Alphafenster in Malreihenfolge, ist also exakt und
 nicht approximiert.
 
-\begin{table}[htbp]
-\centering
-\caption[T7: Labelregeln]{T7 -- Regeln der Labelerzeugung mit den absoluten
-Zahlen des erzeugten Datensatzes (6000 Bilder, 173\,100 gerenderte Instanzen).}
-\label{tab:t7}
-\footnotesize
-\begin{tabularx}{\textwidth}{@{}L{0.22\textwidth}L{0.14\textwidth}X@{}}
-\toprule
-\textbf{Regel} & \textbf{betroffen} & \textbf{Begründung} \\
-\midrule
-Label verwerfen, wenn $v_i < 0{,}30$ &
-30\,801 Objekte (17{,}8\,\% der gerenderten) &
-Unter 30\,\% sichtbarer Fläche wäre das Objekt auch für einen menschlichen
-Annotator nicht mehr sicher als Rohrende identifizierbar. Ein Label hier zwingt
-das Netz zum Halluzinieren; \emph{kein} Label macht dieselbe Bildstelle zum
-korrekten harten Negativ. Es ist dieselbe Regel, nach der \code{val} und
-\code{test} annotiert wurden (Anforderung~A5). \\
-Label verwerfen, wenn $< 15\,\%$ der Fläche im Bild liegt &
-3\,846 Objekte &
-Ein Splitter am Bildrand wird real nicht annotiert. Nicht mehr als 15\,\%, weil
-\code{test} sehr wohl stark angeschnittene Objekte enthält (kleinste Box:
-0,7\,\% der Bildhöhe). \\
-Label verwerfen, wenn sichtbare Box $< 5$\px{} &
-228 Objekte &
-Unterhalb der Auflösungsgrenze; nach Gleichung~\eqref{eq:deff} und Stride~8
-nicht mehr lokalisierbar. \\
-Modale statt amodale Box & -- &
-Genau so wurden \code{val} und \code{test} annotiert
-(Abschnitt~\ref{sec:annotation}). Amodale Boxen erzeugten einen systematischen
-Größenversatz gegenüber der Ground Truth. \\
-\bottomrule
-\end{tabularx}
-\end{table}
-
-Insgesamt werden 34\,875 der 173\,100 gerenderten Instanzen verworfen
-(20,1\,\%). Diese Zahl ist kein Verlust, sondern der eigentliche Ertrag der
-Stufe: Sie markiert genau jene Bildstellen, an denen ein naiver Generator ein
-falsches Label gesetzt hätte.
-
-\begin{figure}[htbp]
-\centering
-\includegraphics[width=\textwidth]{abbildungen/label_check.jpg}
-\caption[Kontrolle der Labelerzeugung]{Kontrolle der Labelerzeugung. Die Boxen
-umschließen den \emph{sichtbaren} Umriss; stark verdeckte Instanzen erhalten
-kein Label und bleiben damit als hartes Negativ im Bild.}
-\label{abb:labelcheck}
-\end{figure}
-
-\subsection{T8 -- Globale Bildstufe}
-\label{sec:globalstufe}
-
-Die letzte Stufe wirkt auf das \emph{gesamte} Bild. Das ist entscheidend: Nur
-eine bildweite Operation kann eine Signatur vereinheitlichen, die zwischen
-Objekt und Hintergrund unterscheidbar wäre.
-
-\begin{table}[htbp]
-\centering
-\caption[T8: Globale Bildstufe]{T8 -- globale Bildstufe. \emph{Ist} = gemessener
-Anteil je Bild.}
-\label{tab:t8}
-\footnotesize
-\begin{tabularx}{\textwidth}{@{}L{0.20\textwidth}L{0.07\textwidth}XL{0.045\textwidth}@{}}
-\toprule
-\textbf{Transformation} & \textbf{Ist} & \textbf{Begründung} & \textbf{Art} \\
-\midrule
-Helligkeit/Kontrast & 89{,}6\,\% &
-Wetter- und Belichtungsvariation ($\times 0{,}80$--$1{,}22$, Offset
-$\pm 18$ Grauwerte). & M \\
-HSV / Farbtemperatur & 69{,}0\,\% &
-Bewölkt (blaustichig) bis Abendsonne (warm). Alle vier Clean Plates sind bei
-diffusem Licht aufgenommen -- diese Stufe ist der einzige Ersatz für die
-fehlende Beleuchtungsvielfalt und damit eine bewusste Approximation. & A \\
-Defokus ($\sigma$ 0,3--1,0\px) & 34{,}4\,\% &
-Der Autofokus trifft bei Stapelaufnahmen oft die falsche Ebene. & L \\
-Bewegungsunschärfe & 9{,}9\,\% &
-Verwacklung aus der Hand; Baustellenaufnahmen entstehen im Vorbeigehen.
-Niedriger Anteil, weil moderne Mobiltelefone kurz belichten. & A \\
-Sensorrauschen & 80{,}1\,\% &
-Vereinheitlicht das Rauschniveau über das ganze Bild
-($\sigma = 1{,}0$--$5{,}0$). & L \\
-Vignettierung & 25{,}0\,\% &
-Weitwinkelobjektive von Mobiltelefonen; erzwingt zusätzlich
-Positionsinvarianz der Helligkeit. & L \\
-JPEG-Requantisierung $q \in [55, 95]$ & 85\,\% (Soll) &
-\textbf{Die wichtigste unsichtbare Transformation} (Signatur~S5). Eingeklebte
-Pixel behalten sonst eine andere DCT-Blockstatistik als der Hintergrund, der
-bereits einmal komprimiert war \parencite{wallace1992jpeg}. Ein erneuter
-Kompressionsdurchlauf über das Gesamtbild vereinheitlicht diese Signatur. Sie
-ist forensisch die belastbarste Einfügemarke überhaupt \parencite{farid2009} --
-wer sie stehen lässt, liefert dem Netz eine perfekte Abkürzung. & L \\
-\bottomrule
-\end{tabularx}
-\end{table}
-
-\subsection{T9 -- Negativbilder}
-\label{sec:negative}
-
-9,7\,\% der erzeugten Bilder enthalten \emph{kein} Objekt: Rohrstapel ohne
-Stirnflächen, Kieswerk, Betondeck mit Maschendrahtzaun.
-
-Die Begründung folgt direkt aus der Annotationsdefinition
-(Abschnitt~\ref{sec:annotation}): Die dominante Falschpositiv-Quelle in dieser
-Domäne sind Rohrschäfte, Gitterknoten und dunkle Löcher im Maschendraht -- alles
-Strukturen, die den Stirnflächen ähneln, aber ausdrücklich keine Objekte sind.
-Explizite Negativbilder bestrafen genau diese Verwechslung; sie sind das
-statische Gegenstück zum Hard-Example-Mining
-\parencite{shrivastava2016}. Der Anteil von rund 10\,\% entspricht der Empfehlung
-der verwendeten Werkzeugkette \parencite{ultralyticsdocs}; ein höherer Anteil
-würde den Anteil positiver Gradienten unnötig verdünnen.
+Daraus folgen vier Regeln, die dieselben sind, nach denen \code{val} und
+\code{test} annotiert wurden (Anforderung~A5); die Stückzahlen dahinter sind
+wieder gezählte Ist-Werte aus dem Erzeugungsbericht: Ein Label wird verworfen, wenn die
+Sichtbarkeit unter 30\,\% liegt (30\,801 Objekte, 17,8\,\% der gerenderten) --
+unter 30\,\% sichtbarer Fläche wäre das Objekt auch für einen menschlichen
+Annotator nicht mehr sicher identifizierbar, und \emph{kein} Label macht dieselbe
+Bildstelle zum korrekten harten Negativ; wenn weniger als 15\,\% der Fläche im
+Bild liegen (3\,846 Objekte); oder wenn die sichtbare Box unter 5\px{} fällt
+(228 Objekte). Vergeben wird stets die \emph{modale} Box, also der sichtbare
+Umriss. Insgesamt werden 34\,875 der 173\,100 gerenderten Instanzen verworfen
+(20,1\,\%). Diese Zahl ist kein Verlust, sondern der Ertrag der Stufe: Sie
+markiert genau jene Bildstellen, an denen ein naiver Generator ein falsches Label
+gesetzt hätte.
 
 \section{Der erzeugte Datensatz}
 \label{sec:datensatz}
 
-\begin{table}[htbp]
-\centering
-\caption[Kenngrößen des erzeugten Datensatzes]{Kenngrößen des erzeugten
-Trainingsdatensatzes.}
-\label{tab:datensatz}
-\small
-\begin{tabular}{@{}lr@{}}
-\toprule
-Bilder ($1024\times1024$) & 6\,000 \\
-davon Negativbilder & 583 \quad (9{,}7\,\%) \\
-gerenderte Instanzen & 173\,100 \\
-\textbf{gelabelte Objekte} & \textbf{136\,384} \quad (22{,}7 pro Bild) \\
-verworfen (Verdeckung / Rand / Größe) & 34\,875 \quad (20{,}1\,\%) \\
-mittlere Sichtbarkeit der gelabelten Objekte & 90{,}0\,\% \\
-teilverdeckte gelabelte Objekte & 30{,}1\,\% \\
-Objektdurchmesser p05 / Median / p95 & 11{,}6 / 22{,}5 / 39{,}9\px \\
-Seitenverhältnis p10 / Median / p90 & 0{,}77 / 1{,}00 / 1{,}40 \\
-Objekte pro Bild p05 / Mittel / p95 & 0 / 22{,}7 / 64 \\
-\bottomrule
-\end{tabular}
-\end{table}
+Alle Zahlen dieses Abschnitts stammen aus dem Erzeugungsbericht
+\code{generation\_report.json}, den der Generator neben jeden Datensatz
+schreibt; Abschnitt~\ref{sec:anhangbericht} listet ihn vollständig auf.
+Es entstehen 6000 Bilder zu $1024\times1024$ Pixeln, davon 583 Negativbilder
+(9,7\,\%), mit 136\,384 gelabelten Objekten (22,7 pro Bild) aus 173\,100
+gerenderten Instanzen. Die mittlere Sichtbarkeit der gelabelten Objekte beträgt
+90,0\,\%, 30,1\,\% von ihnen sind teilverdeckt. Der Objektdurchmesser liegt bei
+p05/Median/p95 = 11,6/22,5/39,9\px, das Seitenverhältnis bei
+p10/Median/p90 = 0,77/1,00/1,40.
 
-\subsection{Kalibrierungsnachweis}
-\label{sec:kalibrierung}
-
-Der wichtigste Qualitätsnachweis der Pipeline ist nicht der optische Eindruck,
-sondern der Vergleich der erzeugten Statistik mit der gemessenen realen
-Statistik. Tabelle~\ref{tab:kalibrierung} stellt beide gegenüber.
+Der wichtigste Qualitätsnachweis ist nicht der optische Eindruck, sondern der
+Vergleich der erzeugten mit der gemessenen Statistik
+(Tabelle~\ref{tab:kalibrierung}).
 
 \begin{table}[htbp]
 \centering
 \caption[Kalibrierung gegen die Realmessung]{Kalibrierung des Layoutmodells
-gegen die Realmessung ($n = 174$ reale Labels). Alle Abstände in
-Objektdurchmessern.}
+gegen die Realmessung ($n = 187$). Alle Abstände in Objektdurchmessern; die
+synthetischen Werte sind über 1500 erzeugte Bilder mit 34\,027 Labeln gemessen.}
 \label{tab:kalibrierung}
 \footnotesize
 \begin{tabular}{@{}lccc@{}}
@@ -797,99 +654,54 @@ Objektdurchmessern.}
 \textbf{Kenngröße} & \textbf{real \code{val}} & \textbf{real \code{test}} &
 \textbf{synthetisch (Ist)} \\
 \midrule
-NN-Abstand p10 / Median / p90 & 0{,}86 / 1{,}09 / 1{,}78 &
-0{,}83 / 1{,}24 / 2{,}51 & \textbf{0{,}84 / 1{,}17 / 1{,}87} \\
-berührt den NN ($< 1{,}2\,\Oe$) & 61{,}4\,\% & 46{,}5\,\% & \textbf{53{,}6\,\%} \\
+NN-Abstand p10 / Median / p90 & 0,86 / 1,11 / 1,78 &
+0,78 / 1,26 / 2,72 & \textbf{0,84 / 1,17 / 1,90} \\
+berührt den NN ($< 1{,}2\,\Oe$) & 60,2\,\% & 44,9\,\% & \textbf{53,5\,\%} \\
 Nachbarn innerhalb $5\,\Oe$ (Median) & 10 & 10 & \textbf{13} \\
-Größenverhältnis zum NN (Median) & 1{,}05 & 1{,}05 &
-\textbf{1{,}05}$^{*}$ \\
+Größenverhältnis zum NN (Median) & 1,05 & 1,07 & \textbf{1,10} \\
+Objektdurchmesser p05 / Median / p95 (px) & 19,1 / 26,8 / 33,0 &
+12,2 / 17,0 / 27,4 & \textbf{12,0 / 23,5 / 40,0} \\
+Seitenverhältnis p10 / Median / p90 & 0,97 / 1,09 / 1,40 &
+0,82 / 1,08 / 1,22 & \textbf{0,78 / 1,00 / 1,33} \\
 \bottomrule
-\multicolumn{4}{@{}l@{}}{\footnotesize $^{*}$ per Konstruktion, siehe Gleichung~\eqref{eq:layout}} \\
 \end{tabular}
 \end{table}
 
-Die synthetische Verteilung liegt bei allen vier Kenngrößen zwischen oder nahe
-bei den beiden realen Messungen. Die einzige systematische Abweichung ist die
-Nachbarzahl: Die synthetischen Cluster sind im Mittel etwas dichter als die
-realen (13 statt 10 Nachbarn innerhalb $5\,\Oe$, im Maximum 61 statt 20). Das
-ist bewusst so belassen -- eine höhere Dichte im Training ist eine
-Robustheitsreserve, weil sie den Detektor auf schwierigere Szenen vorbereitet als
-die, die er zur Inferenzzeit vorfindet. Die umgekehrte Abweichung wäre
-gefährlich gewesen.
-
-\begin{figure}[htbp]
-\centering
-\begin{subfigure}{0.32\textwidth}
-  \includegraphics[width=\textwidth]{abbildungen/synth_000.jpg}
-\end{subfigure}\hfill
-\begin{subfigure}{0.32\textwidth}
-  \includegraphics[width=\textwidth]{abbildungen/synth_001.jpg}
-\end{subfigure}\hfill
-\begin{subfigure}{0.32\textwidth}
-  \includegraphics[width=\textwidth]{abbildungen/synth_002.jpg}
-\end{subfigure}
-
-\vspace{2mm}
-\begin{subfigure}{0.32\textwidth}
-  \includegraphics[width=\textwidth]{abbildungen/synth_003.jpg}
-\end{subfigure}\hfill
-\begin{subfigure}{0.32\textwidth}
-  \includegraphics[width=\textwidth]{abbildungen/synth_004.jpg}
-\end{subfigure}\hfill
-\begin{subfigure}{0.32\textwidth}
-  \includegraphics[width=\textwidth]{abbildungen/synth_005.jpg}
-\end{subfigure}
-\caption[Beispiele synthetischer Trainingsbilder]{Sechs synthetische
-Trainingsbilder mit eingezeichneten erzeugten Labels. Erkennbar sind die
-Clusterstruktur des Layoutmodells, die Rohrschäfte hinter den Stirnflächen, die
-quer liegenden Okkluder und die abgedunkelten Mulden. Am unteren Rand des
-mittleren Bildes der unteren Reihe ist die in
-Abschnitt~\ref{sec:grenzen} genannte Spiegelsymmetrie des Reflect-Paddings
-sichtbar.}
-\label{abb:synthbeispiele}
-\end{figure}
+Die synthetische Verteilung liegt bei fast allen Kenngrößen zwischen oder nahe
+bei den beiden realen Messungen. Zwei systematische Abweichungen bleiben. Die
+erste ist die Nachbarzahl: Die synthetischen Cluster sind dichter (13 statt 10
+Nachbarn innerhalb $5\,\Oe$, im Maximum 61 statt 20). Das ist bewusst so
+belassen -- eine höhere Dichte im Training ist eine Robustheitsreserve, weil sie
+den Detektor auf schwierigere Szenen vorbereitet als die, die er zur Inferenzzeit
+vorfindet; die umgekehrte Abweichung wäre gefährlich gewesen. Die zweite betrifft
+die Objektgröße: Der Generator deckt 12--44\px{} ab, \code{test} enthält aber vier
+Objekte darunter (kleinstes 6,4\px). Diese Lücke schließt erst die
+Trainingsskalierung, die die Untergrenze auf $12 \cdot 0{,}6 = 7{,}2$\px{} zieht
+(Abschnitt~\ref{sec:trainparam}); die vier kleinsten Objekte in \code{test} liegen
+auch dann noch am unteren Rand der Trainingsverteilung.
 
 \section{Nachweis der Anforderungen}
 \label{sec:nachweis}
 
-Tabelle~\ref{tab:nachweis} prüft die in Abschnitt~\ref{sec:anforderungen}
-aufgestellten Anforderungen gegen die umgesetzte Pipeline.
+Anforderung~\textbf{A1} ist erfüllt, weil die Box nach jeder
+Instanztransformation aus der transformierten Alphamaske neu bestimmt wird und
+die boxverfälschenden Operationen zur Trainingszeit auf~0 stehen.
+\textbf{A2}: Objektgrößen 12--44\px{} aus der Realmessung, Leinwandgröße gleich
+der Trainingsauflösung. \textbf{A3}: Maßstabskopplung, Schaft hinter jeder
+Stirnfläche, parallele Schaftrichtung, Tiefenmodell 75/25, volle Rotation.
+\textbf{A4}: S1 Alphamaske und Kantenweichzeichnung, S2 partieller Farbangleich,
+S3 flächentreue Skalierung und Unschärfeangleich, S4 lokal geschätzter
+Rauschangleich, S5 JPEG-Requantisierung, S6 Schlagschatten und physikalische
+Verdeckung. Für die \emph{Okkluder} ist die Gegenmaßnahme zu S2--S4 die
+photographische Bibliothek aus Abschnitt~\ref{sec:matting}; sie ist als einzige
+der Gegenmaßnahmen experimentell geprüft (Abschnitt~\ref{sec:ablationB}).
+\textbf{A5}: modale Boxen und dieselben Verwerfungsregeln wie bei der
+Handannotation -- allerdings nur \emph{annähernd}, wie
+Abschnitt~\ref{sec:boxversatz} zeigt. \textbf{A6}: Tabelle~\ref{tab:parameter}
+im Anhang mit Sollbereich und gemessenem Ist-Anteil je Transformation.
 
-\begin{table}[htbp]
-\centering
-\caption[Nachweis der Anforderungen A1--A6]{Nachweis der Anforderungen aus
-Abschnitt~\ref{sec:anforderungen}.}
-\label{tab:nachweis}
-\footnotesize
-\begin{tabularx}{\textwidth}{@{}L{0.07\textwidth}XL{0.12\textwidth}@{}}
-\toprule
-\textbf{Anf.} & \textbf{Umsetzung} & \textbf{Status} \\
-\midrule
-A1 & Box wird nach jeder Instanztransformation aus der transformierten
-Alphamaske neu bestimmt; \code{degrees}, \code{shear}, \code{perspective} zur
-Trainingszeit auf 0 & erfüllt \\
-A2 & Objektgrößen 12--44\px{} aus der Realmessung; Leinwand
-$1024 = $ \code{imgsz}, also keine Skalierung im Training & erfüllt \\
-A3 & Zoom an Rohrdurchmesser gekoppelt; Schaft hinter jeder Stirnfläche;
-parallele Schaftrichtung; Tiefenmodell 75/25; Rotation voll, weil physikalisch
-unbeschränkt & erfüllt \\
-A4 & S1 Alphamaske + Kantenweichzeichnung; S2 partieller Farbangleich; S3
-flächentreue Skalierung + Unschärfeangleich; S4 lokal geschätzter Rauschangleich;
-S5 JPEG-Requantisierung; S6 Schlagschatten + physikalische Verdeckung & erfüllt \\
-A5 & modale Boxen; Verwerfen unter 30\,\% Sichtbarkeit bzw.\ 15\,\%
-Bildanteil -- dieselben Regeln wie bei der Handannotation & nur annähernd
-erfüllt: Restversatz der Boxgröße 1,2--2,5\px{}
-(Abschnitt~\ref{sec:boxversatz}) \\
-A6 & 36 Transformationen mit Soll-Bereich und gemessenem Ist-Anteil
-(Tabellen~\ref{tab:t1}--\ref{tab:t8}); sechs Werte ausdrücklich als Annahme
-gekennzeichnet & erfüllt \\
-\bottomrule
-\end{tabularx}
-\end{table}
-
-Die Anforderungen sind damit formal erfüllt. Das sagt allerdings nichts darüber
-aus, ob die einzelnen Maßnahmen \emph{wirken} -- Erfüllung einer
-Entwurfsanforderung ist kein empirischer Nachweis. Diese Unterscheidung wird in
-Kapitel~\ref{kap:auswertung} durch die Messung des Sim-to-Real-Abstands und die
-Okklusionsablation adressiert und in Abschnitt~\ref{sec:tragend} explizit
-bilanziert.
+Damit sind die Anforderungen \emph{formal} erfüllt. Das sagt nichts darüber aus,
+ob die einzelnen Maßnahmen \emph{wirken} -- die Erfüllung einer
+Entwurfsanforderung ist kein empirischer Nachweis. Wie viel von den 43
+dokumentierten Parameterwerten tatsächlich belegt ist, bilanziert
+Abschnitt~\ref{sec:tragend}.

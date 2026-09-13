@@ -36,7 +36,8 @@ Zwei Kernbefunde:
    groß sind.
 2. **Okklusion in den Trainingsdaten hilft monoton** — über drei Ablationsarme,
    zwei Splits und drei Metriken, obwohl der stärkste Arm 33 % weniger Labels
-   hat.
+   hat. *(Dieser Befund reproduziert sich mit `yolo26s-p2` und dem korrigierten
+   Annotationsstand **nicht** in dieser Form — siehe [`README_ablationen.md`](README_ablationen.md).)*
 3. **Die Modellfamilie war die schwächste Entscheidung** — `yolo26s-p2`
    erreicht bei identischem Budget `test` mAP@0.5 = 0.941 statt 0.888
    (Experiment 3). `yolo11s` bleibt die dokumentierte Baseline, für den
@@ -56,6 +57,36 @@ die Architekturgrafik in [`cnn/docs/fig_architektur.png`](cnn/docs/fig_architekt
 und die ausführliche Erklärung in [`cnn/einfach.md`](cnn/einfach.md)
 (Zielgruppe Informatikstudierende, ohne CV-Vorkenntnisse).
 
+## Neuer Stand: zwei Ablationen der Augmentierung auf `yolo26s-p2`
+
+Der aktuelle Praxisteil ist in [`README_ablationen.md`](README_ablationen.md) beschrieben. Alle Modelle
+dort sind **`yolo26s-p2`** (YOLO26s mit zusätzlichem P2-Kopf, Stride 4), und es
+werden zwei Ablationen der Augmentierungspipeline gerechnet:
+
+| Ablation | Frage | Arme |
+|---|---|---|
+| **A** | *wie viel* Verdeckung? | A0 keine / A1 Baseline / A2 stark — die bereits vorhandenen Datensätze `synth/abl_*` |
+| **B** | *woraus* bestehen die Verdecker? | B0 photographisch (= A1) / B1 prozedural, physikalisch / B2 prozedural, naiv |
+
+Ablation B prüft die einzige Begründung, mit der `src/occluders.py` seine
+photographische Okkluder-Bibliothek rechtfertigt — dass ein *gemalter* Balken
+eine andere Textur-, Rausch- und Glanzstatistik hätte und damit selbst zur
+Abkürzung würde. Sie ist **gepaart**: Die drei Datensätze haben byte-identische
+Labeldateien, es unterscheiden sich nur die RGB-Werte innerhalb der
+Stangenmasken. Details in [`README_ablationen.md`](README_ablationen.md).
+
+Achtung beim Vergleich mit den älteren Zahlen unter `docs/`: `val` und `test`
+wurden nachträglich ergänzt (98 statt 88 bzw. 89 statt 86 Objekte); alle Zahlen
+in den neuen Skripten beziehen sich auf den korrigierten Stand.
+
+**Hauptbefund von Ablation B:** Ein naiv gezeichneter Balken kostet auf dem
+unberührten Testbild 4,7 Prozentpunkte mAP@0.5 — mehr, als der Verdeckungsgrad
+überhaupt bewegt. Ein an fünf Kennwerten kalibriertes prozedurales
+Zylindermodell erreicht dagegen dieselbe Leistung wie die photographische
+Bibliothek. Entscheidend ist also nicht die *Herkunft* der Verdeckerpixel,
+sondern ob ihre Statistik zur Umgebung passt. Zahlen in
+[`docs/ERGEBNISSE.md`](docs/ERGEBNISSE.md).
+
 ## Ausarbeitung (LaTeX)
 
 Das Verzeichnis [`paper/`](paper/) enthält die schriftliche Arbeit als
@@ -63,13 +94,13 @@ LaTeX-Projekt in zwei Varianten: Theorieteil (CNN, YOLO26) plus Praxisteil mit
 dem Schwerpunkt **Datenaugmentierung** — allgemeine Grundlagen, die
 Synthese-Pipeline mit Begründung jedes Parameters und die Auswertung.
 
-| PDF | Umfang | Besonderheit |
+| PDF | Kapitel | Besonderheit |
 |---|---|---|
-| [`paper/main.pdf`](paper/main.pdf) | 76 S. Text | Langfassung, Modellvergleich über drei Varianten |
-| [`paper/main_p2_kurz.pdf`](paper/main_p2_kurz.pdf) | 41 S. Text | Kurzfassung, Experiment 3 auf `yolo26s` gegen `yolo26s-p2` fokussiert und ausgebaut |
+| [`paper/main.pdf`](paper/main.pdf) | `kapitel/` | **Arbeitsfassung** — Hauptergebnis + Ablation B (Herkunft der Okkluder) |
+| [`paper/main.pdf`](paper/main.pdf) | `kapitel/` | Langfassung, Modellvergleich über drei Varianten |
 
-Übersetzen mit `make` bzw. `make kurz` in `paper/`. Details in
-[`paper/README.md`](paper/README.md).
+Übersetzen mit `make` in `paper/`.
+Details in [`paper/README.md`](paper/README.md).
 
 ## Dokumentation
 
@@ -97,8 +128,16 @@ Synthese-Pipeline mit Begründung jedes Parameters und die Auswertung.
 | `src/report.py` | 7 — Diagramme und Ergebnistabellen |
 | `src/predict.py` | Anwendung — eigene Bilder zählen und markieren |
 
+| `src/procedural_bars.py` | 2b — prozedurale Okkluder-Bibliotheken (Ablation B) |
+| `src/generate_neu.py` | Aufsatz auf `src/generate.py`: tauscht nur die Okkluder-Bibliothek aus |
+| `src/train_neu.py` | Training auf `yolo26s-p2` |
+| `src/experiment_neu.py` | beide Ablationen: `data` / `check` / `train` / `eval` / `main` / `sweep` |
+| `src/analyse_neu.py` | Kreuzvergleich, Boxversatz, Sensitivität, Fehleranalyse |
+| `src/report_neu.py` | Abbildungen, LaTeX-Tabellen und `zahlen.tex` |
+
 Trainierte Modelle: `runs/baseline` (yolo11s), `runs/yolo26s`,
-`runs/yolo26s_p2`, `runs/abl_A0|A1|A2` (Experiment 2).
+`runs/yolo26s_p2`, `runs/abl_A0|A1|A2` (Okklusionsablation auf yolo11s) sowie
+`runs/{A0,A1,A2,B1,B2,referenz}` (alle yolo26s-p2).
 
 ## Ablauf reproduzieren
 

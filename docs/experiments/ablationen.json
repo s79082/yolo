@@ -1,0 +1,572 @@
+[
+  {
+    "split": "val",
+    "n_images": 1,
+    "n_gt": 98,
+    "infer": {
+      "imgsz": "native",
+      "conf": 0.001,
+      "iou": 0.7,
+      "max_det": 1000,
+      "augment": false,
+      "quantize": null,
+      "device": "0"
+    },
+    "mAP50": 0.9527423735934505,
+    "mAP75": 0.8252479051317055,
+    "mAP50_95": 0.6383648501756458,
+    "ap_per_iou": {
+      "0.5": 0.9527,
+      "0.55": 0.9527,
+      "0.6": 0.9527,
+      "0.65": 0.9338,
+      "0.7": 0.88,
+      "0.75": 0.8252,
+      "0.8": 0.5355,
+      "0.85": 0.2803,
+      "0.9": 0.0633,
+      "0.95": 0.0072
+    },
+    "best_f1": 0.9090909090909092,
+    "best_f1_conf": 0.38353869318962097,
+    "precision_at_best_f1": 0.9550561797752809,
+    "recall_at_best_f1": 0.8673469387755102,
+    "mean_iou_of_tp": 0.8171506033174959,
+    "count_pred": 89,
+    "count_gt": 98,
+    "count_mae": 9.0,
+    "count_bias": -9.0,
+    "count_rel_err": 0.09183673469387756,
+    "per_image": [
+      {
+        "file": "PXL_20251204_073853552.jpg",
+        "n_gt": 98,
+        "n_pred": 185,
+        "imgsz": 2464
+      }
+    ],
+    "arm": "A0_keine_okklusion",
+    "datensatz": "synth/abl_A0_keine_okklusion",
+    "beschreibung": "ohne quer liegende Stangen, ohne Fremdkoerper, kein Schaft vor einer Stirnflaeche",
+    "weights": "neu/runs/A0_keine_okklusion/weights/best.pt",
+    "params_M": 9.66,
+    "best_epoch": {
+      "epoche": 21,
+      "n_epochen": 30,
+      "fitness": 0.58948
+    }
+  },
+  {
+    "split": "test",
+    "n_images": 1,
+    "n_gt": 89,
+    "infer": {
+      "imgsz": "native",
+      "conf": 0.001,
+      "iou": 0.7,
+      "max_det": 1000,
+      "augment": false,
+      "quantize": null,
+      "device": "0"
+    },
+    "mAP50": 0.9578184869949673,
+    "mAP75": 0.48048771933356205,
+    "mAP50_95": 0.5057113710160862,
+    "ap_per_iou": {
+      "0.5": 0.9578,
+      "0.55": 0.9507,
+      "0.6": 0.9189,
+      "0.65": 0.7986,
+      "0.7": 0.5979,
+      "0.75": 0.4805,
+      "0.8": 0.217,
+      "0.85": 0.126,
+      "0.9": 0.0096,
+      "0.95": 0.0
+    },
+    "best_f1": 0.9294117647058823,
+    "best_f1_conf": 0.19507521390914917,
+    "precision_at_best_f1": 0.9753086419753086,
+    "recall_at_best_f1": 0.8876404494382022,
+    "mean_iou_of_tp": 0.7591506166475444,
+    "count_pred": 81,
+    "count_gt": 89,
+    "count_mae": 8.0,
+    "count_bias": -8.0,
+    "count_rel_err": 0.0898876404494382,
+    "per_image": [
+      {
+        "file": "test5.jpg",
+        "n_gt": 89,
+        "n_pred": 235,
+        "imgsz": 1600
+      }
+    ],
+    "arm": "A0_keine_okklusion",
+    "datensatz": "synth/abl_A0_keine_okklusion",
+    "beschreibung": "ohne quer liegende Stangen, ohne Fremdkoerper, kein Schaft vor einer Stirnflaeche",
+    "weights": "neu/runs/A0_keine_okklusion/weights/best.pt",
+    "params_M": 9.66,
+    "best_epoch": {
+      "epoche": 21,
+      "n_epochen": 30,
+      "fitness": 0.58948
+    }
+  },
+  {
+    "split": "val",
+    "n_images": 1,
+    "n_gt": 98,
+    "infer": {
+      "imgsz": "native",
+      "conf": 0.001,
+      "iou": 0.7,
+      "max_det": 1000,
+      "augment": false,
+      "quantize": null,
+      "device": "0"
+    },
+    "mAP50": 0.9739381742934354,
+    "mAP75": 0.7724002343072562,
+    "mAP50_95": 0.6471005928102057,
+    "ap_per_iou": {
+      "0.5": 0.9739,
+      "0.55": 0.9739,
+      "0.6": 0.9739,
+      "0.65": 0.9357,
+      "0.7": 0.9021,
+      "0.75": 0.7724,
+      "0.8": 0.5948,
+      "0.85": 0.2744,
+      "0.9": 0.0585,
+      "0.95": 0.0112
+    },
+    "best_f1": 0.9441624365482234,
+    "best_f1_conf": 0.27937188744544983,
+    "precision_at_best_f1": 0.9393939393939394,
+    "recall_at_best_f1": 0.9489795918367347,
+    "mean_iou_of_tp": 0.8168754944521618,
+    "count_pred": 99,
+    "count_gt": 98,
+    "count_mae": 1.0,
+    "count_bias": 1.0,
+    "count_rel_err": 0.01020408163265306,
+    "per_image": [
+      {
+        "file": "PXL_20251204_073853552.jpg",
+        "n_gt": 98,
+        "n_pred": 366,
+        "imgsz": 2464
+      }
+    ],
+    "arm": "A1_baseline",
+    "datensatz": "synth/abl_A1_baseline",
+    "beschreibung": "Baseline der Pipeline; zugleich Arm B0 der zweiten Ablation",
+    "weights": "neu/runs/A1_baseline/weights/best.pt",
+    "params_M": 9.66,
+    "best_epoch": {
+      "epoche": 28,
+      "n_epochen": 30,
+      "fitness": 0.56465
+    }
+  },
+  {
+    "split": "test",
+    "n_images": 1,
+    "n_gt": 89,
+    "infer": {
+      "imgsz": "native",
+      "conf": 0.001,
+      "iou": 0.7,
+      "max_det": 1000,
+      "augment": false,
+      "quantize": null,
+      "device": "0"
+    },
+    "mAP50": 0.9610650563462383,
+    "mAP75": 0.3952773322426724,
+    "mAP50_95": 0.48141243688159374,
+    "ap_per_iou": {
+      "0.5": 0.9611,
+      "0.55": 0.9494,
+      "0.6": 0.8894,
+      "0.65": 0.7893,
+      "0.7": 0.5509,
+      "0.75": 0.3953,
+      "0.8": 0.2121,
+      "0.85": 0.063,
+      "0.9": 0.0037,
+      "0.95": 0.0
+    },
+    "best_f1": 0.9318181818181818,
+    "best_f1_conf": 0.11516810208559036,
+    "precision_at_best_f1": 0.9425287356321839,
+    "recall_at_best_f1": 0.9213483146067416,
+    "mean_iou_of_tp": 0.7421191325803753,
+    "count_pred": 87,
+    "count_gt": 89,
+    "count_mae": 2.0,
+    "count_bias": -2.0,
+    "count_rel_err": 0.02247191011235955,
+    "per_image": [
+      {
+        "file": "test5.jpg",
+        "n_gt": 89,
+        "n_pred": 324,
+        "imgsz": 1600
+      }
+    ],
+    "arm": "A1_baseline",
+    "datensatz": "synth/abl_A1_baseline",
+    "beschreibung": "Baseline der Pipeline; zugleich Arm B0 der zweiten Ablation",
+    "weights": "neu/runs/A1_baseline/weights/best.pt",
+    "params_M": 9.66,
+    "best_epoch": {
+      "epoche": 28,
+      "n_epochen": 30,
+      "fitness": 0.56465
+    }
+  },
+  {
+    "split": "val",
+    "n_images": 1,
+    "n_gt": 98,
+    "infer": {
+      "imgsz": "native",
+      "conf": 0.001,
+      "iou": 0.7,
+      "max_det": 1000,
+      "augment": false,
+      "quantize": null,
+      "device": "0"
+    },
+    "mAP50": 0.9571907076582008,
+    "mAP75": 0.7482657740028164,
+    "mAP50_95": 0.617034318099459,
+    "ap_per_iou": {
+      "0.5": 0.9572,
+      "0.55": 0.9572,
+      "0.6": 0.9497,
+      "0.65": 0.9158,
+      "0.7": 0.8581,
+      "0.75": 0.7483,
+      "0.8": 0.5093,
+      "0.85": 0.2093,
+      "0.9": 0.0531,
+      "0.95": 0.0125
+    },
+    "best_f1": 0.9381443298969072,
+    "best_f1_conf": 0.30898624658584595,
+    "precision_at_best_f1": 0.9479166666666666,
+    "recall_at_best_f1": 0.9285714285714286,
+    "mean_iou_of_tp": 0.8062884468031851,
+    "count_pred": 96,
+    "count_gt": 98,
+    "count_mae": 2.0,
+    "count_bias": -2.0,
+    "count_rel_err": 0.02040816326530612,
+    "per_image": [
+      {
+        "file": "PXL_20251204_073853552.jpg",
+        "n_gt": 98,
+        "n_pred": 413,
+        "imgsz": 2464
+      }
+    ],
+    "arm": "A2_starke_okklusion",
+    "datensatz": "synth/abl_A2_starke_okklusion",
+    "beschreibung": "in jedem Bild Stangen, mehr Fremdkoerper, mehr quer davor liegende Rohre",
+    "weights": "neu/runs/A2_starke_okklusion/weights/best.pt",
+    "params_M": 9.66,
+    "best_epoch": {
+      "epoche": 29,
+      "n_epochen": 30,
+      "fitness": 0.5576
+    }
+  },
+  {
+    "split": "test",
+    "n_images": 1,
+    "n_gt": 89,
+    "infer": {
+      "imgsz": "native",
+      "conf": 0.001,
+      "iou": 0.7,
+      "max_det": 1000,
+      "augment": false,
+      "quantize": null,
+      "device": "0"
+    },
+    "mAP50": 0.9637641912241947,
+    "mAP75": 0.3386097784701289,
+    "mAP50_95": 0.45666521109924696,
+    "ap_per_iou": {
+      "0.5": 0.9638,
+      "0.55": 0.9399,
+      "0.6": 0.8689,
+      "0.65": 0.7069,
+      "0.7": 0.4727,
+      "0.75": 0.3386,
+      "0.8": 0.2077,
+      "0.85": 0.0659,
+      "0.9": 0.0022,
+      "0.95": 0.0
+    },
+    "best_f1": 0.9239130434782609,
+    "best_f1_conf": 0.10375775396823883,
+    "precision_at_best_f1": 0.8947368421052632,
+    "recall_at_best_f1": 0.9550561797752809,
+    "mean_iou_of_tp": 0.7362669811815127,
+    "count_pred": 95,
+    "count_gt": 89,
+    "count_mae": 6.0,
+    "count_bias": 6.0,
+    "count_rel_err": 0.06741573033707865,
+    "per_image": [
+      {
+        "file": "test5.jpg",
+        "n_gt": 89,
+        "n_pred": 388,
+        "imgsz": 1600
+      }
+    ],
+    "arm": "A2_starke_okklusion",
+    "datensatz": "synth/abl_A2_starke_okklusion",
+    "beschreibung": "in jedem Bild Stangen, mehr Fremdkoerper, mehr quer davor liegende Rohre",
+    "weights": "neu/runs/A2_starke_okklusion/weights/best.pt",
+    "params_M": 9.66,
+    "best_epoch": {
+      "epoche": 29,
+      "n_epochen": 30,
+      "fitness": 0.5576
+    }
+  },
+  {
+    "split": "val",
+    "n_images": 1,
+    "n_gt": 98,
+    "infer": {
+      "imgsz": "native",
+      "conf": 0.001,
+      "iou": 0.7,
+      "max_det": 1000,
+      "augment": false,
+      "quantize": null,
+      "device": "0"
+    },
+    "mAP50": 0.9441734378389579,
+    "mAP75": 0.6981318216131661,
+    "mAP50_95": 0.5852797556083357,
+    "ap_per_iou": {
+      "0.5": 0.9442,
+      "0.55": 0.9384,
+      "0.6": 0.9311,
+      "0.65": 0.8818,
+      "0.7": 0.8095,
+      "0.75": 0.6981,
+      "0.8": 0.4237,
+      "0.85": 0.1659,
+      "0.9": 0.0488,
+      "0.95": 0.0112
+    },
+    "best_f1": 0.9128205128205128,
+    "best_f1_conf": 0.4019727110862732,
+    "precision_at_best_f1": 0.9175257731958762,
+    "recall_at_best_f1": 0.9081632653061225,
+    "mean_iou_of_tp": 0.7991022656593888,
+    "count_pred": 97,
+    "count_gt": 98,
+    "count_mae": 1.0,
+    "count_bias": -1.0,
+    "count_rel_err": 0.01020408163265306,
+    "per_image": [
+      {
+        "file": "PXL_20251204_073853552.jpg",
+        "n_gt": 98,
+        "n_pred": 322,
+        "imgsz": 2464
+      }
+    ],
+    "arm": "B1_prozedural",
+    "datensatz": "neu/synth/abl_B1_proz_balken",
+    "beschreibung": "Okkluder prozedural erzeugt (Zylindermodell, an B0 kalibriert)",
+    "weights": "neu/runs/B1_prozedural/weights/best.pt",
+    "params_M": 9.66,
+    "best_epoch": {
+      "epoche": 20,
+      "n_epochen": 30,
+      "fitness": 0.56111
+    }
+  },
+  {
+    "split": "test",
+    "n_images": 1,
+    "n_gt": 89,
+    "infer": {
+      "imgsz": "native",
+      "conf": 0.001,
+      "iou": 0.7,
+      "max_det": 1000,
+      "augment": false,
+      "quantize": null,
+      "device": "0"
+    },
+    "mAP50": 0.962997702669254,
+    "mAP75": 0.4198686433781163,
+    "mAP50_95": 0.4805538158045291,
+    "ap_per_iou": {
+      "0.5": 0.963,
+      "0.55": 0.9439,
+      "0.6": 0.8543,
+      "0.65": 0.7127,
+      "0.7": 0.566,
+      "0.75": 0.4199,
+      "0.8": 0.2208,
+      "0.85": 0.1005,
+      "0.9": 0.0245,
+      "0.95": 0.0
+    },
+    "best_f1": 0.9411764705882353,
+    "best_f1_conf": 0.40837907791137695,
+    "precision_at_best_f1": 0.9876543209876543,
+    "recall_at_best_f1": 0.898876404494382,
+    "mean_iou_of_tp": 0.7433247900459389,
+    "count_pred": 81,
+    "count_gt": 89,
+    "count_mae": 8.0,
+    "count_bias": -8.0,
+    "count_rel_err": 0.0898876404494382,
+    "per_image": [
+      {
+        "file": "test5.jpg",
+        "n_gt": 89,
+        "n_pred": 379,
+        "imgsz": 1600
+      }
+    ],
+    "arm": "B1_prozedural",
+    "datensatz": "neu/synth/abl_B1_proz_balken",
+    "beschreibung": "Okkluder prozedural erzeugt (Zylindermodell, an B0 kalibriert)",
+    "weights": "neu/runs/B1_prozedural/weights/best.pt",
+    "params_M": 9.66,
+    "best_epoch": {
+      "epoche": 20,
+      "n_epochen": 30,
+      "fitness": 0.56111
+    }
+  },
+  {
+    "split": "val",
+    "n_images": 1,
+    "n_gt": 98,
+    "infer": {
+      "imgsz": "native",
+      "conf": 0.001,
+      "iou": 0.7,
+      "max_det": 1000,
+      "augment": false,
+      "quantize": null,
+      "device": "0"
+    },
+    "mAP50": 0.9642164749811266,
+    "mAP75": 0.8036849731401627,
+    "mAP50_95": 0.653686545878054,
+    "ap_per_iou": {
+      "0.5": 0.9642,
+      "0.55": 0.9642,
+      "0.6": 0.9642,
+      "0.65": 0.9585,
+      "0.7": 0.9089,
+      "0.75": 0.8037,
+      "0.8": 0.5961,
+      "0.85": 0.2866,
+      "0.9": 0.0903,
+      "0.95": 0.0
+    },
+    "best_f1": 0.922279792746114,
+    "best_f1_conf": 0.40276092290878296,
+    "precision_at_best_f1": 0.9368421052631579,
+    "recall_at_best_f1": 0.9081632653061225,
+    "mean_iou_of_tp": 0.8254825572438514,
+    "count_pred": 95,
+    "count_gt": 98,
+    "count_mae": 3.0,
+    "count_bias": -3.0,
+    "count_rel_err": 0.030612244897959183,
+    "per_image": [
+      {
+        "file": "PXL_20251204_073853552.jpg",
+        "n_gt": 98,
+        "n_pred": 272,
+        "imgsz": 2464
+      }
+    ],
+    "arm": "B2_prozedural_naiv",
+    "datensatz": "neu/synth/abl_B2_proz_balken_naiv",
+    "beschreibung": "Okkluder prozedural erzeugt, naiv (konstantes Grau)",
+    "weights": "neu/runs/B2_prozedural_naiv/weights/best.pt",
+    "params_M": 9.66,
+    "best_epoch": {
+      "epoche": 15,
+      "n_epochen": 30,
+      "fitness": 0.53318
+    }
+  },
+  {
+    "split": "test",
+    "n_images": 1,
+    "n_gt": 89,
+    "infer": {
+      "imgsz": "native",
+      "conf": 0.001,
+      "iou": 0.7,
+      "max_det": 1000,
+      "augment": false,
+      "quantize": null,
+      "device": "0"
+    },
+    "mAP50": 0.9139597081546257,
+    "mAP75": 0.44175520860955064,
+    "mAP50_95": 0.46973205596877454,
+    "ap_per_iou": {
+      "0.5": 0.914,
+      "0.55": 0.914,
+      "0.6": 0.8644,
+      "0.65": 0.6955,
+      "0.7": 0.5853,
+      "0.75": 0.4418,
+      "0.8": 0.2041,
+      "0.85": 0.0712,
+      "0.9": 0.0071,
+      "0.95": 0.0
+    },
+    "best_f1": 0.8848484848484848,
+    "best_f1_conf": 0.2443828135728836,
+    "precision_at_best_f1": 0.9605263157894737,
+    "recall_at_best_f1": 0.8202247191011236,
+    "mean_iou_of_tp": 0.7472957152936957,
+    "count_pred": 76,
+    "count_gt": 89,
+    "count_mae": 13.0,
+    "count_bias": -13.0,
+    "count_rel_err": 0.14606741573033707,
+    "per_image": [
+      {
+        "file": "test5.jpg",
+        "n_gt": 89,
+        "n_pred": 244,
+        "imgsz": 1600
+      }
+    ],
+    "arm": "B2_prozedural_naiv",
+    "datensatz": "neu/synth/abl_B2_proz_balken_naiv",
+    "beschreibung": "Okkluder prozedural erzeugt, naiv (konstantes Grau)",
+    "weights": "neu/runs/B2_prozedural_naiv/weights/best.pt",
+    "params_M": 9.66,
+    "best_epoch": {
+      "epoche": 15,
+      "n_epochen": 30,
+      "fitness": 0.53318
+    }
+  }
+]

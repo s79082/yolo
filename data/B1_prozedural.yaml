@@ -1,0 +1,7 @@
+# Okkluder prozedural erzeugt (Zylindermodell, an B0 kalibriert)
+path: /home/mso/source/yolo-gen
+train: synth/abl_B1_proz_balken/images
+val: data/val/images
+test: data/test/images
+names:
+  0: rohrprofil

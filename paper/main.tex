@@ -1,15 +1,34 @@
 % ===========================================================================
-%  Bachelorarbeit
-%  Datenaugmentierung fuer die CNN-basierte Detektion von
-%  Rohrprofil-Stirnflaechen an gestapelten Bauzaunfeldern
+%  Bachelorarbeit -- Fassung mit einer Ablation (Herkunft der Okkluder)
 %
-%  Uebersetzen:  make          (latexmk -pdf -bibtex)
-%  oder:         make manual   (pdflatex / bibtex / pdflatex / pdflatex)
+%  Der Praxisteil beschraenkt sich auf
+%  Hauptergebnis, Inferenzaufloesung und die Ablation zur Herkunft der
+%  Okkluderbalken.  Die Ablation zum Okklusionsanteil ist nicht enthalten;
+%  ihre Laeufe liegen unter neu/runs/A0|A1|A2 und werden in Abschnitt 8.2 als
+%  naechster Schritt benannt.
+%
+%  Tabellen und Zahlen liegen in kapitel/ -- sie werden von
+%  neu/src/report_neu.py erzeugt und von beiden Fassungen geteilt.
+%
+%  Uebersetzen:  make
 % ===========================================================================
-\documentclass[11pt,a4paper,oneside,parskip=half,numbers=noenddot,
+\documentclass[11pt,a4paper,oneside,numbers=noenddot,
                listof=totoc]{scrreprt}
 
 \input{praeambel}
+
+%% Alle im Fliesstext genannten Messzahlen -- erzeugt von neu/src/report_neu.py
+\input{kapitel/zahlen}
+
+% Gleitobjekte dichter packen: bei diesem tabellenlastigen Text spart das
+% mehrere Seiten, ohne den Satzspiegel zu veraendern.
+\renewcommand{\topfraction}{0.92}
+\renewcommand{\bottomfraction}{0.75}
+\renewcommand{\textfraction}{0.07}
+\renewcommand{\floatpagefraction}{0.80}
+\setcounter{topnumber}{3}
+\setcounter{bottomnumber}{2}
+\setcounter{totalnumber}{5}
 
 \begin{document}
 
@@ -28,12 +47,12 @@
 \pagenumbering{arabic}
 
 \input{kapitel/01_einleitung}
-\input{kapitel/02_theorie}
-\input{kapitel/03_augmentierung_grundlagen}
-\input{kapitel/04_datengrundlage}
-\input{kapitel/05_pipeline}
-\input{kapitel/06_trainingszeit}
-\input{kapitel/07_auswertung}
+\input{kapitel/02_theorie_copy}
+\input{kapitel/kapitel3_datenaugmentierung}
+\input{kapitel/kapitel_datengrundlage}
+\input{kapitel/kapitel_synthese_pipeline}
+\input{kapitel/kapitel_training}
+\input{kapitel/kapitel_auswertung}
 \input{kapitel/08_diskussion}
 
 % ------------------------------- Verzeichnisse ----------------------------
