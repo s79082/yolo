@@ -20,15 +20,18 @@
 %  gegenseitig widersprechen und die ich nicht aufloesen kann.
 % ======================================================================
 
-\chapter{Die Synthese-Pipeline}
+\chapter{Datengrundlage und Synthese-Pipeline}
 \label{kap:pipeline}
 
-Dieses Kapitel dokumentiert die Pipeline, die aus neun Objektausschnitten und
-sieben Hintergrundaufnahmen den Trainingsdatensatz erzeugt. Die in
+Dieses Kapitel vermisst zunächst das verfügbare Quellmaterial und dokumentiert
+anschließend die Pipeline, die daraus -- aus neun Objektausschnitten und sieben
+Hintergrundaufnahmen -- den Trainingsdatensatz erzeugt. Die in
 Tabelle~\ref{tab:parameter} genannten Anteile sind keine konfigurierten
 Sollwerte, sondern \emph{gemessene} Ist-Werte aus dem Erzeugungsbericht
 \code{synth/train/generation\_report.json} über 6000 Bilder mit 173\,100
 gerenderten Instanzen und 136\,384 gelabelten Objekten.
+
+\input{kapitel/kapitel_datengrundlage}
 
 \section{Leitprinzip und Arbeitsteilung}
 \label{sec:leitprinzip}
@@ -149,43 +152,11 @@ verändert die effektiven Größen weiterhin (Abschnitt~\ref{sec:trainparam}). D
 folgenden Abschnitte begründen die fünf Stellen, an denen die Modellierung über
 eine Parameterwahl hinausgeht.
 
-\begin{table}[htbp]
-\centering
-\caption[Überblick der Synthesestufen]{Überblick der neun Synthesestufen.
-Parameterbereich, gemessener Ist-Anteil, Begründung und Belegart aller 36
-Transformationen stehen in Tabelle~\ref{tab:parameter} im Anhang.}
-\label{tab:stufen}
-\footnotesize
-\begin{tabularx}{\textwidth}{@{}llX@{}}
-\toprule
-\textbf{Stufe} & \textbf{Anz.} & \textbf{Was die Stufe modelliert} \\
-\midrule
-T1 Hintergrund & 7 &
-Wahl und Aufbereitung der Szene: Clean Plate oder Fremdszene, Maßstab,
-Ausschnitt, Spiegelungen, Kleinrotation \\
-T2 Instanzgeometrie & 5 &
-Form und Lage der einzelnen Stirnfläche: Rotation, Skalierung, Ovalisierung,
-Delle, Perspektive \\
-T3 Photometrie & 8 &
-Einbettung in die Umgebung: Helligkeit, Gamma, HSV, Farb-, Unschärfe- und
-Rauschangleich, Kantenweichzeichnung, Schlagschatten \\
-T4 Layout & 2 &
-Anordnung mehrerer Instanzen: gescherte Gitterpackung, Cluster, abgedunkelte
-Mulde \\
-T5 Rohrschaft & 4 &
-Der Schaft hinter der Stirnfläche: Richtung, Helligkeitsangleich, Tiefenmodell \\
-T6 Okklusion & 2 &
-Verdeckung von vorn: quer liegende Rohrstangen, Fremdkörper \\
-T7 Sichtbarkeit & -- &
-Exakte Rechnung und Labelregeln, Abschnitt~\ref{sec:sichtbarkeit} \\
-T8 globale Bildstufe & 7 &
-Aufnahmeeffekte über das ganze Bild: Helligkeit/Kontrast, HSV, Defokus,
-Bewegungsunschärfe, Rauschen, Vignettierung, JPEG-Requantisierung \\
-T9 Negativbilder & 1 &
-Bilder ohne jedes Objekt \\
-\bottomrule
-\end{tabularx}
-\end{table}
+Die neun Stufen T1--T9 -- Hintergrund, Instanzgeometrie, Photometrie, Layout,
+Rohrschaft, Okklusion, Sichtbarkeitsrechnung, globale Bildstufe und
+Negativbilder -- sind mit Parameterbereich, gemessenem Ist-Anteil, Begründung
+und Belegart aller 36 Transformationen in Tabelle~\ref{tab:parameter} im Anhang
+aufgeführt.
 
 \begin{figure}[htbp]
 \centering

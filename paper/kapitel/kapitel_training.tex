@@ -62,13 +62,11 @@ Batch & 8 & 8 \\
 
 Der Referenzlauf endete durch Early Stopping nach \zrefEpochen{} von
 60~Epochen; das beste Modell stammt aus Epoche~\zrefBestEpoche. Die Batchgröße
-ist nicht gewählt, sondern erzwungen: \code{yolo26s-p2} hält bei
-\code{imgsz}=1024 eine P2-Merkmalskarte mit $256\times256$ Zellen vor, und mit
-Batch~16 überschritt der Speicherbedarf auf der verwendeten Karte wiederholt den
-freien Speicher. Der Ausweichpfad auf die CPU ist dabei nicht nur langsam, er
-macht die Läufe untereinander unvergleichbar, weil er von der momentanen
-Fremdlast abhängt. Batch~8 läuft durchgängig auf der GPU; die gemessenen
-Speicherwerte stehen in Abschnitt~\ref{sec:anhangbericht}.
+ist nicht gewählt, sondern erzwungen: Mit Batch~16 überschritt die
+$256\times256$ große P2-Merkmalskarte bei \code{imgsz}=1024 wiederholt den
+freien Speicher der verwendeten Karte, und der Ausweichpfad auf die CPU macht
+die Läufe von der momentanen Fremdlast abhängig und damit unvergleichbar
+(Speicherwerte in Abschnitt~\ref{sec:anhangbericht}).
 
 \absatz{Modellwahl.} Durchgängig verwendet wird \code{yolo26s-p2} mit
 9,66~Millionen Parametern. Die \emph{Größe} \enquote{s} folgt aus der Datenlage:
@@ -122,17 +120,13 @@ P2-Kopf die feinste wäre.
 \absatz{Optimierung.} AdamW \parencite{loshchilov2019} mit
 $\text{lr}_0 = 10^{-3}$ und Kosinusabfall auf 1\,\% davon
 \parencite{loshchilov2017sgdr}, Mixed Precision \parencite{micikevicius2018},
-fester Seed und deterministische Kernel; die vollständige Konfiguration steht in
-Tabelle~\ref{tab:trainaug} im Anhang. AdamW ist explizit gesetzt statt
-\code{auto}, weil es bei kleinen Datensätzen schneller konvergiert und robust
-gegenüber der Lernratenwahl ist -- wichtig, weil kein Budget für eine
-Lernratensuche vorhanden ist. Die Verlustgewichte bleiben auf den Standardwerten
-(\code{box}\,7,5 / \code{cls}\,0,5): Eine Erhöhung des Boxgewichts wäre bei
-kleinen Objekten denkbar, ohne separaten Abstimmungssplit aber nicht belegbar.
-Early Stopping greift nach 20 Epochen ohne Verbesserung auf dem realen
-\code{val}-Bild. Dieses Fenster ist bewusst großzügig: Die Fitness wird an knapp
-hundert Objekten \emph{eines} Bildes gemessen und schwankt entsprechend stark
-(Abschnitt~\ref{sec:trainingsverlauf}).
+Verlustgewichte auf den Standardwerten, fester Seed und deterministische Kernel;
+die vollständige Konfiguration steht in Tabelle~\ref{tab:trainaug} im Anhang.
+AdamW ist explizit gesetzt statt \code{auto}, weil kein Budget für eine
+Lernratensuche vorhanden ist. Early Stopping greift nach 20 Epochen ohne
+Verbesserung auf dem realen \code{val}-Bild -- ein bewusst großzügiges Fenster,
+weil die Fitness an knapp hundert Objekten \emph{eines} Bildes gemessen wird und
+entsprechend stark schwankt (Abschnitt~\ref{sec:trainingsverlauf}).
 
 \section{Augmentierungsparameter zur Trainingszeit}
 \label{sec:trainparam}

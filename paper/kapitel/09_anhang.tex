@@ -140,6 +140,23 @@ Sensortextur. Ohne Angleich unterschieden sich die Bibliotheken nicht nur in der
 Mikrotextur, sondern auch in Kontrast, Korn und Farbe -- ein Ergebnis wäre dann
 nicht zuzuordnen.
 
+Der Grauwert einer Stange folgt dabei
+\begin{equation}
+I(u) \;=\; \mu \cdot
+\underbrace{\Big[k_{\text{amb}} + (1-k_{\text{amb}})\max\big(0, \cos(\varphi - \varphi_L)\big)
++ s\,e^{-\left(\frac{\varphi - \varphi_L/2}{\sigma_s}\right)^{2}}\Big]}_{\text{Zylinderschattierung}}
+\cdot \big(1 - k_e u^2\big),
+\label{eq:zylinder}
+\end{equation}
+mit der Querkoordinate $u \in [-1, 1]$ über die Streifenhöhe und
+$\varphi(u) = \varphi_c + u\,\Delta\varphi$. Der Streifen zeigt bewusst nur einen
+\emph{Arc} des Zylindermantels -- er deckt $2\Delta\varphi$ des Umfangs ab, mit
+$\Delta\varphi \in [0{,}85;\,1{,}30]$\,rad aus \code{src/procedural\_bars.py}
+also $97$--$149^\circ$ statt der vollen $180^\circ$ --, weil benachbarte Rohre
+im Stapel einander verdecken, bevor der Blick den Streifwinkel erreicht. Der
+Versatz $\varphi_c$ bildet ab, dass die Achsdetektion der Vorstufe den Streifen
+nicht exakt auf die Rohrachse zentriert.
+
 \begin{table}[htbp]
 \centering
 \caption[Kennwerte der drei Okkluder-Bibliotheken]{Kennwerte der drei

@@ -16,15 +16,15 @@
 %  \label{subsec:kleine-objekte} -- Labelnamen ggf. angleichen.
 % ======================================================================
 
-\chapter{Datengrundlage}
-\label{kap:daten}
+\section{Datengrundlage}
+\label{sec:daten}
 
-Alle Parameter der folgenden Kapitel berufen sich auf Messungen am verfügbaren
-Quellmaterial. Dieses Kapitel dokumentiert sie. Sämtliche Zahlenwerte sind mit
+Alle Parameter der Pipeline berufen sich auf Messungen am verfügbaren
+Quellmaterial. Dieser Abschnitt dokumentiert sie. Sämtliche Zahlenwerte sind mit
 \code{src/analyze\_data.py} an den Quelldateien gemessen und in
 \code{docs/datensichtung.json} abgelegt.
 
-\section{Annotationsdefinition}
+\subsection{Annotationsdefinition}
 \label{sec:annotation}
 
 Vor jeder Messung steht die Frage, was ein Objekt ist. Aus der Sichtung der
@@ -47,7 +47,7 @@ Teile. Erzeugte der Generator amodale Boxen, während die Realbilder modal
 annotiert sind, entstünde ein systematischer Größenversatz -- ein Verstoß gegen
 Anforderung~A5.
 
-\section{Quellmaterial}
+\subsection{Quellmaterial}
 \label{sec:quellmaterial}
 
 \absatz{Objektausschnitte.} Verfügbar sind neun aus Realaufnahmen
@@ -81,7 +81,7 @@ Falschpositiv droht. Schwäche des Materials: Alle vier Clean Plates zeigen
 dieselbe Stapelart bei bedecktem bis diffusem Licht -- kein harter
 Sonnenschein, keine Nässe, kein Schnee.
 
-\section{Bewertungsdaten und ihre Statistik}
+\subsection{Bewertungsdaten und ihre Statistik}
 \label{sec:valtest}
 
 Zur Bewertung stehen zwei vollständig handannotierte Realaufnahmen zur
@@ -145,7 +145,7 @@ Objekte (Median 17,0 gegen 26,8\px), lockerere Packung (NN-Median 1,26 gegen
 Split ist damit gerade derjenige, den Training und Modellauswahl nie berühren --
 was bei der Lektüre der Ergebnisse zu berücksichtigen ist.
 
-\section{Befunde und die daraus abgeleiteten Parameter}
+\subsection{Befunde und die daraus abgeleiteten Parameter}
 \label{sec:messungmapping}
 
 Tabelle~\ref{tab:befunde} fasst zusammen, welcher Befund welchen

@@ -105,34 +105,13 @@ Bilder katastrophal. Genau dieses Muster tritt nicht auf -- der einzige
 \emph{direkte} empirische Hinweis darauf, dass die Anti-Abkürzungs-Maßnahmen
 greifen, und ein Indiz, kein Beweis.
 
-\absatz{Die Schranke, mit Werten besetzt.} Gleichung~\eqref{eq:bendavid} lässt
-sich mit diesen Zahlen teilweise füllen. Als Platzhalter für den Fehlerterm dient
-$\varepsilon = 1 - \mAPfifty{}$ -- die Schranke ist für den
-0-1-Klassifikationsfehler formuliert, die Rechnung zeigt daher die
-\emph{Struktur} und ist kein Beweis. Mit
-$\varepsilon_S = 1 - \zrefSvalMap = \zepsS$ auf \code{sval} und
-$\varepsilon_T = 1 - \zrefTestMap = \zepsT$ auf \code{test} folgt aus
-Gleichung~\eqref{eq:gap-bound}
-\[
-\tfrac{1}{2}\,d_{\mathcal{H}\Delta\mathcal{H}}
-\big(\mathcal{D}_S^X,\,\mathcal{D}_T^X\big) + \lambda
-\;\geq\; \zepsT - \zepsS \;=\; \zepsDiff .
-\]
-Der Größenversatz aus Abschnitt~\ref{sec:boxversatz} trägt dazu praktisch
-\emph{nichts} bei: Eine abweichende Labeldefinition wäre genau ein
-$\lambda$-Beitrag, aber die Sensitivitätsrechnung zeigt, dass ein Angleichen der
-Boxgröße \mAPfifty{} nicht verbessert, sondern leicht senkt
+Erklären lässt sich dieser Rest nicht über die Labelkonvention: Eine abweichende
+Labeldefinition wäre genau ein $\lambda$-Beitrag in
+Gleichung~\eqref{eq:bendavid}, aber die Sensitivitätsrechnung zeigt, dass ein
+Angleichen der Boxgröße \mAPfifty{} nicht verbessert, sondern leicht senkt
 (Tabelle~\ref{tab:boxsens} im Anhang). Bei der Zuordnungsschwelle 0,5 ist die
-Konventionsdifferenz also wirkungslos, und der verbleibende Rest ist im
-Wesentlichen Verteilungsdivergenz -- klein, aber nicht wegerklärbar.
-
-Die Größenordnung wird im Vergleich zum Artefaktfall deutlich: Dort wäre
-$\varepsilon_S \approx 0{,}005$ und $\varepsilon_T \approx 0{,}95$, die Schranke
-ergäbe also $\tfrac{1}{2}d + \lambda \geq 0{,}94$ -- ein Vielfaches des
-gemessenen Werts. Dass stattdessen \zepsDiff{} gemessen werden, ist die formale
-Fassung des Arguments oben und zeigt zugleich seine Grenze: Die Ungleichung
-schließt eine große Divergenz nicht \emph{aus}, sie zeigt nur, dass die Daten sie
-nicht erzwingen. Genau deshalb bleibt es ein Indiz.
+Konventionsdifferenz wirkungslos; was bleibt, ist im Wesentlichen
+Verteilungsdivergenz -- klein, aber nicht wegerklärbar.
 
 \section{Die Inferenzauflösung}
 \label{sec:imgsz}
@@ -150,7 +129,6 @@ es die Lokalisierungsgüte mitbewertet; es stand vor den Läufen und damit vor d
 Befund aus Abschnitt~\ref{sec:boxversatz} fest. Gewählt wird damit
 \code{imgsz}~\zbestImgsz.
 
-\input{kapitel/tab_imgsz}
 
 Von \code{imgsz}~640 auf \zswValBestAt{} steigt \mAPfifty{} auf \code{val} von
 \zswValNiedrig{} auf \zswValBest{} -- ein Zuwachs von \zswValGain\PP{} und damit
@@ -178,7 +156,7 @@ unten nur bis 7,2\px{} reicht (Abschnitt~\ref{sec:trainparam}).
 \absatz{Das Optimum liegt dort, wo die Objektgröße zur Trainingsverteilung
 passt.} Der Generator erzeugt Objekte mit Median 23,5\px{}
 (Tabelle~\ref{tab:kalibrierung}) -- und genau dort liegt auch das Maximum beider
-Kurven. Auf \code{val} ist \mAPfifty{} bei \code{imgsz}~\zswValBestAt{} am
+Kurven in Abbildung~\ref{abb:imgsz}. Auf \code{val} ist \mAPfifty{} bei \code{imgsz}~\zswValBestAt{} am
 höchsten (\zswValBest), was den gemessenen \code{val}-Median von 26,8\px{} nach
 Gleichung~\eqref{eq:deff} auf \zswValBestDeff\px{} im Netzeingang bringt; auf
 \code{test} bei \code{imgsz}~\zswTestBestAt{} (\zswTestBest) mit
@@ -204,13 +182,11 @@ Die übrigen Inferenzparameter sind unkritisch, und zwei entfallen bei diesem
 Modell ganz: Der NMS-Schwellwert greift nicht, weil \code{yolo26s-p2} NMS-frei
 arbeitet (Abschnitt~\ref{sec:yolo26}), und Test-Time-Augmentation ist nicht
 verfügbar -- die Werkzeugkette lehnt \code{augment=True} für
-Ende-zu-Ende-Modelle ab und fällt stillschweigend auf einfache Inferenz zurück,
-weshalb hier nur \zttaVal\PP{} Unterschied gemessen werden. Der Gewinn aus
-\parencite{shanmugam2021} lässt sich also nicht mitnehmen; das ist der einzige
-Nachteil der NMS-freien Variante, der in dieser Arbeit aufgefallen ist. Es
-bleiben \code{max\_det}, ab 100 gesättigt und bei 50 katastrophal, weil die
-Ausgabe hart abgeschnitten wird, sowie die Rechengenauigkeit: FP16 liefert
-identische Metrikwerte.
+Ende-zu-Ende-Modelle ab und fällt stillschweigend auf einfache Inferenz zurück
+(\zttaVal\PP{} Unterschied), der Gewinn aus \parencite{shanmugam2021} ist also
+nicht mitzunehmen. Es bleiben \code{max\_det}, ab 100 gesättigt und bei 50
+katastrophal, weil die Ausgabe hart abgeschnitten wird, sowie die
+Rechengenauigkeit: FP16 liefert identische Metrikwerte.
 
 \begin{figure}[htbp]
 \centering
@@ -280,22 +256,9 @@ Versuchs: Ein reiner Vergleich \enquote{echt gegen gezeichnet} könnte nur sagen
 ein prozedurales Modell trägt und ob der letzte Schritt zur Photographie noch
 etwas bringt.
 
-\begin{equation}
-I(u) \;=\; \mu \cdot
-\underbrace{\Big[k_{\text{amb}} + (1-k_{\text{amb}})\max\big(0, \cos(\varphi - \varphi_L)\big)
-+ s\,e^{-\left(\frac{\varphi - \varphi_L/2}{\sigma_s}\right)^{2}}\Big]}_{\text{Zylinderschattierung}}
-\cdot \big(1 - k_e u^2\big),
-\label{eq:zylinder}
-\end{equation}
-mit der Querkoordinate $u \in [-1, 1]$ über die Streifenhöhe und
-$\varphi(u) = \varphi_c + u\,\Delta\varphi$. Der Streifen zeigt bewusst nur einen
-\emph{Arc} des Zylindermantels -- der Streifen deckt $2\Delta\varphi$ des
-Umfangs ab, mit $\Delta\varphi \in [0{,}85;\,1{,}30]$\,rad aus
-\code{src/procedural\_bars.py} also $97$--$149^\circ$ statt der vollen
-$180^\circ$ --, weil benachbarte Rohre im Stapel einander verdecken,
-bevor der Blick den Streifwinkel erreicht. Der Versatz $\varphi_c$ bildet ab,
-dass die Achsdetektion der Vorstufe den Streifen nicht exakt auf die Rohrachse
-zentriert.
+Das Beleuchtungsmodell selbst -- Lambert-Term, Glanzlicht, Umgebungslicht,
+Längsvariation und Korn über einen Arc des Zylindermantels -- steht mit
+Gleichung~\eqref{eq:zylinder} in Abschnitt~\ref{sec:anhangbalken} des Anhangs.
 
 \begin{figure}[htbp]
 \centering
@@ -397,17 +360,6 @@ handelt sich also nicht um eine Abkürzung im engeren Sinn -- das Netz hat nicht
 \emph{Domänenlücke beim Verdecker}: Was im Training verdeckt, sieht anders aus
 als das, was im Testbild verdeckt.
 
-\begin{figure}[htbp]
-\centering
-\includegraphics[width=\textwidth]{abbildungen/neu_ablation_b.png}
-\caption[Ablation B]{Ablation~B -- Herkunft der Okkluderbalken. Die drei Arme
-unterscheiden sich ausschließlich in den Pixelwerten innerhalb der
-Stangenmasken; Labelzahl, Objektpositionen und Verdeckungsgrade sind
-byte-identisch. Auf \code{test} liegt B2 in allen vier Metriken hinten,
-B0 und B1 sind nicht zu unterscheiden.}
-\label{abb:ablationb}
-\end{figure}
-
 \absatz{Ein Nebenbefund zum Trainingsverlauf.} Der beste Checkpoint liegt bei B2
 in Epoche~\zBTwoEpoche{} von 30, bei B1 in Epoche~\zBOneEpoche{} und bei B0 in
 Epoche~\zBZeroEpoche. Der Arm mit dem naiven Okkluder ist also deutlich früher
@@ -431,17 +383,6 @@ Korn und Farbstich der Umgebung trägt. Die Begründung in
 \code{src/occluders.py} zeigt damit auf die richtige Größe -- die Textur- und
 Rauschstatistik des Verdeckers -- und zieht daraus nur den zu starken Schluss,
 dass sie photographisch beschafft werden müsse.
-
-\absatz{Einschränkungen.} Ein Lauf je Arm, keine Wiederholung mit verschiedenen
-Trainings-Seeds: Der B2-Effekt ist groß genug, um das zu überstehen; die Aussage
-\enquote{B1 ist so gut wie B0} ist es nicht -- sie ist eine Nicht-Ablehnung, kein
-Nachweis der Gleichheit. B1 ist zudem \emph{ein} prozedurales Modell und nicht
-das bestmögliche, da die Kalibrierung nur skalare Kennwerte trifft; ein Ergebnis
-zugunsten von B0 wäre eine Aussage über diese Modellklasse, nicht über
-prozedurale Okkluder schlechthin. Und die Aufschlüsselung nach Objektgröße ist
-ein Stellvertreter für die Stapeltiefe -- die realen Bilder tragen keine
-Verdeckungsannotation, der Verdeckungsgrad je Objekt ist also nicht direkt
-messbar.
 
 \section{Statistische Belastbarkeit und Fehleranalyse}
 \label{sec:bootstrap}
@@ -483,9 +424,13 @@ Auf \code{test} ist jede sichtbare Stirnfläche erfasst, die Precision ist dort
 also exakt. Auf \code{val} fehlen einzelne erkennbare Rohröffnungen in der
 Annotation; bei \znPredVal{} Detektionen schlägt jede fehlende Annotation mit
 rund einem Prozentpunkt Precision zu Buche, die dortigen Precision-Werte sind
-damit eine \textbf{Untergrenze}. Die verbleibenden Falsch-Positiven entstehen an
-dunklen Löchern im Maschendraht und an Schattenspalten zwischen Rohren -- genau
-die Strukturen, gegen die die Negativbilder gerichtet sind.
+damit eine \textbf{Untergrenze}. Die Mehrzahl dieser Boxen umschließt zudem ein
+echtes Rohrende: Die Zuordnungsregel lässt je annotierter Fläche nur einen
+Treffer zu \parencite{lin2014coco}, sodass eine zweite Box auf derselben
+Stirnfläche zwangsläufig als Fehler zählt -- auf \code{test} betrifft das alle
+\zfpTest, auf \code{val} \zfpDoppelVal{} von \zfpVal. Nur die übrigen beiden
+sitzen an dunklen Löchern im Maschendraht und an Schattenspalten zwischen
+Rohren, genau den Strukturen, gegen die die Negativbilder gerichtet sind.
 
 \section{Ein systematischer Größenversatz der Boxen}
 \label{sec:boxversatz}

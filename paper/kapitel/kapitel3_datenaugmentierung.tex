@@ -48,19 +48,13 @@ $\Dom{S}^{X}$ bezeichnen Wahrscheinlichkeitsverteilungen.
 \section{Begriff, Formalisierung und Wirkmechanismen}
 \label{sec:aug-formalisierung}
 
-Sei
-\[
-  D=\{(x_i,y_i)\}_{i=1}^{n}
-\]
-ein Trainingsdatensatz mit Eingabebildern $x_i$ und zugehörigen Beschriftungen
-$y_i$. Bei der Objektdetektion besteht $y_i$ aus einer Menge von
-Objektinstanzen, beispielsweise Bounding Boxes mit Klasseninformationen.
-
-Sei weiterhin $T$ eine Menge zulässiger Transformationen und $p(t)$ eine
-Wahrscheinlichkeitsverteilung über diese Transformationen. Für eine
-Transformation $t\in T$ bezeichnet $\tau_t$ die zugehörige Transformation der
-Beschriftung. Das durch Augmentierung entstehende empirische Risiko lässt sich
-dann schreiben als
+Sei $D=\{(x_i,y_i)\}_{i=1}^{n}$ ein Trainingsdatensatz mit Eingabebildern $x_i$
+und Beschriftungen $y_i$ -- bei der Objektdetektion eine Menge von Boxen mit
+Klasseninformation und damit wesentlich komplexer als ein einzelnes
+Klassifikationslabel. Sei weiterhin $T$ eine Menge zulässiger Transformationen,
+$p(t)$ eine Wahrscheinlichkeitsverteilung über diese Menge und $\tau_t$ die zu
+$t \in T$ gehörende Transformation der Beschriftung. Das durch Augmentierung
+entstehende empirische Risiko lautet dann
 \begin{equation}
   \hat R_{\mathrm{aug}}(f)
   =
@@ -72,135 +66,48 @@ dann schreiben als
   \label{eq:risk-aug}
 \end{equation}
 
-Zum Vergleich ist das gewöhnliche empirische Risiko
-\begin{equation}
-  \hat R(f)
-  =
-  \frac{1}{n}\sum_{i=1}^{n}
-  L\bigl(f(x_i),\,y_i\bigr).
-  \label{eq:risk-emp}
-\end{equation}
+Der Unterschied zum gewöhnlichen empirischen Risiko liegt allein im
+Erwartungswert über $t$: Bewertet wird nicht jedes Trainingsbeispiel in seiner
+ursprünglichen Form, sondern eine Verteilung von Varianten -- die Sichtweise der
+Vicinal Risk Minimization \parencite{chapelle2001}. Da $T$ im Allgemeinen
+kontinuierlich ist, wird der Erwartungswert praktisch über endlich viele
+Ziehungen aus $p(t)$ geschätzt; die Zahl physisch gespeicherter Bilder ist
+deshalb nicht identisch mit der Zahl der im Training gesehenen Varianten.
 
-Der wesentliche Unterschied besteht im Erwartungswert über $t$. Während das
-empirische Risiko jedes Trainingsbeispiel in seiner ursprünglichen Form
-bewertet, berücksichtigt das augmentierte Risiko eine Verteilung von Varianten
-desselben Beispiels. Diese Sichtweise steht in Verbindung mit der Vicinal Risk
-Minimization (VRM), bei der nicht nur die empirischen Trainingspunkte selbst,
-sondern Umgebungen dieser Punkte zur Schätzung des Risikos herangezogen werden
-\parencite{chapelle2001}.
+Von den vier Größen in Gleichung~\eqref{eq:risk-aug} ist für diese Arbeit vor
+allem $p(t)$ maßgeblich. Sie bestimmt, wie häufig und wie stark die einzelnen
+Transformationen wirken, und ist damit keine Implementierungsentscheidung,
+sondern eine \emph{Modellierung der erwarteten Variation der Zieldomäne}. Bei
+überwiegend synthetischen Trainingsdaten verschiebt sich ihre Bedeutung noch
+weiter: Dann beschreibt $p(t)$ nicht mehr nur die Variation um vorhandene
+Beispiele herum, sondern einen wesentlichen Teil der beobachteten
+Datenverteilung selbst. Die Labeltransformation $\tau_t$ ist dabei die stille
+Fehlerquelle -- eine Helligkeitsänderung lässt die Box unverändert, eine
+Rotation dagegen verlangt, dass die achsparallele Box aus der transformierten
+Objektgeometrie neu bestimmt wird. Ist der Einfluss auf die Beschriftung nicht
+exakt bekannt, entsteht zusätzliches Labelrauschen, und bei kleinen Objekten
+betrifft bereits eine geringe geometrische Abweichung einen vergleichsweise
+großen Anteil der Objektfläche.
 
-\subsection*{Transformation, Transformationsverteilung und Labeltransformation}
-
-Die vier Größen in Gleichung~\eqref{eq:risk-aug} besitzen für die vorliegende
-Anwendung unterschiedliche Bedeutungen.
-
-Das Paar $(x_i,y_i)$ bezeichnet das ursprüngliche Trainingsbeispiel. Bei der
-Objektdetektion ist $y_i$ eine Menge von Boxen und Klassen und damit wesentlich
-komplexer als ein einzelnes Klassifikationslabel.
-
-$T$ beschreibt die Menge der prinzipiell zugelassenen Transformationen. Dazu
-gehören beispielsweise geometrische Transformationen wie Translation,
-Skalierung und Rotation sowie photometrische Transformationen wie Helligkeits-,
-Kontrast- oder Rauschänderungen.
-
-Die Verteilung $p(t)$ bestimmt, wie häufig und in welcher Stärke die einzelnen
-Transformationen auftreten. Sie stellt damit nicht lediglich eine technische
-Implementierungsentscheidung dar, sondern eine Modellierung der erwarteten
-Variation der Zieldomäne.
-
-Schließlich beschreibt $\tau_t$ die notwendige Transformation des Labels. Bei
-einer Helligkeitsänderung bleibt die Bounding Box beispielsweise unverändert.
-Bei einer Translation muss ihre Position dagegen entsprechend verschoben
-werden. Bei einer Rotation muss berücksichtigt werden, dass die transformierte
-Objektgeometrie anschließend gegebenenfalls wieder durch eine achsparallele
-Bounding Box approximiert wird.
-
-Für eine Transformation, deren Einfluss auf die Beschriftung nicht exakt bekannt
-ist, kann dadurch zusätzliches Labelrauschen entstehen. Gerade bei kleinen
-Objekten ist dieser Effekt relevant, da bereits geringe geometrische
-Abweichungen einen vergleichsweise großen Anteil der Objektfläche betreffen
-können.
-
-\subsection*{Monte-Carlo-Interpretation}
-
-Da $T$ im Allgemeinen kontinuierlich ist, kann der Erwartungswert in
-Gleichung~\eqref{eq:risk-aug} nicht vollständig ausgewertet werden. In der
-praktischen Umsetzung wird deshalb eine endliche Anzahl von Transformationen aus
-$p(t)$ gezogen. Bei einer einzelnen Ziehung pro Bild und Epoche ergibt sich
-beispielsweise die Monte-Carlo-Schätzung
-\begin{equation}
-  \hat R_{\mathrm{aug}}
-  \approx
-  \frac{1}{n}\sum_{i=1}^{n}
-  L\bigl(
-    f(t_i(x_i)),\,\tau_{t_i}(y_i)
-  \bigr),
-  \qquad
-  t_i\sim p(t).
-  \label{eq:risk-mc}
-\end{equation}
-
-Ein Trainingsdatensatz kann dadurch über viele Epochen unterschiedliche
-Realisierungen derselben Ausgangsbeispiele erzeugen. Die Anzahl physisch
-gespeicherter Bilder ist daher nicht identisch mit der Zahl der vom Modell
-während des Trainings gesehenen Varianten.
-
-Im vorliegenden Fall wird diese Unterscheidung besonders relevant, weil die
-Trainingsbilder nicht ausschließlich aus aufgenommenen Realbildern bestehen. Die
-Variation der synthetischen Daten wird wesentlich durch die Verteilung $p(t)$
-des Generators bestimmt.
-
-\subsection*{Augmentierung als Modellierung von Invarianzen}
-
-Eine wichtige Funktion von Datenaugmentierung besteht darin, dem Modell
-Variationen zu zeigen, unter denen die Zielentscheidung invariant bleiben soll.
-Wird beispielsweise ein Rohrende horizontal gespiegelt und bleibt die
-Klassenzugehörigkeit unverändert, kann das Training dem Modell diese Variation
-als irrelevant nahelegen.
-
-Dabei muss jedoch zwischen einer tatsächlichen Invarianz der Zieldomäne und
-einer lediglich künstlich angenommenen Invarianz unterschieden werden. Wird eine
-Transformation auf Trainingsdaten angewendet, obwohl sie in der realen Domäne
-nicht labelerhaltend ist, kann dadurch diskriminative Information entfernt
-werden.
-
-Daraus folgt für die Gestaltung der Pipeline ein grundlegendes Prinzip:
+\absatz{Invarianz, nicht Vielfalt.} Augmentierung zeigt dem Modell Variationen,
+unter denen die Zielentscheidung invariant bleiben soll, wirkt über zufällige
+photometrische Störungen als Regularisierung gegen die Festlegung auf einzelne
+exakt reproduzierbare Bildmerkmale \parencite{bishop1995} und erweitert den
+belegten Bereich des Eingaberaums. Die zusätzlichen Beispiele sind jedoch keine
+unabhängigen Beobachtungen der Objektklasse: Ihre Information stammt weiterhin
+aus den ursprünglichen Daten und den Annahmen des Generators. Daraus folgt das
+Prinzip, das die gesamte Pipeline trägt:
 
 \begin{quote}
   Eine Transformation sollte nur in dem Maß als labelerhaltend behandelt werden,
   in dem die entsprechende Variation auch in der Zieldomäne auftreten kann.
 \end{quote}
 
-Für die Rohrstirnflächen ist beispielsweise eine große Variation der
-Orientierung plausibel, während für andere Objekterkennungsszenarien eine
-vollständige Rotationsinvarianz nicht notwendigerweise sinnvoll wäre.
+Wird sie darüber hinaus angewendet, entfernt sie diskriminative Information,
+statt Robustheit zu erzeugen. Für die Rohrstirnflächen ist beispielsweise eine
+große Variation der Orientierung plausibel, eine vollständige
+Rotationsinvarianz für andere Detektionsaufgaben dagegen nicht.
 
-\subsection*{Wirkmechanismen}
-
-Die Wirkung von Datenaugmentierung lässt sich vereinfacht über drei miteinander
-verbundene Mechanismen beschreiben.
-
-Erstens kann Augmentierung gewünschte Invarianzen in den Trainingsdaten
-repräsentieren. Das Modell wird dadurch mit mehreren Darstellungen desselben
-semantischen Inhalts konfrontiert und soll für diese Darstellungen dieselbe
-Vorhersage liefern.
-
-Zweitens können zufällige photometrische oder sensorische Störungen als Form
-einer Regularisierung wirken. Rauschen, Unschärfe oder Beleuchtungsvariation
-verhindern dabei, dass das Modell ausschließlich auf einzelne, exakt
-reproduzierbare Bildmerkmale zurückgreift \parencite{bishop1995}.
-
-Drittens kann Augmentierung den Bereich des Eingaberaums erweitern, in dem
-Trainingsbeispiele vorliegen. Dies ist insbesondere bei kleinen
-Ausgangsdatensätzen relevant. Die zusätzlichen Beispiele stellen jedoch keine
-unabhängigen Beobachtungen der Objektklasse dar. Ihre Information stammt
-weiterhin aus den ursprünglichen Daten und den Annahmen des Generators.
-
-Gerade bei einer überwiegend synthetischen Trainingsmenge verschiebt sich damit
-die Bedeutung von $p(t)$: Die Transformationsverteilung bestimmt einen
-wesentlichen Teil der beobachteten Datenverteilung.
-
-% ----------------------------------------------------------------------
 \section{Verfahrensüberblick}
 \label{sec:aug-verfahren}
 
@@ -311,10 +218,8 @@ aus jeweils eigenen Gründen nicht benötigt.
 
 Eine \emph{automatisierte Policy-Suche} wie AutoAugment \parencite{cubuk2019}
 oder RandAugment \parencite{cubuk2020} optimiert Augmentierungsparameter gegen
-eine Validierungsleistung. Bei der hier verfügbaren Zahl realer
-Validierungsbilder hieße das, die Pipeline auf wenige Einzelbilder anzupassen.
-Die Parameter werden deshalb aus den Anforderungen der Zieldomäne abgeleitet und
-anschließend in gezielten Experimenten untersucht.
+eine Validierungsleistung -- hier hieße das, die Pipeline auf wenige
+Einzelbilder anzupassen.
 
 Eine \emph{generative Modellierung} der Objekte, etwa durch Diffusionsmodelle \parencite{trabucco2024},
 benötigte eine hinreichend große und repräsentative Menge realer Beispiele, um
@@ -339,15 +244,11 @@ Kachelgrenzen -- also genau den Unterdrückungsschritt, auf den der verwendete
 Ende-zu-Ende-Kopf verzichtet. Die Auflösung selbst zu erhöhen ist der einfachere
 Hebel und wird in Kapitel~\ref{kap:auswertung} als solcher vermessen.
 
-Eine \emph{gezielte Überabtastung kleiner Objekte}, wie sie
-\textcite{kisantal2019} vorschlägt, vervielfacht Bilder oder Instanzen mit
-kleinen Objekten, um deren Anteil im Training zu erhöhen. Das Verfahren ist eine
-Antwort darauf, dass die Größenverteilung eines gegebenen Datensatzes nicht
-verändert werden kann. Genau diese Einschränkung besteht hier nicht: Die
-Größenverteilung ist ein Parameter des Generators und wird nach
-Anforderung~A2 unmittelbar auf den Zielbereich kalibriert. Was die
-Überabtastung nachträglich herstellt, ist in einer erzeugten Datenmenge bereits
-eine Entwurfsgröße.
+Eine \emph{gezielte Überabtastung kleiner Objekte} \parencite{kisantal2019}
+schließlich antwortet darauf, dass die Größenverteilung eines \emph{gegebenen}
+Datensatzes nicht veränderbar ist. Genau diese Einschränkung besteht hier
+nicht: Die Größenverteilung ist ein Parameter des Generators und wird nach
+Anforderung~A2 unmittelbar auf den Zielbereich kalibriert.
 
 % ----------------------------------------------------------------------
 \section{Besonderheiten bei der Objektdetektion}
@@ -387,47 +288,19 @@ des rotierten Quadrats beträgt
   \label{eq:dbox}
 \end{equation}
 
-Die Fläche des ursprünglichen Quadrats beträgt $A=d^{2}$, während die Fläche der
-achsparallelen Hülle
-\[
-  A_{\mathrm{box}}
-  =
-  d^{2}\bigl(|\cos\theta|+|\sin\theta|\bigr)^{2}
-\]
-beträgt. Da das ursprüngliche achsparallele Quadrat vollständig in
-$A_{\mathrm{box}}$ enthalten ist, entspricht die Schnittfläche gerade $A$ und die
-Vereinigungsfläche gerade $A_{\mathrm{box}}$.
-
-Wenn die ursprüngliche Box anschließend als Label der rotierten Instanz verwendet
-wird, ergibt sich unter dieser idealisierten Betrachtung die IoU
+Wird die \emph{ursprüngliche} Box anschließend als Label der rotierten Instanz
+verwendet, so ist das achsparallele Quadrat vollständig in der Hülle enthalten:
+Schnittfläche ist $A=d^2$, Vereinigungsfläche $A_{\mathrm{box}} = d^2
+(|\cos\theta|+|\sin\theta|)^2$. Mit
+$(|\cos\theta|+|\sin\theta|)^{2} = 1 + |\sin 2\theta|$ folgt daraus die für alle
+$\theta$ exakte Darstellung
 \begin{equation}
-  \IoU(\theta)
-  =
-  \frac{A}{A_{\mathrm{box}}}
-  =
-  \frac{1}{\bigl(|\cos\theta|+|\sin\theta|\bigr)^{2}}.
-  \label{eq:iou-raw}
-\end{equation}
-
-Mit
-\[
-  \bigl(|\cos\theta|+|\sin\theta|\bigr)^{2}
-  = 1 + |\sin 2\theta|
-\]
-folgt daraus die für alle $\theta$ exakte Darstellung
-\begin{equation}
-  \IoU(\theta) = \frac{1}{1+|\sin 2\theta|}.
+  \IoU(\theta) = \frac{1}{1+|\sin 2\theta|},
   \label{eq:iou}
 \end{equation}
+also $\IoU(2^{\circ})\approx 0{,}935$, $\IoU(10^{\circ})\approx 0{,}745$ und
+$\IoU(45^{\circ}) = 0{,}5$.
 
-Für $2^{\circ}$, $10^{\circ}$ und $45^{\circ}$ ergeben sich damit
-\[
-  \IoU(2^{\circ})\approx 0{,}935,
-  \qquad
-  \IoU(10^{\circ})\approx 0{,}745,
-  \qquad
-  \IoU(45^{\circ}) = 0{,}5 .
-\]
 
 Die Rechnung stellt einen idealisierten geometrischen Fall dar. Bei kreisförmigen
 Rohrstirnflächen ist die tatsächliche Objektgeometrie rotationssymmetrisch und
@@ -611,8 +484,7 @@ die übliche Aufteilung in Trainings- und Validierungsmenge. Ein Split trennt
 zwei Stichproben derselben Verteilung; ein Domänenwechsel bedeutet, dass der
 datengenerierende Prozess selbst ein anderer ist.
 
-\subsection*{Domänenadaptationsschranke als Ordnungsrahmen}
-
+\absatz{Die Domänenadaptationsschranke als Ordnungsrahmen.}
 Für die binäre Klassifikation unter dem $0/1$-Verlust beschränkt die
 Domänenadaptationsschranke von \textcite{bendavid2010} den Zielfehler
 gleichmäßig für alle $h\in\Hcls$:
@@ -627,77 +499,34 @@ gleichmäßig für alle $h\in\Hcls$:
   \lambda ,
   \label{eq:bendavid}
 \end{equation}
-mit
-\[
-  \lambda
-  =
-  \min_{h^{*}\in\Hcls}
-  \bigl[\,\epsilon_S(h^{*}) + \epsilon_T(h^{*})\,\bigr].
-\]
+mit dem Quellfehler $\epsilon_S$, dem Zielfehler $\epsilon_T$, der
+$\HdH$-Divergenz der beiden Eingabe-Randverteilungen und
+$\lambda = \min_{h^{*}\in\Hcls}\bigl[\epsilon_S(h^{*}) + \epsilon_T(h^{*})\bigr]$.
+Sie macht drei Einflussgrößen sichtbar: wie gut das Modell die synthetische
+Domäne lernt, wie stark sich die Eingabeverteilungen beider Domänen
+unterscheiden, und ob in $\Hcls$ überhaupt eine Hypothese existiert, die beide
+gleichzeitig gut beschreibt.
 
-Dabei bezeichnet $\epsilon_S(h)$ den Fehler auf der Quelldomäne, $\epsilon_T(h)$
-den Fehler auf der Zieldomäne und $d_{\HdH}$ die $\HdH$-Divergenz. Zwei
-Eigenschaften dieser Größen sind für die weitere Argumentation wesentlich.
-Erstens ist der Divergenzterm ausschließlich über den \emph{Randverteilungen der
-Eingaben} $\Dom{S}^{X}$ und $\Dom{T}^{X}$ definiert und damit prinzipiell aus
-unbeschrifteten Daten beider Domänen schätzbar. Zweitens hängt $\lambda$ von der
-Hypothesenklasse ab und ist ohne beschriftete Zieldaten grundsätzlich nicht
-schätzbar; Gleichung~\eqref{eq:bendavid} führt daher in der Praxis nicht zu einer
-numerischen Garantie. Unterschiede zwischen den Beschriftungsfunktionen
-$f_S \neq f_T$ wirken sich ausschließlich auf $\lambda$ aus und sind im
-Divergenzterm nicht sichtbar.
+Zwei Eigenschaften sind für das Folgende wesentlich. Der Divergenzterm ist
+ausschließlich über den \emph{Randverteilungen der Eingaben} definiert -- und
+bei synthetischen Trainingsdaten ist $\Dom{S}^{X}$ nicht vorgegeben, sondern
+durch den Generator \emph{konstruiert}; $p(t)$ ist genau der Freiheitsgrad, über
+den dieser Term beeinflusst wird. $\lambda$ dagegen hängt von der
+Hypothesenklasse ab, ist ohne beschriftete Zieldaten nicht schätzbar, und
+Unterschiede zwischen den Beschriftungsfunktionen $f_S \neq f_T$ wirken sich
+\emph{ausschließlich} dort aus. Merkmale, die der Generator einführt und die in
+der Realität fehlen, erhöhen deshalb $\lambda$, ohne im Divergenzterm sichtbar
+zu werden. Da Gleichung~\eqref{eq:bendavid} zudem binäre Klassifikation
+voraussetzt, diese Arbeit aber eine Detektionsaufgabe über IoU-basierte Metriken
+bewertet, wird sie \emph{nicht} als formale Garantie in Anspruch genommen,
+sondern als begrifflicher Ordnungsrahmen für die folgenden
+Entwurfsentscheidungen.
 
-Gleichung~\eqref{eq:bendavid} setzt binäre Klassifikation unter dem
-$0/1$-Verlust voraus. Die vorliegende Arbeit bewertet dagegen eine
-Detektionsaufgabe anhand IoU-basierter Metriken, insbesondere mAP. Die Schranke
-wird daher \emph{nicht} als formale Garantie für die verwendete Metrik in
-Anspruch genommen, sondern als begrifflicher Ordnungsrahmen, der die im Folgenden
-diskutierten Entwurfsentscheidungen strukturiert.\footnote{Eine strukturgleiche Schranke für allgemeine beschränkte
-Verlustfunktionen \parencite{mansour2009discrepancy} überträgt ebenfalls nicht:
-Sie setzt ein punktweise definiertes Risiko voraus, während die mAP über
-Konfidenz-Rangfolgen aggregiert.}
-
-In dieser Lesart macht die Zerlegung drei Einflussgrößen sichtbar:
-\begin{enumerate}[label=\arabic*.,itemsep=2pt]
-  \item wie gut das Modell die synthetische Domäne lernt,
-  \item wie stark sich die Eingabeverteilungen von synthetischer und realer
-        Domäne unterscheiden,
-  \item ob in $\Hcls$ überhaupt eine Hypothese existiert, die beide Domänen
-        gleichzeitig gut beschreibt.
-\end{enumerate}
-
-\subsection*{Bedeutung für die synthetische Datengenerierung}
-
-Der mittlere Term besitzt für die vorliegende Arbeit eine besondere Stellung. Bei
-synthetischen Trainingsdaten ist $\Dom{S}^{X}$ nicht vorgegeben, sondern durch
-den Generator \emph{konstruiert}. Die Parameterisierung von $G$ und die
-Transformationsverteilung $p(t)$ sind damit genau die Freiheitsgrade, über die
-dieser Term beeinflusst wird. Die in
-Abschnitt~\ref{sec:sim2real} anschließend diskutierten Maßnahmen -- Domain
-Randomization, Kontrolle synthetischer Signaturen, physikalisch plausible
-Verdeckung -- wirken sämtlich auf $\Dom{S}^{X}$ und nicht auf $\epsilon_S(h)$.
-
-Der dritte Term liefert die zugehörige Gegenkraft. Synthetische Labels sind
-konstruktionsbedingt nahezu rauschfrei, was $\epsilon_S(h)$ tendenziell klein
-hält. Gleichzeitig kann der Generator Merkmale einführen, die in der Realität
-fehlen oder anders mit dem Label korreliert sind. Solche Merkmale erhöhen
-$\lambda$, ohne sich im Divergenzterm niederzuschlagen. Ein sehr niedriger
-synthetischer Fehler bei gleichzeitig großem Sim-to-Real-Gap ist genau die
-Signatur dieses Effekts und wird in Kapitel~\ref{kap:auswertung} entsprechend interpretiert.
-
-\subsection*{Sim-to-Real-Performance-Gap}
-
-Für die vorliegende Arbeit wird die Schranke nicht zur Schätzung der
-Domänendistanz verwendet. Ausgewertet wird stattdessen die auf beschrifteten
-Realdaten gemessene Differenz
-$\Delta_{\mathrm{SR}} = \epsilon_T(h) - \epsilon_S(h)$, im Folgenden als
-\textbf{Sim-to-Real-Performance-Gap} bezeichnet. Die Erhebung
-von $\epsilon_T(h)$ setzt beschriftete reale Daten voraus. Diese Annahme gilt
-ausdrücklich nur für die Evaluation, nicht für das Training, das ohne reale
-Beschriftungen auskommt.
-
-Unter den oben genannten Voraussetzungen folgt aus
-Gleichung~\eqref{eq:bendavid} unmittelbar
+\absatz{Sim-to-Real-Performance-Gap.} Ausgewertet wird stattdessen die auf
+beschrifteten Realdaten gemessene Differenz
+$\Delta_{\mathrm{SR}} = \epsilon_T(h) - \epsilon_S(h)$. Beschriftete reale Daten
+setzt das ausdrücklich nur für die Evaluation voraus, nicht für das Training.
+Aus Gleichung~\eqref{eq:bendavid} folgt unmittelbar
 \begin{equation}
   \Delta_{\mathrm{SR}}
   \;\leq\;
@@ -707,23 +536,19 @@ Gleichung~\eqref{eq:bendavid} unmittelbar
   \label{eq:gap-bound}
 \end{equation}
 
-Diese Beziehung ist \emph{einseitig}, und die Richtung ist für die Interpretation
-entscheidend. Ein gemessener Gap liefert eine untere Schranke für die Summe aus
-Verteilungsdivergenz und $\lambda$ und belegt damit, dass synthetische und reale
-Domäne nicht übereinstimmen -- sei es in der Eingabeverteilung oder in der
+Diese Beziehung ist \emph{einseitig}, und die Richtung entscheidet über die
+Interpretation. Ein gemessener Gap belegt, dass synthetische und reale Domäne
+nicht übereinstimmen -- sei es in der Eingabeverteilung oder in der
 Beschriftungsfunktion. Der umgekehrte Schluss ist nicht zulässig: Ein kleiner
 Gap erlaubt keinen Rückschluss auf eine geringe Divergenz, da die Schranke
 beliebig locker sein kann und sich die beiden Terme gegenseitig kompensieren
-können. $\Delta_{\mathrm{SR}}$ ist folglich kein Maß der Distribution
-Divergence, sondern eine gerichtete Evidenz für Domänenungleichheit.
-
-Zu beachten ist schließlich, dass $\epsilon_S$ und $\epsilon_T$ in
-Gleichung~\eqref{eq:bendavid} Erwartungswerte unter den jeweiligen Verteilungen
-bezeichnen, während gemessen werden Mittelwerte auf endlichen Testmengen. Alle
-im Folgenden berichteten Werte sind daher als Schätzer dieser Risiken zu lesen;
-die zugehörige Stichprobenunsicherheit wird in Kapitel~\ref{kap:auswertung} separat über
-Konfidenzintervalle ausgewiesen. Bei der geringen Zahl realer Validierungsbilder
-ist dieser Anteil nicht zu vernachlässigen.
+können. $\Delta_{\mathrm{SR}}$ ist folglich kein Maß der Verteilungsdivergenz,
+sondern gerichtete Evidenz für Domänenungleichheit. Ein sehr niedriger
+synthetischer Fehler bei gleichzeitig großem Gap ist dabei genau die Signatur
+eines erhöhten $\lambda$ und wird in Kapitel~\ref{kap:auswertung} entsprechend
+gelesen. Alle dort berichteten Werte sind Mittelwerte auf endlichen Testmengen
+und damit Schätzer der jeweiligen Risiken; die Stichprobenunsicherheit wird
+separat über Konfidenzintervalle ausgewiesen.
 
 \subsection*{Domain Randomization}
 
@@ -736,16 +561,10 @@ Variante beschränkt die Randomisierung dabei auf physikalisch plausible
 Parameterbereiche \parencite{prakash2019} -- die Richtung, der auch
 Anforderung~A3 folgt.
 
-Für die vorliegende Arbeit bedeutet dies beispielsweise Variation von:
-\begin{itemize}[itemsep=1pt]
-  \item Objektposition und Orientierung,
-  \item Objektgröße,
-  \item Hintergrund,
-  \item Helligkeit und Kontrast,
-  \item Rauschen und Unschärfe,
-  \item Kompression,
-  \item Verdeckung.
-\end{itemize}
+Randomisiert werden in dieser Arbeit Objektposition und -orientierung,
+Objektgröße, Hintergrund, Helligkeit und Kontrast, Rauschen, Unschärfe,
+Kompression und Verdeckung; Tabelle~\ref{tab:parameter} im Anhang führt jeden
+dieser Parameter mit Bereich und gemessenem Ist-Anteil auf.
 
 Im Rahmen von Gleichung~\eqref{eq:bendavid} lässt sich Domain Randomization als
 Verbreiterung von $\Dom{S}^{X}$ deuten, die den Divergenzterm verkleinert. Diese
@@ -871,65 +690,44 @@ Bilder beeinflusst. Diese Hypothese wird in der späteren Ablation experimentell
 Aus den vorangegangenen Überlegungen ergeben sich sechs Anforderungen an die in
 dieser Arbeit entwickelte Pipeline.
 
-\subsection*{A1 -- Labelgenauigkeit}
+\begin{description}[leftmargin=0pt,labelsep=0.5em,itemsep=3pt,
+                    font=\normalfont\bfseries]
+  \item[A1 -- Labelgenauigkeit.] Geometrische Transformationen müssen mit
+  möglichst geringer Abweichung zwischen Objekt und Bounding Box umgesetzt
+  werden; insbesondere darf keine zusätzliche Labelungenauigkeit entstehen, wo
+  die Objektgeometrie im Generator bekannt ist.
 
-Geometrische Transformationen müssen mit einer möglichst geringen Abweichung
-zwischen Objekt und zugehöriger Bounding Box umgesetzt werden. Insbesondere
-dürfen Transformationen nicht unnötig zusätzliche Labelungenauigkeit erzeugen,
-wenn die zugrunde liegende Objektgeometrie im Generator bekannt ist.
+  \item[A2 -- Kalibrierte Objektgrößen.] Die erzeugte Größenverteilung muss die
+  für die reale Inferenz relevante abdecken, ohne durch Skalierung systematisch
+  Objekte zu erzeugen, deren effektive Größe im Verhältnis zu Eingabeauflösung
+  und feinstem Detektions-Stride zu klein ist.
 
-\subsection*{A2 -- Kalibrierte Objektgrößen}
+  \item[A3 -- Physikalisch plausible Größenabhängigkeiten.] Parameter, die in
+  der realen Szene voneinander abhängen, dürfen nicht unabhängig randomisiert
+  werden -- Objektgröße, perspektivische Darstellung und die Größe gemeinsam
+  auftretender Instanzen sind konsistent zu behandeln.
 
-Die erzeugte Größenverteilung muss die für die reale Inferenz relevante
-Objektgrößenverteilung hinreichend abdecken. Gleichzeitig dürfen durch
-Skalierung nicht systematisch Objekte erzeugt werden, deren effektive Größe im
-Verhältnis zur verwendeten Eingabeauflösung und zum feinsten Detektions-Stride
-zu klein ist.
+  \item[A4 -- Kontrolle synthetischer Signaturen.] Für jede der Signaturen
+  S1--S6 muss eine Gegenmaßnahme vorgesehen und ihre Wirksamkeit, soweit der
+  Validierungsdatensatz das zulässt, experimentell geprüft werden.
 
-\subsection*{A3 -- Physikalisch plausible Größenabhängigkeiten}
+  \item[A5 -- Kontrollierbare Variation.] Die Verteilung $p(t)$ der
+  Generatorparameter muss explizit dokumentiert und reproduzierbar sein und eine
+  begründete Approximation der erwarteten Variation der Zieldomäne bilden.
 
-Parameter, die in der realen Szene voneinander abhängig sind, dürfen nicht
-unabhängig randomisiert werden. Insbesondere müssen Objektgröße, perspektivische
-Darstellung und gegebenenfalls die Größe gemeinsam auftretender Instanzen
-konsistent behandelt werden.
+  \item[A6 -- Trennung von Annahme und Messung.] Eigenschaften der realen
+  Domäne, die nicht gemessen werden können, sind als Annahmen zu kennzeichnen;
+  Parameter, die allein auf einer Plausibilitätsüberlegung beruhen, dürfen nicht
+  als empirisch validiert dargestellt werden.
+\end{description}
 
-\subsection*{A4 -- Kontrolle synthetischer Signaturen}
+Die theoretische Analyse bestimmt damit nicht die optimale Augmentierung a
+priori. Sie definiert die Eigenschaften, die eine geeignete Pipeline erfüllen
+sollte, und trennt so drei Ebenen der Untersuchung: theoretische Anforderungen,
+synthetische Datengenerierung, experimentelle Validierung. Ob die abgeleiteten
+Entscheidungen tatsächlich zu einer besseren Übertragung auf reale Bilder
+führen, wird in Kapitel~\ref{kap:auswertung} empirisch untersucht.
 
-Für die identifizierten Signaturen S1--S6 muss eine geeignete Gegenmaßnahme
-vorgesehen werden. Deren Wirksamkeit soll, soweit mit dem verfügbaren
-Validierungsdatensatz möglich, experimentell überprüft werden.
-
-\subsection*{A5 -- Kontrollierbare Variation}
-
-Die Verteilung $p(t)$ der Generatorparameter muss explizit dokumentiert und
-reproduzierbar sein. Die Parameter sollen dabei nicht nur technische
-Zufallswerte darstellen, sondern eine begründete Approximation der erwarteten
-Variation der Zieldomäne bilden.
-
-\subsection*{A6 -- Trennung von Annahme und Messung}
-
-Eigenschaften der realen Domäne, die nicht direkt gemessen werden können, müssen
-als Annahmen gekennzeichnet werden. Parameter, deren Wahl ausschließlich auf
-einer theoretischen Überlegung oder Plausibilitätsannahme beruht, dürfen nicht
-als empirisch validierte Eigenschaften der Zieldomäne dargestellt werden.
-
-Damit ergibt sich eine klare Trennung zwischen drei Ebenen der Untersuchung:
-\begin{equation}
-  \boxed{
-    \text{theoretische Anforderungen}
-    \;\rightarrow\;
-    \text{synthetische Datengenerierung}
-    \;\rightarrow\;
-    \text{experimentelle Validierung}
-  }
-  \label{eq:ebenen}
-\end{equation}
-
-Die theoretische Analyse bestimmt somit nicht die optimale Augmentierung a
-priori. Sie definiert vielmehr die Eigenschaften, die eine geeignete Pipeline
-erfüllen sollte. Ob die daraus abgeleiteten Entscheidungen tatsächlich zu einer
-besseren Übertragung auf reale Bilder führen, wird in Kapitel~\ref{kap:auswertung} empirisch
-untersucht.
 
 %\end{document}
 

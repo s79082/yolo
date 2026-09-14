@@ -32,7 +32,7 @@ Inferenzauflösung, NMS-Schwelle, \code{max\_det}, Test-Time-Augmentation &
 Nur der Auflösungseffekt (\zswValGain\PP) übersteigt das Bootstrap-Intervall
 deutlich. Bei NMS-Schwelle und Test-Time-Augmentation ist der Effekt nicht
 klein, sondern es fehlt der Mechanismus: Der Ende-zu-Ende-Kopf lässt beide
-Parameter wirkungslos (Abschnitt~\ref{sec:zweitboxen}) \\
+Parameter wirkungslos (Abschnitt~\ref{sec:imgsz}) \\
 \addlinespace
 \textbf{kalibriert an der erzeugten Verteilung} &
 Objektgrößenbereich, Ovalisierungsanteil, Gitterabstände, eine Basisgröße je
@@ -144,75 +144,6 @@ Diese Kette ist das methodisch belastbarste Ergebnis: eine gemessene Größe, au
 der fünf unabhängige Entscheidungen folgen, und eine Vorhersage, die eingetroffen
 ist.
 
-\section{Nebenbefund: Zweitboxen ohne Unterdrückungsschritt}
-\label{sec:zweitboxen}
-
-\absatz{Was auffällt.} In Abbildung~\ref{abb:qualitativ} liegen mehrere der als
-Falsch-Positiv markierten Boxen sichtbar auf einer echten Stirnfläche. Das ist
-kein Darstellungsfehler. Von den \zfpTest{} Falsch-Positiven auf \code{test}
-sitzen alle \zfpDoppelTest{} auf einer bereits getroffenen Stirnfläche, auf
-\code{val} \zfpDoppelVal{} von \zfpVal. Die Zuordnungsregel lässt je annotierter
-Fläche nur einen Treffer zu \parencite{lin2014coco}; die zweite Box wird deshalb
-zwangsläufig als Fehler gezählt, obwohl sie ein reales Objekt umschließt.
-
-\absatz{Zwei Gruppen, nur eine ist gemeint.} Diese Boxen zerfallen in zwei
-Gruppen mit verschiedener Ursache. Die eine sind nahezu deckungsgleiche
-Zweitboxen desselben Objekts -- \znmsTestEntfernt{} auf \code{test},
-\znmsValEntfernt{} auf \code{val}. Die andere sind versetzte Boxen, die eine
-belegte Fläche im dicht gepackten Stapel nur streifen; auf \code{val} sind das
-die verbleibenden zwei, mit einer Überdeckung von lediglich 0{,}22 und 0{,}24.
-Sie sind eine Folge der Packungsdichte -- \code{yolo11s} zeigt sie ebenso -- und
-nicht Gegenstand dieses Abschnitts. Gemeint ist im Folgenden allein die erste
-Gruppe.
-
-\absatz{Warum es sie überhaupt gibt.} Mehrere Kandidaten je Objekt sind bei
-einem dichten Detektor der Normalfall -- jede Gitterposition wird einzeln
-bewertet, und ein Objekt überdeckt mehrere Positionen. Entscheidend ist, was sie
-wieder entfernt. Bei \code{yolo11s} übernimmt das die Non-Maximum Suppression.
-\code{yolo26s-p2} besitzt dagegen einen Ende-zu-Ende-Kopf: Er wird mit
-Eins-zu-eins-Zuordnung trainiert, soll je Objekt von sich aus genau eine Box
-liefern und kommt deshalb ohne Unterdrückungsschritt aus. Die Werkzeugkette
-überspringt ihn bei solchen Modellen vollständig -- der Inferenzparameter
-\code{iou} bleibt wirkungslos; gemessen liefert er bei 0{,}7, 0{,}1 und 0{,}01
-jedes Mal dieselbe Zahl von Rohvorhersagen. Die Eins-zu-eins-Zuordnung leistet
-ihre Aufgabe überwiegend: Über beide Realbilder entfallen \znmsKopien{} Kopien
-auf \znmsVorhersagen{} Vorhersagen am Betriebspunkt, also \znmsAnteil\,\%. Wo sie
-versagt, fehlt jedoch der nachgelagerte Filter.
-
-\absatz{Der Nachweis.} Wendet man die Unterdrückung nachträglich auf die
-geschwellten Vorhersagen an (IoU~0{,}7), entfernt sie auf \code{test} genau
-\znmsTestEntfernt{} und auf \code{val} genau \znmsValEntfernt{} Box -- jeweils
-die Kopienzahl. Treffer und Falsch-Negative bleiben dabei \emph{unverändert}
-(\code{test} \znmsTestTp{} bzw.\ \znmsTestFn, \code{val} \znmsValTp{} bzw.\
-\znmsValFn). Darin liegt das eigentliche Argument: Trügen die entfernten Boxen
-eigene Information, müsste die Unterdrückung Treffer kosten. Sie kostet keinen
-einzigen. Die Falsch-Positiven fallen auf \code{test} von \znmsTestFpOhne{} auf
-\znmsTestFpMit{} und das beste $F_1$ steigt von \znmsTestFfOhne{} auf
-\znmsTestFfMit{} (\znmsTestGain\PP); auf \code{val} von \znmsValFfOhne{} auf
-\znmsValFfMit{} (\znmsValGain\PP).
-
-\absatz{Wann die Zuordnung versagt.} Die entfernten Paare decken sich zu
-\znmsIouMin{} bis \znmsIouMax{} -- es sind praktisch dieselben Rechtecke. In der
-Hälfte der Fälle liegen auch die Konfidenzen dicht beieinander, im engsten Fall
-\znmsAbstandMin. Das ist genau die Lage, in der eine Eins-zu-eins-Zuordnung
-scheitern muss: Sie soll einen eindeutigen Gewinner bestimmen, aber bei zwei
-nahezu gleichwertigen Kandidaten reicht die Rangtrennung nicht aus, und beide
-überschreiten die Betriebsschwelle.
-
-\absatz{Einordnung.} Der Befund ist schmal belegt -- \znmsKopien{} Fälle auf zwei
-Bildern. Auffällig ist, dass Kopien nur bei den Modellen mit P2-Kopf auftreten;
-\code{yolo11s} und \code{yolo26s} zeigen keine. Der feinere Kopf vervierfacht die
-Kandidatenpositionen je Objekt und damit die Gelegenheiten für einen
-Beinahe-Gleichstand. Als Beleg trägt das nicht: \code{yolo26s-p2} und das
-Referenzmodell unterscheiden sich nur in der Batchgröße und stehen bei einer
-gegen \znmsKopien{} Kopien -- die Streuung zwischen Läufen übertrifft den
-vermuteten Effekt. Praktisch ist der Schluss dagegen eindeutig. Für einen
-produktiven Einsatz gehört hinter die Inferenz eine Non-Maximum Suppression,
-auch wenn das Modell formal ohne sie auskommt; \znmsTestGain\PP{} $F_1$ auf
-\code{test} sind ohne Gegenleistung zu haben. Für die hier berichteten Zahlen
-wurde sie \emph{nicht} angewandt -- sie folgen durchgehend der unveränderten
-Modellausgabe.
-
 \section{Grenzen und nächste Schritte}
 \label{sec:grenzen}
 
@@ -287,7 +218,10 @@ Kalibrierung von B1 fünf skalare Kennwerte, nicht die räumliche
 Korrelationsstruktur des Restsignals. B1 ist damit ein sorgfältig kalibriertes,
 nicht das bestmögliche prozedurale Modell; jede Aussage zugunsten der
 photographischen Bibliothek gilt gegen \emph{diese} Modellklasse, nicht gegen
-prozedurale Okkluder schlechthin.
+prozedurale Okkluder schlechthin. \emph{Fünftens} ist die Aufschlüsselung nach
+Objektgröße nur ein Stellvertreter für die Stapeltiefe -- die realen Bilder
+tragen keine Verdeckungsannotation, der Verdeckungsgrad je Objekt ist also nicht
+direkt messbar.
 
 \absatz{Nächste Schritte.} Jede der genannten Grenzen hat eine Gegenmaßnahme;
 nach erwartetem Nutzen geordnet:
