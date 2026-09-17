@@ -49,9 +49,8 @@ $\Dom{S}^{X}$ bezeichnen Wahrscheinlichkeitsverteilungen.
 \label{sec:aug-formalisierung}
 
 Sei $D=\{(x_i,y_i)\}_{i=1}^{n}$ ein Trainingsdatensatz mit Eingabebildern $x_i$
-und Beschriftungen $y_i$ -- bei der Objektdetektion eine Menge von Boxen mit
-Klasseninformation und damit wesentlich komplexer als ein einzelnes
-Klassifikationslabel. Sei weiterhin $T$ eine Menge zulässiger Transformationen,
+und Beschriftungen $y_i$ , bei der Objektdetektion eine Menge von Boxen mit
+Klasseninformation. Sei weiterhin $T$ eine Menge zulässiger Transformationen,
 $p(t)$ eine Wahrscheinlichkeitsverteilung über diese Menge und $\tau_t$ die zu
 $t \in T$ gehörende Transformation der Beschriftung. Das durch Augmentierung
 entstehende empirische Risiko lautet dann
@@ -344,15 +343,18 @@ ein unmittelbares Maß dafür, wie fein das Objekt durch diese Ebene räumlich
 abgetastet wird.
 
 Eine genauere geometrische Betrachtung kann für ein kreisförmiges Objekt
-durchgeführt werden. Unter der idealisierten Annahme eines regelmäßigen
-quadratischen Gitters beträgt die erwartete Zahl $N$ der Gitterzentren innerhalb
-eines Kreises mit Durchmesser $d$
+durchgeführt werden. Beide Größen sind dabei im Koordinatensystem der
+Netzeingabe zu lesen -- der Stride $S$ ist dort definiert, die Objektgröße muss
+also nach Gleichung~\eqref{eq:deff} umgerechnet sein. Unter der idealisierten
+Annahme eines regelmäßigen quadratischen Gitters beträgt die erwartete Zahl $Z$
+der Gitterzentren innerhalb eines Kreises der effektiven Größe
+$d_{\mathrm{eff}}$
 \begin{equation}
-  \mathbb{E}[N]
+  \mathbb{E}[Z]
   =
-  \frac{\pi (d/2)^{2}}{S^{2}}
+  \frac{\pi (d_{\mathrm{eff}}/2)^{2}}{S^{2}}
   =
-  \frac{\pi d^{2}}{4S^{2}}.
+  \frac{\pi d_{\mathrm{eff}}^{2}}{4S^{2}}.
   \label{eq:gridcount}
 \end{equation}
 
@@ -375,13 +377,14 @@ relativen Lage des Objekts zum Gitter. Ein Objekt kann daher selbst dann
 ungünstig repräsentiert sein, wenn seine Ausdehnung in der Größenordnung des
 Strides liegt.
 
-Für ein kreisförmiges Objekt mit Durchmesser $d$ kann der Abstand seines
-Mittelpunkts zum nächstgelegenen Gitterzentrum maximal $S/\sqrt{2}$ betragen.
-Ein Gitterzentrum liegt genau dann innerhalb des Kreises, wenn dieser Abstand
-kleiner als $d/2$ ist. Damit kann es in einer idealisierten Betrachtung bereits
-dann vorkommen, dass kein Gitterzentrum innerhalb des Objekts liegt, wenn
+Für ein kreisförmiges Objekt der effektiven Größe $d_{\mathrm{eff}}$ kann der
+Abstand seines Mittelpunkts zum nächstgelegenen Gitterzentrum maximal
+$S/\sqrt{2}$ betragen. Ein Gitterzentrum liegt genau dann innerhalb des Kreises,
+wenn dieser Abstand kleiner als $d_{\mathrm{eff}}/2$ ist. Damit kann es in einer
+idealisierten Betrachtung bereits dann vorkommen, dass kein Gitterzentrum
+innerhalb des Objekts liegt, wenn
 \begin{equation}
-  d < S\sqrt{2}.
+  d_{\mathrm{eff}} < S\sqrt{2}.
   \label{eq:gridmiss}
 \end{equation}
 
