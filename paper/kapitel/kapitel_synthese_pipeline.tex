@@ -24,8 +24,8 @@
 \label{kap:pipeline}
 
 Dieses Kapitel vermisst zunächst das verfügbare Quellmaterial und dokumentiert
-anschließend die Pipeline, die daraus -- aus neun Objektausschnitten und sieben
-Hintergrundaufnahmen -- den Trainingsdatensatz erzeugt. Die in
+anschließend die Pipeline, die daraus (aus neun Objektausschnitten und sieben
+Hintergrundaufnahmen) den Trainingsdatensatz erzeugt. Die in
 Tabelle~\ref{tab:parameter} genannten Anteile sind keine konfigurierten
 Sollwerte, sondern \emph{gemessene} Ist-Werte aus dem Erzeugungsbericht
 \code{synth/train/generation\_report.json} über 6000 Bilder mit 173\,100
@@ -51,7 +51,7 @@ Verdeckung, Sichtbarkeitsrechnung. Die \textbf{Trainingszeit-Augmentierung}
 übernimmt alles, was \emph{bildweit} wirkt und Boxen nicht verfälscht -- Mosaic,
 Skalierung, Translation, Spiegelung, HSV-Variation. Daraus folgt zwingend, dass
 im Training \code{degrees}, \code{shear} und \code{perspective} auf~0 stehen: Sie
-blähen achsparallele Boxen auf (Abschnitt~\ref{subsec:aabb-rotation}). Die
+weiten achsparallele Boxen auf (Abschnitt~\ref{subsec:aabb-rotation}). Die
 entsprechenden Invarianzen werden also nicht \emph{weggelassen}, sondern an
 anderer Stelle und label-exakt erzeugt.
 
@@ -82,8 +82,8 @@ anderer Stelle und label-exakt erzeugt.
         at (4.0,-2.2) {Hintergründe zusätzlich direkt};
 \end{tikzpicture}
 \caption[Aufbau der Pipeline]{Herkunft der Bausteine und Reihenfolge der Stufen;
-Abbildung~\ref{abb:stufen} zeigt anschließend, was jede Stufe daraus macht. Die
-Stufenfolge T1--T9 ist fest, Zufall steckt allein in den Parametern der Stufen.}
+Abbildung~\ref{abb:stufen} zeigt anschließend die Wirkung jeder Stufe. Die
+Stufenfolge T1--T9 ist fest; der Zufall liegt allein in den Stufenparametern.}
 \label{abb:pipeline}
 \end{figure}
 
@@ -101,26 +101,27 @@ daher den Radius, bei dem die Helligkeit auf 25\,\% der Kantenamplitude über
 Hintergrundniveau abgefallen ist.
 
 Die Wahl von 25\,\% statt des klassischen Halbwertspunkts
-\parencite{gonzalez2018} verschiebt die Maskengrenze bewusst nach außen, weil die
-Kosten asymmetrisch sind: Der helle Kranz ist das \emph{diskriminative} Merkmal
--- ihn anzuschneiden entfernt Information, die das Netz braucht --, während ein
-etwa 1\px{} breiter Hintergrundsaum durch Feathering und Farbangleich ohnehin
-kaschiert wird. Die Aufweitung ist hart auf $[1{,}02;\,1{,}10]$ gedeckelt: Bei
-acht der neun Ausschnitte liegt der ermittelte Faktor bei 1,02--1,05, nur der
-kontrastarme neunte liefe sonst auf 1,19 und die Maske würde Hintergrund
-aufsaugen. Ergebnis sind weiche Alphamasken mit rund 1,1\px{} Übergangsbreite --
-Absicht und nicht Toleranz, denn ein 25\px{} großes Objekt hat in einer echten
-Aufnahme nie eine pixelharte Silhouette.
+\parencite{gonzalez2018} verschiebt die Maskengrenze bewusst nach außen, weil
+die Kosten asymmetrisch sind: Der helle Kranz ist das \emph{diskriminative}
+Merkmal -- ihn anzuschneiden entfernt Information, die das Netz braucht --,
+während ein etwa 1\px{} breiter Hintergrundsaum durch Feathering und
+Farbangleich ohnehin kaschiert wird. Die Aufweitung ist hart auf
+$[1{,}02;\,1{,}10]$ gedeckelt: Bei acht der neun Ausschnitte liegt der
+ermittelte Faktor bei 1,02--1,05, nur der kontrastarme neunte erreichte sonst
+1,19, und die Maske schlösse Hintergrund ein. Ergebnis sind weiche Alphamasken
+mit rund 1,1\px{} Übergangsbreite; das ist Absicht und nicht Toleranz, denn
+ein 25\px{} großes Objekt besitzt in einer realen Aufnahme keine pixelharte
+Silhouette.
 
-\absatz{Stufe 2 -- Okkluder.} Ein synthetisch \emph{gemalter} Balken hätte andere
-Textur-, Rausch- und Glanzstatistik als der Rest des Bildes -- das Netz könnte
-\enquote{Objekt liegt neben künstlichem Balken} lernen, also eine Abkürzung der
-Klasse S2--S4. Die vier Clean Plates sind dagegen Wände aus Rohrschäften
-desselben Materials, derselben Kamera und derselben Beleuchtung. Aus ihnen werden
-Okkluder gewonnen: dominante Rohrrichtung über den Struktur-Tensor
-\parencite{jaehne2005} und Drehung des Bildes (gemessen $+0{,}9$, $-1{,}6$,
-$+0{,}9$, $+6{,}6$ Grad), Hochpassfilterung des Zeilenmittelprofils zur
-Bestimmung der Rohrachsen -- ihr Abstand ist der Rohrdurchmesser
+\absatz{Stufe 2 -- Okkluder.} Ein prozedural \emph{gezeichneter} Balken hätte
+andere Textur-, Rausch- und Glanzstatistik als der Rest des Bildes; das Netz
+könnte \enquote{Objekt liegt neben künstlichem Balken} lernen, also eine
+Abkürzung der Klasse S2--S4. Die vier Clean Plates sind dagegen Wände aus
+Rohrschäften desselben Materials, derselben Kamera und derselben Beleuchtung.
+Aus ihnen werden Okkluder gewonnen: dominante Rohrrichtung über den Struktur-
+Tensor \parencite{jaehne2005} und Drehung des Bildes (gemessen $+0{,}9$,
+$-1{,}6$, $+0{,}9$, $+6{,}6$ Grad), Hochpassfilterung des Zeilenmittelprofils
+zur Bestimmung der Rohrachsen -- ihr Abstand ist der Rohrdurchmesser
 (16/18/21/20\px, dieselben Werte, die den Maßstab verankern) --, Ausschneiden
 eines Streifens je Achse und eine weiche Kapselmaske mit 1,6\px{} Feder.
 Ergebnis sind 56 Rohrschäfte mit echter zylindrischer Schattierung und echtem
@@ -128,17 +129,18 @@ Glanzlicht; sie dienen als Schaft \emph{hinter} der Stirnfläche
 (Tabelle~\ref{tab:parameter}, T5, 88\,\% der Instanzen) und als Okkluder
 \emph{vor} dem Stapel (T6, 58\,\% der Bilder).
 
-Der Umweg über echte Aufnahmen kostet eine eigene Verarbeitungsstufe und bindet
-die Bibliothek an die vier verfügbaren Clean Plates -- ein prozedural
-gezeichneter Balken wäre in zwanzig Zeilen Code geschrieben und in beliebiger
-Zahl verfügbar. Gerechtfertigt wird der Aufwand allein durch das oben genannte
-Argument, und dieses Argument ist eine \emph{Annahme}: Es benennt eine plausible
-Abkürzung, misst sie aber nicht. Abschnitt~\ref{sec:ablationB} holt die Messung
-nach, indem er die Bibliothek gegen zwei prozedural erzeugte austauscht und sonst
-nichts verändert. Die Belegart von Befund~8 in Tabelle~\ref{tab:befunde} ist
-deshalb mit \emph{P/A} angegeben: Dass \emph{ein} Schaft hinter der Stirnfläche
-steht, ist physikalisch zwingend; \emph{woraus} er besteht, war bis dahin
-begründet, nicht belegt.
+Der Umweg über echte Aufnahmen kostet eine eigene Verarbeitungsstufe und
+bindet die Bibliothek an die vier verfügbaren Clean Plates; ein prozedural
+gezeichneter Balken ließe sich mit wenigen Zeilen Code erzeugen und stünde in
+beliebiger Zahl zur Verfügung. Gerechtfertigt wird der Aufwand allein durch
+das oben genannte Argument, und dieses Argument ist eine \emph{Annahme}: Es
+benennt eine plausible Abkürzung, misst sie aber nicht.
+Abschnitt~\ref{sec:ablationB} trägt die Messung nach, indem er die Bibliothek
+gegen zwei prozedural erzeugte austauscht und sonst nichts verändert. Die
+Belegart von Befund~8 in Tabelle~\ref{tab:befunde} ist deshalb mit \emph{P/A}
+angegeben: Dass \emph{ein} Schaft hinter der Stirnfläche steht, ist
+physikalisch zwingend; \emph{woraus} er besteht, war bis dahin begründet,
+nicht belegt.
 
 \section{Stufe 3 -- Bildsynthese}
 \label{sec:synthese}
@@ -195,9 +197,9 @@ Stufe für Stufe am selben Bild. (a)~Der Clean Plate nach Zoom, Ausschnitt und
 Spiegelung. (b)~Die gezogenen Objektzentren des Layoutmodells (orange), dazu
 zwei abgedunkelte Mulden. (c)~Die Rohrschäfte in paralleler Richtung.
 (d)~Die Stirnflächen mit Instanzgeometrie und Photometrie -- 81 Instanzen.
-(e)~Was die Okklusionsstufe hinzufügt, orange umrandet: sechs quer liegende
-Stangen und Fremdkörper. (f)~Das Urteil der Sichtbarkeitsrechnung: grün die 48
-vergebenen Labels, rot die 33 verworfenen Instanzen. Die Einzelstufen T2, T3, T8
+(e)~Die Ergänzungen der Okklusionsstufe, orange umrandet: sechs quer liegende
+Stangen und Fremdkörper. (f)~Das Ergebnis der Sichtbarkeitsrechnung: grün die
+48 vergebenen Labels, rot die 33 verworfenen Instanzen. Die Einzelstufen T2, T3, T8
 und T9 sind in den Abbildungen~\ref{abb:stufendetail}
 und~\ref{abb:stufenglobal} im Anhang vergrößert dargestellt. Zur Lesbarkeit ist
 ein Bild am oberen Ende des Größenbereichs gewählt (Basisdurchmesser 44\px{}
@@ -229,15 +231,14 @@ weit verkleinert wird, dass ihre Rohrstruktur zur Textur zerfällt
 (Tabelle~\ref{tab:parameter}). Der Rohrdurchmesser $d_{\text{Rohr}}$ ist keine
 Konstante, sondern wird je Clean Plate über den Struktur-Tensor gemessen
 (\code{src/occluders.py}, Abschnitt~\ref{sec:matting}). Objektgröße und
-Hintergrundmaßstab sind damit \emph{nicht} unabhängig gezogen -- der Kern von
-Anforderung~A3.
+Hintergrundmaßstab sind damit \emph{nicht} unabhängig gezogen; das ist der Kern von Anforderung~A3.
 
 Eine Einschränkung ist zu benennen: Die obere Klammer greift bei zwei der vier
 Clean Plates und beschneidet dort den Zielbereich, sodass Basisdurchmesser über
 39,6\px{} nur auf den beiden Clean Plates mit 20 und 21\px{} Rohrdurchmesser
 entstehen. Objektgröße und Hintergrundwahl sind am oberen Ende des
-Größenbereichs damit korreliert -- der Sache nach genau die Art von Kopplung,
-gegen die das Leitprinzip dieses Kapitels gerichtet ist; die erzeugte
+Größenbereichs damit korreliert -- die Art von Kopplung also, die das
+Leitprinzip dieses Kapitels vermeiden soll; die erzeugte
 Größenverteilung endet entsprechend bei knapp 40 statt 44\px{}
 (Abschnitt~\ref{sec:datensatz}). Die untere Klammer greift dagegen nie. Für die
 drei Fremdszenen ist Gleichung~\eqref{eq:zoom} mangels $d_{\text{Rohr}}$ nicht
@@ -246,18 +247,15 @@ definiert; dort werden Zoom und Objektgröße unabhängig gezogen
 
 \absatz{Skalierung und Ovalisierung} werden in einem Schritt ausgeführt. Mit
 Quelldurchmesser $d_{\text{src}}$, Zieldurchmesser $d$ und gezogenem
-Achsverhältnis $\rho = s_y/s_x$ gilt
-$s_x = d/(d_{\text{src}}\sqrt{\rho})$ und
-$s_y = d\sqrt{\rho}/d_{\text{src}}$, also
-$\sqrt{s_x s_y}\,d_{\text{src}} = d$.
-Der geometrische Mittelwert bleibt damit erhalten -- notwendig, damit die
-Ovalisierung die kalibrierte Größenverteilung nicht verschiebt, denn die
-Realmessung verwendet mit $\sqrt{\text{Fläche}}$ genau dieses Maß. Die
-\emph{Box} ändert sich dabei sehr wohl, und genau deren Seitenverhältnis ist die
-an den Realdaten gemessene Größe. Zu beachten ist die Richtung: Bei
-kreisförmiger Quelle ist das resultierende Seitenverhältnis $w/h$ der
-\emph{Kehrwert} von $\rho$, ein oblates Objekt ($w/h > 1$) entsteht also aus
-$\rho < 1$.
+Achsverhältnis $\rho = s_y/s_x$ gilt $s_x = d/(d_{\text{src}}\sqrt{\rho})$ und
+$s_y = d\sqrt{\rho}/d_{\text{src}}$, also $\sqrt{s_x s_y}\,d_{\text{src}} =
+d$. Der geometrische Mittelwert bleibt damit erhalten; das ist notwendig,
+damit die Ovalisierung die kalibrierte Größenverteilung nicht verschiebt, denn
+die Realmessung verwendet mit $\sqrt{\text{Fläche}}$ genau dieses Maß. Die
+\emph{Box} ändert sich dabei hingegen, und deren Seitenverhältnis ist die an
+den Realdaten gemessene Größe. Zu beachten ist die Richtung: Bei kreisförmiger
+Quelle ist das resultierende Seitenverhältnis $w/h$ der \emph{Kehrwert} von
+$\rho$, ein oblates Objekt ($w/h > 1$) entsteht also aus $\rho < 1$.
 
 \absatz{Farbangleich.} Ein \emph{partieller} Statistiktransfer im Stil von
 \textcite{reinhard2001}: Mit Mittelwert und Streuung der Objektpixel
@@ -277,10 +275,9 @@ $\alpha_\sigma \sim \mathcal{U}[0;\,0{,}35]$ gezogen, das Streuungsverhältnis
 wird auf $[r_{\min}, r_{\max}] = [0{,}6;\,1{,}6]$ begrenzt, damit eine besonders
 glatte oder besonders unruhige Einfügestelle den Objektkontrast nicht
 umkehrt. Für
-$\alpha_\mu = \alpha_\sigma = 1$ entstünde der vollständige Reinhard-Transfer --
-genau das ist nicht gewollt, weil er den intrinsischen Albedo-Unterschied
-zwischen Bohrung und Kranz einebnete
-(Abbildung~\ref{abb:farbangleich}). Modelliert wird ausschließlich die
+$\alpha_\mu = \alpha_\sigma = 1$ entstünde der vollständige Reinhard-Transfer;
+er bleibt unangewendet, weil er den intrinsischen Albedo-Unterschied zwischen
+Bohrung und Kranz einebnete (Abbildung~\ref{abb:farbangleich}). Modelliert wird ausschließlich die
 Beleuchtungs- und Weißabgleichdifferenz, nicht die Objektfarbe. Begründet ist
 damit die \emph{Richtung}, nicht der Betrag: Die vier Grenzen sind gesetzt und
 stehen in Tabelle~\ref{tab:parameter} als Annahme.
@@ -388,18 +385,17 @@ sodass angeschnittene Objekte am Bildrand entstehen (Befund~9).
 \section{Sichtbarkeitsrechnung und Labelerzeugung}
 \label{sec:sichtbarkeit}
 
-Kein Copy-Paste-Generator darf Labels blind vergeben. Für \emph{jede} Instanz
-wird die Sichtbarkeit daher exakt berechnet. Grundlage ist die
+Labels dürfen in einem Copy-Paste-Generator nicht ungeprüft vergeben werden.
+Für \emph{jede} Instanz wird die Sichtbarkeit daher exakt berechnet. Grundlage ist die
 Alpha-Kompositionsregel von \textcite{porter1984}: Wird Instanz $i$ von allen
-später gemalten Schichten $j$ überlagert, so ist ihr sichtbarer Anteil
+später gezeichneten Schichten $j$ überlagert, so ist ihr sichtbarer Anteil
 \begin{equation}
 \alpha_i^{\text{sichtbar}} = \alpha_i \prod_{j > i} \big(1 - \alpha_j\big),
 \qquad
 v_i = \frac{\textstyle\sum \alpha_i^{\text{sichtbar}}}{\textstyle\sum \alpha_i},
 \label{eq:sichtbarkeit}
 \end{equation}
-wobei das Produkt über \emph{alle} später gemalten Schichten läuft --
-einschließlich anderer Profile, Rohrschäfte und Fremdkörper.
+wobei das Produkt über \emph{alle} später gezeichneten Schichten läuft, einschließlich anderer Profile, Rohrschäfte und Fremdkörper.
 
 Daraus folgen die Verwerfungsregeln, dieselben, nach denen \code{val} und
 \code{test} annotiert wurden (Anforderung~A1). Ein Label wird verworfen, wenn
@@ -409,10 +405,10 @@ im Bild liegen, oder wenn die sichtbare Box unter 5\px{} fällt. Vergeben wird
 stets die \emph{modale} Box, also der sichtbare Umriss.
 
 Verworfen werden insgesamt 36\,716 der 173\,100 gerenderten Instanzen
-(21,2\,\%), den weitaus größten Anteil davon die Sichtbarkeitsregel. Die
+(21,2\,\%), der weitaus größte Teil davon durch die Sichtbarkeitsregel. Die
 Aufschlüsselung nach Ursachen steht im Erzeugungsbericht
 (Abschnitt~\ref{sec:anhangbericht}). Diese Instanzen sind kein
-Verlust, sondern der Ertrag der Stufe: Sie markieren genau jene Bildstellen, an
+Verlust, sondern der Ertrag der Stufe: Sie markieren jene Bildstellen, an
 denen ein naiver Generator ein falsches Label gesetzt hätte.
 
 \section{Der erzeugte Datensatz}
@@ -470,17 +466,17 @@ Die synthetische Verteilung liegt bei fast allen Kenngrößen zwischen oder nahe
 bei den beiden realen Messungen. Zwei systematische Abweichungen bleiben. Die
 erste ist die Nachbarzahl: Die synthetischen Cluster sind dichter (13 statt 10
 Nachbarn innerhalb $5\,\Oe$, im Maximum 61 statt 20). Das ist bewusst so
-belassen -- eine höhere Dichte im Training ist eine Robustheitsreserve, weil sie
-den Detektor auf schwierigere Szenen vorbereitet als die, die er zur Inferenzzeit
-vorfindet; die umgekehrte Abweichung wäre gefährlich gewesen. Die zweite betrifft
-die Objektgröße: Der Generator soll 12--44\px{} abdecken, erreicht am oberen Ende
-aber nur knapp 40\px{} (p95 der erzeugten Verteilung: 39,9\px) -- eine Folge der
-Zoomdeckelung nach Gleichung~\eqref{eq:zoom}. Am unteren Ende enthält
-\code{test} vier Objekte
-unterhalb von 12\px{} (kleinstes 6,4\px). Diese Lücke schließt erst die
-Trainingsskalierung, die die Untergrenze nach Gleichung~\eqref{eq:effgroesse}
-auf $d_{\min}\,(1-s) = 7{,}2$\px{} zieht (Abschnitt~\ref{sec:trainparam}); die vier kleinsten Objekte in \code{test}
-liegen auch dann noch am unteren Rand der Trainingsverteilung.
+belassen: Eine höhere Dichte im Training ist eine Robustheitsreserve, weil sie
+den Detektor auf schwierigere Szenen vorbereitet als die, die er zur
+Inferenzzeit vorfindet; die umgekehrte Abweichung wäre problematisch. Die
+zweite betrifft die Objektgröße: Der Generator soll 12--44\px{} abdecken,
+erreicht am oberen Ende aber nur knapp 40\px{} (p95 der erzeugten Verteilung:
+39,9\px); das ist eine Folge der Zoomdeckelung nach Gleichung~\eqref{eq:zoom}.
+Am unteren Ende enthält \code{test} vier Objekte unterhalb von 12\px{}
+(kleinstes 6,4\px). Diese Lücke schließt erst die Trainingsskalierung, die die
+Untergrenze nach Gleichung~\eqref{eq:effgroesse} auf $d_{\min}\,(1-s) =
+7{,}2$\px{} zieht (Abschnitt~\ref{sec:trainparam}); die vier kleinsten Objekte
+in \code{test} liegen auch dann noch am unteren Rand der Trainingsverteilung.
 
 \section{Nachweis der Anforderungen}
 \label{sec:nachweis}
@@ -516,7 +512,7 @@ A6 & Belegart je Parameterwert; die beiden numerischen Absicherungen
 \end{tabularx}
 \end{table}
 
-Die Anforderungen sind damit \emph{formal} erfüllt -- die Erfüllung einer
+Die Anforderungen sind damit \emph{formal} erfüllt; die Erfüllung einer
 Entwurfsanforderung ist aber kein empirischer Nachweis, wie die letzte Spalte
 zeigt. Wie viel von den 43 Parameterwerten der 36 Transformationen tatsächlich
 belegt ist, bilanziert Abschnitt~\ref{sec:tragend}.

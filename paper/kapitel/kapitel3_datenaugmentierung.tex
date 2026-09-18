@@ -40,7 +40,7 @@ Bilder angewendet werden sollen, sondern welche Verteilung synthetischer Szenen
 erzeugt werden muss, damit sie die für die Inferenz relevante Domäne
 hinreichend abbildet.
 
-Für die Notation gilt in diesem Kapitel durchgehend: lateinische Grossbuchstaben
+Für die Notation gilt in diesem Kapitel durchgehend: lateinische Großbuchstaben
 wie $D$ bezeichnen endliche Datensätze, kalligraphische Symbole wie
 $\Dom{S}^{X}$ bezeichnen Wahrscheinlichkeitsverteilungen.
 
@@ -181,7 +181,7 @@ Fassung von Anforderung~A3: Objektgröße und Hintergrundmaßstab müssen gekopp
 sein, weil eine Stirnfläche zwangsläufig den Durchmesser des daneben sichtbaren
 Rohrschafts besitzt; und innerhalb eines Clusters streut jede Instanz nur um
 eine gemeinsame Basisgröße, weil gestapelte Profile derselben Lage
-gleich groß sind. Mittelt man über $t^{\mathrm{S}}$ und $c_k$ hinweg, sind die
+gleich groß sind. Über $t^{\mathrm{S}}$ und $c_k$ gemittelt sind die
 Instanzgrößen daher korreliert -- ein Generator, der sie unabhängig zöge,
 erzeugte physikalisch unmögliche Bilder. Vereinzelt platzierte Profile, die
 keinem Cluster angehören, bilden den Sonderfall $m_k = 1$ und hängen unmittelbar
@@ -203,9 +203,9 @@ Identität und Wirkung,
 \end{equation}
 mit dem Anwendungsanteil $\pi_k$ und der Parameterverteilung $q_k$ über den
 zulässigen Bereich. Eine Transformation ist folglich erst durch \emph{zwei}
-Angaben bestimmt -- wie häufig sie wirkt und wie stark. Genau diese Doppelung
-verlangt Anforderung~A6, und genau sie führt Tabelle~\ref{tab:parameter}
-spaltenweise auf.
+Angaben bestimmt -- wie häufig sie wirkt und wie stark. Diese Doppelung
+verlangt Anforderung~A6; Tabelle~\ref{tab:parameter} führt sie spaltenweise
+auf.
 
 \subsection*{Nicht gewählte Wege}
 
@@ -223,8 +223,8 @@ Einzelbilder anzupassen.
 Eine \emph{generative Modellierung} der Objekte, etwa durch Diffusionsmodelle \parencite{trabucco2024},
 benötigte eine hinreichend große und repräsentative Menge realer Beispiele, um
 die Zielverteilung überhaupt zu erfassen. Bei neun Ausgangsobjekten ist das
-nicht gegeben. Der explizit parametrisierte Generator bietet stattdessen, was
-hier gebraucht wird: unabhängige Kontrolle über Geometrie und Photometrie sowie
+nicht gegeben. Der explizit parametrisierte Generator bietet stattdessen die
+hier benötigten Eigenschaften: unabhängige Kontrolle über Geometrie und Photometrie sowie
 Labels, die direkt aus der bekannten Szenengeometrie folgen. Die Entscheidung
 ist damit keine Aussage über die Leistungsfähigkeit generativer Modelle, sondern
 folgt aus den Anforderungen an Kontrolle, Labelgenauigkeit und
@@ -240,13 +240,13 @@ stehen in dichten Clustern, sodass Schnittkanten regelmäßig durch
 zusammenhängende Gruppen liefen, und das Zusammenführen der Teilergebnisse
 verlangt eine Entscheidung über mehrfach detektierte Objekte an den
 Kachelgrenzen -- also genau den Unterdrückungsschritt, auf den der verwendete
-Ende-zu-Ende-Kopf verzichtet. Die Auflösung selbst zu erhöhen ist der einfachere
-Hebel und wird in Kapitel~\ref{kap:auswertung} als solcher vermessen.
+Ende-zu-Ende-Kopf verzichtet. Die Auflösung selbst zu erhöhen ist der
+unmittelbarere Eingriff und wird in Kapitel~\ref{kap:auswertung} als solcher
+vermessen.
 
 Eine \emph{gezielte Überabtastung kleiner Objekte} \parencite{kisantal2019}
 schließlich antwortet darauf, dass die Größenverteilung eines \emph{gegebenen}
-Datensatzes nicht veränderbar ist. Genau diese Einschränkung besteht hier
-nicht: Die Größenverteilung ist ein Parameter des Generators und wird nach
+Datensatzes nicht veränderbar ist. Diese Einschränkung besteht hier nicht: Die Größenverteilung ist ein Parameter des Generators und wird nach
 Anforderung~A2 unmittelbar auf den Zielbereich kalibriert.
 
 % ----------------------------------------------------------------------
@@ -396,9 +396,9 @@ Assignment, Regression und Inferenz ab; die Zuweisung bei sehr kleinen Objekten
 ist Gegenstand eigener Arbeiten \parencite{zhang2020atss,xu2022rfla}.
 
 Von der Gitterabtastung zu unterscheiden ist ein zweiter, unabhängiger Effekt
-der Objektgröße: die Empfindlichkeit der Bewertungsmetrik selbst. Verschiebt man
-eine quadratische Box der Kantenlänge $d$ um $\delta$ Pixel entlang einer Achse,
-so beträgt die Schnittfläche $(d-\delta)\,d$ und die Vereinigungsfläche
+der Objektgröße: die Empfindlichkeit der Bewertungsmetrik selbst. Wird eine
+quadratische Box der Kantenlänge $d$ um $\delta$ Pixel entlang einer Achse
+verschoben, so beträgt die Schnittfläche $(d-\delta)\,d$ und die Vereinigungsfläche
 $2d^{2}-(d-\delta)\,d$. Für die Überlappung folgt
 \begin{equation}
   \IoU
@@ -414,7 +414,8 @@ $\delta/d$. Für $\delta = 2$\px{} -- die Größenordnung des Versatzes, der in
 Abschnitt~\ref{sec:boxversatz} zwischen Generatorlabel und Handannotation
 gemessen wird -- liefert Gleichung~\eqref{eq:ioushift} bei einem $20$\px{}
 großen Objekt $\IoU = 0{,}82$, bei einem $200$\px{} großen dagegen $0{,}98$:
-derselbe Fehler in Pixeln, eine rund neunfach größere Einbuße. Da die üblichen
+Derselbe Fehler in Pixeln bewirkt beim kleinen Objekt eine rund neunfach
+größere Einbuße. Da die üblichen
 Bewertungsschwellen bei $\IoU \geq 0{,}5$ ansetzen und mAP@0,5:0,95 über
 Schwellen bis $0{,}95$ mittelt, schlagen wenige Pixel Lokalisierungsfehler bei
 kleinen Objekten unmittelbar auf die berichtete Güte durch.
@@ -423,9 +424,9 @@ Für die Erzeugung von Trainingsdaten ist das der schärfere der beiden Befunde.
 Die Gitterabtastung betrifft die Frage, ob ein Objekt überhaupt eine positive
 Position erhält; die Metrikempfindlichkeit betrifft jede einzelne Box, die
 erzeugt wird. Bei Objektgrößen im Bereich weniger Dutzend Pixel ist eine
-Labelungenauigkeit von ein bis zwei Pixeln deshalb keine Nebensache, sondern
-eine relevante Fehlerquelle -- was die Anforderung an die Labelgenauigkeit
-(Abschnitt~\ref{sec:anforderungen}) begründet.
+Labelungenauigkeit von ein bis zwei Pixeln deshalb nicht vernachlässigbar,
+sondern eine relevante Fehlerquelle; darauf stützt sich die Anforderung an die
+Labelgenauigkeit (Abschnitt~\ref{sec:anforderungen}).
 
 Für die vorliegende Untersuchung folgt daraus eine praktische Konsequenz: Die
 Trainingsdaten dürfen nicht systematisch Objektgrößen erzeugen, die im Verhältnis
@@ -528,7 +529,7 @@ Entwurfsentscheidungen.
 \absatz{Sim-to-Real-Performance-Gap.} Ausgewertet wird stattdessen die auf
 beschrifteten Realdaten gemessene Differenz
 $\Delta_{\mathrm{SR}} = \epsilon_T(h) - \epsilon_S(h)$. Beschriftete reale Daten
-setzt das ausdrücklich nur für die Evaluation voraus, nicht für das Training.
+sind dafür ausdrücklich nur in der Evaluation erforderlich, nicht im Training.
 Aus Gleichung~\eqref{eq:bendavid} folgt unmittelbar
 \begin{equation}
   \Delta_{\mathrm{SR}}
@@ -570,10 +571,10 @@ Kompression und Verdeckung; Tabelle~\ref{tab:parameter} im Anhang führt jeden
 dieser Parameter mit Bereich und gemessenem Ist-Anteil auf.
 
 Im Rahmen von Gleichung~\eqref{eq:bendavid} lässt sich Domain Randomization als
-Verbreiterung von $\Dom{S}^{X}$ deuten, die den Divergenzterm verkleinert. Diese
-Verbreiterung ist jedoch nicht kostenlos: Eine deutlich breitere Quelldomäne
-verlangt von $\Hcls$, auf einem größeren Bereich des Eingaberaums gleichzeitig
-gut zu sein, und kann damit sowohl $\epsilon_S(h)$ als auch $\lambda$ erhöhen.
+Verbreiterung von $\Dom{S}^{X}$ deuten, die den Divergenzterm verkleinert. Mit dieser
+Verbreiterung ist jedoch ein Zielkonflikt verbunden: Eine deutlich breitere
+Quelldomäne verlangt von $\Hcls$, auf einem größeren Bereich des Eingaberaums
+gleichzeitig niedrige Fehler zu erzielen, und kann damit sowohl $\epsilon_S(h)$ als auch $\lambda$ erhöhen.
 Die drei Terme sind folglich nicht unabhängig voneinander optimierbar, was die
 Notwendigkeit einer experimentellen Bestimmung der Randomisierungsstärke
 begründet.
@@ -598,7 +599,7 @@ charakteristische Farbübergänge in allen synthetischen Bildern auftreten. Ein
 Modell kann solche Merkmale nutzen, obwohl sie in realen Bildern nicht vorhanden
 sind. In der Terminologie von Gleichung~\eqref{eq:bendavid} entspricht dies einer
 Erhöhung von $\lambda$: Die im synthetischen Bild optimale Hypothese ist dann
-gerade nicht diejenige, die auch auf $\Dom{T}$ gut ist.
+gerade nicht diejenige, die auch auf $\Dom{T}$ niedrige Fehler erzielt.
 
 Dabei muss zwischen zufälliger Variation und systematischem Bias unterschieden
 werden. Zufällige Variation kann die Vielfalt der beobachteten Beispiele

@@ -20,8 +20,8 @@ Klassische Detektoren verwenden dafür \emph{Non-Maximum Suppression} (NMS), die
 stark überlappende Vorhersagen anhand ihrer Intersection over Union unterdrückt
 \parencite{ren2015,redmon2016}.
 
-\absatz{Schrittweite und Objektgröße.} Tragend für diese Arbeit ist von alldem
-ein einziger Aspekt: die schrittweise Reduktion der räumlichen Auflösung,
+\absatz{Schrittweite und Objektgröße.} Von alledem ist für diese Arbeit
+ein einziger Aspekt tragend: die schrittweise Reduktion der räumlichen Auflösung,
 klassisch durch Pooling, in modernen Architekturen überwiegend durch Faltungen
 mit Schrittweite $s=2$. Nach $L$ solchen Stufen beträgt der Gesamtschritt
 \[
@@ -44,7 +44,7 @@ in Abschnitt~\ref{subsec:kleine-objekte}.
 
 \subsection{Einordnung}
 
-Die YOLO-Familie („You Only Look Once“) wurde als einstufiger Echtzeit-Objektdetektor eingeführt \parencite{redmon2016}. Die Weiterentwicklung durch Ultralytics führte unter anderem zu ankerfreien und entkoppelten Detektionsköpfen. YOLO26 wurde im September 2025 vorgestellt und kombiniert mehrere Änderungen gegenüber früheren YOLO-Architekturen, darunter ein Dual-Head-Design für NMS-freie Inferenz, der Wegfall der Distribution Focal Loss, ProgLoss in Verbindung mit Small-Target-Aware Label Assignment (STAL) sowie der MuSGD-Optimierer \parencite{jocher2026yolo26,sapkota2025}.
+Die YOLO-Familie (\enquote{You Only Look Once}) wurde als einstufiger Echtzeit-Objektdetektor eingeführt \parencite{redmon2016}. Die Weiterentwicklung durch Ultralytics führte unter anderem zu ankerfreien und entkoppelten Detektionsköpfen. YOLO26 wurde im September 2025 vorgestellt und kombiniert mehrere Änderungen gegenüber früheren YOLO-Architekturen, darunter ein Dual-Head-Design für NMS-freie Inferenz, der Wegfall der Distribution Focal Loss, ProgLoss in Verbindung mit Small-Target-Aware Label Assignment (STAL) sowie der MuSGD-Optimierer \parencite{jocher2026yolo26,sapkota2025}.
 
 Für die vorliegende Arbeit sind insbesondere die Änderungen relevant, die mit der Erkennung kleiner Objekte und der Verarbeitung dicht gepackter Instanzen zusammenhängen. STAL adressiert die Zuweisung von Trainingspositionen bei kleinen Objekten, während die NMS-freie Inferenz die nachgelagerte Unterdrückung überlappender Vorhersagen vermeidet \parencite{jocher2026yolo26,sapkota2025}.
 
@@ -115,10 +115,10 @@ Ebene mit Schrittweite $S$ entspricht einem Bildbereich von $S \times S$ Pixeln
 und sagt Boxkoordinaten sowie Klassen-Scores vorher. Die Standardkonfiguration
 nutzt \textbf{P3--P5}; die hier trainierten Modelle verwenden zusätzlich die
 links rot gestrichelt eingezeichnete Ebene \textbf{P2} mit Schrittweite~4. Die
-Abbildung zeigt zugleich, warum diese eine Ebene so viel ausmacht: P2 allein
-enthält mehr Prädiktionspositionen als P3, P4 und P5 zusammen. Genau diese
-Abhängigkeit von der Schrittweite macht Abschnitt~\ref{subsec:kleine-objekte} zum
-Kern des Auflösungsproblems.}
+Abbildung zeigt zugleich, warum diese eine Ebene so stark ins Gewicht fällt: P2
+allein enthält mehr Prädiktionspositionen als P3, P4 und P5 zusammen. Diese
+Abhängigkeit von der Schrittweite untersucht
+Abschnitt~\ref{subsec:kleine-objekte} als Kern des Auflösungsproblems.}
 \label{abb:pyramide}
 \end{figure}
 
@@ -138,25 +138,25 @@ innerhalb eines kreisförmigen Objekts wächst mit $(d_{\mathrm{eff}}/S)^2$
 (Gleichung~\eqref{eq:gridcount}, hergeleitet in
 Abschnitt~\ref{subsec:kleine-objekte}), eine Halbierung der Schrittweite
 vervierfacht sie also. Bei einem Objekt von 11,6\px{} -- dem 5\,\%-Quantil des
-erzeugten Datensatzes, das bei der Trainingsauflösung unskaliert am Netz
-ankommt -- sind das 1,7 Positionen auf P3 gegenüber 6,6 auf P2;
+erzeugten Datensatzes, das bei der Trainingsauflösung unskaliert in das Netz
+eingeht -- sind das 1,7 Positionen auf P3 gegenüber 6,6 auf P2;
 im ungünstigsten Fall enthält ein solches Objekt auf P3 gar keine
 Gitterposition.
 
 Erkauft wird das nicht mit Modellgröße: \code{yolo26s-p2} hat mit
 9\,663\,464 Parametern sogar 2,9\,\% weniger als die Basiskonfiguration, und der
-Rechenaufwand steigt bei $640\times640$ nur von 22,7 auf 26,6~GFLOPs. Der Preis
-ist Speicher -- die viermal feinere P2-Karte hob den Bedarf in den eigenen
-Läufen bei \code{imgsz}=1024 und Batch~8 von etwa 6 auf etwa 12~GB.
+Rechenaufwand steigt bei $640\times640$ nur von 22,7 auf 26,6~GFLOPs. Der Mehraufwand
+fällt beim Speicher an: Die viermal feinere P2-Karte hob den Bedarf in den
+eigenen Läufen bei \code{imgsz}=1024 und Batch~8 von etwa 6 auf etwa 12~GB.
 
 Der P2-Kopf ist bewusst \emph{keine} experimentelle Variable, sondern eine
 konstante architektonische Randbedingung aller Läufe. Ein Detektor, dem die
 Auflösung fehlt, übersieht kleine Objekte unabhängig von der Qualität seiner
 Trainingsdaten; jede Verbesserung der Datenerzeugung würde dann teilweise nur
 eine Architekturschwäche kompensieren, und der gemessene Effekt wäre nicht der
-Effekt der Daten. Die Ablation in Kapitel~\ref{kap:auswertung} läuft deshalb auf
-der feiner aufgelösten Variante -- nicht, weil sie besser \emph{aussieht},
-sondern weil sie die Störgröße entfernt, die den Datengewinn sonst überlagert.
+Effekt der Daten. Die Ablation in Kapitel~\ref{kap:auswertung} verwendet deshalb
+die feiner aufgelöste Variante -- nicht, um die Ergebnisse zu verbessern,
+sondern um die Störgröße zu entfernen, die den Datengewinn sonst überlagert.
 
 \section{Anwendung auf gestapelte Bauzaunprofile}
 \label{sec:anwendung}
@@ -179,7 +179,7 @@ andere hebt den Zähler.
 \absatz{Hohe Objektdichte.} Die Profile liegen dicht nebeneinander, ihre
 Bounding Boxes überlappen entsprechend stark. Bei klassischer NMS entsteht
 daraus ein Zielkonflikt -- ein niedriger Schwellenwert unterdrückt tatsächlich
-verschiedene Profile, ein hoher lässt Duplikate stehen. Die NMS-freie Inferenz
+verschiedene Profile, ein hoher belässt Duplikate. Die NMS-freie Inferenz
 von YOLO26 vermeidet diese nachgelagerte Entscheidung, beseitigt aber nicht die
 eigentliche Schwierigkeit: Das Modell muss eng benachbarte, teilweise
 überdeckte Instanzen weiterhin unterscheiden können.

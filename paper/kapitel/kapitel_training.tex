@@ -23,15 +23,16 @@
 
 \absatz{Datenaufteilung.} Trainiert wird auf synthetischen Bildern, validiert
 auf dem \emph{realen} \code{val}-Bild (98 Objekte). Das ist eine bewusste
-Entscheidung: Die Modellauswahl muss auf der Zieldomäne erfolgen, sonst wählt man
-das Modell, das am besten zu den eigenen Renderartefakten passt. \code{test}
+Entscheidung: Die Modellauswahl muss auf der Zieldomäne erfolgen; andernfalls
+fiele die Wahl auf das Modell, das am besten zu den eigenen Renderartefakten
+passt. \code{test}
 (89 Objekte) berührt Training und Modellauswahl nie und dient ausschließlich der
 Endbewertung. Ein vierter Split \code{sval} aus 400 synthetischen Bildern mit
 anderem Seed dient allein der Messung des Sim-to-Real-Abstands
 (Abschnitt~\ref{sec:simtoreal}).
 
-\absatz{Zwei Budgets.} Die Arbeit trainiert Modelle in zwei Größenordnungen, und
-es ist wichtig, sie nicht zu vermischen (Tabelle~\ref{tab:budgets}). Das
+\absatz{Zwei Budgets.} Die Arbeit trainiert Modelle in zwei Größenordnungen,
+die nicht zu vermischen sind (Tabelle~\ref{tab:budgets}). Das
 \textbf{Referenzmodell} nutzt den vollen Datensatz aus 6000 Bildern und
 60~Epochen; es ist das Modell, dessen Zahlen als Ergebnis der Pipeline berichtet
 werden (Abschnitt~\ref{sec:hauptergebnis}). Die \textbf{Ablationsarme} nutzen
@@ -100,7 +101,7 @@ gewichtete Summe der beiden Hauptmetriken,
 \end{equation}
 und verwendet dafür $w_{50} = 0{,}1$ und $w_{\text{all}} = 0{,}9$; diese
 Gewichtung ist deren unveränderte Voreinstellung
-\parencite{ultralyticsdocs}. Ein Detail ist dabei festzuhalten: Diese Validierung
+\parencite{ultralyticsdocs}. Festzuhalten bleibt dabei: Diese Validierung
 läuft bei der \emph{Trainings}auflösung \code{imgsz}=1024, während alle
 berichteten Zahlen bei nativem Maßstab gemessen werden (2459 bzw.\ 1600\px,
 vom Netz auf ein Vielfaches von 32 aufgefüllt). Auswahl- und Bewertungsauflösung
@@ -131,7 +132,7 @@ entsprechend stark schwankt (Abschnitt~\ref{sec:trainingsverlauf}).
 \section{Augmentierungsparameter zur Trainingszeit}
 \label{sec:trainparam}
 
-Die abgeschalteten Parameter sind genauso begründungspflichtig wie die aktiven --
+Die abgeschalteten Parameter sind ebenso begründungspflichtig wie die aktiven --
 ein auf Null gesetzter Standardwert ist eine Entscheidung.
 
 Aktiv sind Mosaic (immer, in den letzten zehn Epochen abgeschaltet), Skalierung
@@ -141,7 +142,7 @@ Werkzeugkette abgesenkt (Tabelle~\ref{tab:trainaug}) --,
 Translation, horizontale und vertikale Spiegelung sowie HSV-Variation.
 Abgeschaltet sind \code{degrees}, \code{shear} und \code{perspective}, weil
 Bildrotation achsparallele Boxen nach Gleichung~\eqref{eq:dbox} um den Faktor
-$|\cos\theta|+|\sin\theta|$ aufbläht und die Überlappung mit der korrekten Box
+$|\cos\theta|+|\sin\theta|$ aufweitet und die Überlappung mit der korrekten Box
 nach Gleichung~\eqref{eq:iou} auf $1/(1+|\sin 2\theta|)$ senkt -- für
 $\theta = 10^\circ$ sind das 15,8\,\% mehr Kantenlänge und $\IoU = 0{,}745$
 (Abschnitt~\ref{subsec:aabb-rotation}) --, sowie \code{mixup} und \code{cutmix}, die
@@ -184,7 +185,7 @@ Drei Beobachtungen sind unabhängig vom Ausgang der Ablation.
 die Metrik auf dem realen \code{val}-Bild deutlich früher flach wird. Das ist der
 Sim-to-Real-Abstand in zeitlicher Form: Ab dem Knick verbessert das Modell
 überwiegend seine Anpassung an Eigenschaften der synthetischen Daten, die in der
-Zieldomäne nicht gelten. Genau deshalb ist es methodisch notwendig, das beste
+Zieldomäne nicht gelten. Deshalb ist es methodisch notwendig, das beste
 Modell über den \emph{realen} Validierungssplit auszuwählen; eine synthetische
 Validierung wählte das Modell aus der letzten Epoche und damit das am stärksten
 überangepasste.

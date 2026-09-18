@@ -26,56 +26,57 @@ ausschließlich mit Detektionsmetriken.
   \label{abb:realstapel}
 \end{figure}
 
-Aus Sicht der Bildverarbeitung ist das ein unangenehmer Spezialfall. Die Objekte
+Aus Sicht der Bildverarbeitung ist das ein ungünstiger Spezialfall. Die Objekte
 sind klein (gemessen 12--36\px{} Durchmesser im Original), dicht gepackt (im
 Median rund ein Objektdurchmesser Abstand zum nächsten Nachbarn), untereinander
-nahezu identisch und wechselseitig verdeckt. Erschwerend kommt die schiere
+nahezu identisch und wechselseitig verdeckt. Erschwerend kommt die hohe
 Objektzahl hinzu: Die beiden vorliegenden Aufnahmen enthalten 98 und 89
-Stirnflächen (Abschnitt~\ref{sec:valtest}), und größere Stapel sind ohne
-weiteres denkbar. Bei dieser Objektzahl hinterlässt selbst ein Rückruf von
+Stirnflächen (Abschnitt~\ref{sec:valtest}), größere Stapel sind zu erwarten. Bei dieser Objektzahl hinterlässt selbst ein Rückruf von
 99\,\% im Mittel noch ein übersehenes Objekt je Bild.
 
 Der eigentliche Engpass ist jedoch die Datenlage. COCO-vortrainierte Gewichte
 enthalten keine Klasse \enquote{Bauzaunprofil}, und die Handannotation von
 rund hundert kleinen Boxen pro Bild über hunderte Bilder ist im Rahmen einer
-Abschlussarbeit nicht leistbar, vor allem im Kontext der Annotationsdisziplin 
-der Handannotierten Bilder. 
+Abschlussarbeit nicht leistbar; hinzu kommt, dass hunderte nahezu identische
+Kleinobjekte je Bild eine über den gesamten Datensatz gleichbleibende
+Annotationsdisziplin verlangen.
 Zur Verfügung stehen neun aus Realbildern
 ausgeschnittene Rohrprofile, sieben Hintergrundaufnahmen und zwei vollständig
 annotierte Realbilder mit zusammen 187 Objekten.
 
 \section{Zielsetzung und Beitrag}
 
-Der hier verfolgte Ansatz macht aus dieser Not das methodische Zentrum der
-Arbeit: Trainiert wird \emph{ausschließlich} auf synthetischen Bildern, die aus
+Der hier verfolgte Ansatz macht diese Einschränkung zum methodischen Zentrum
+der Arbeit: Trainiert wird \emph{ausschließlich} auf synthetischen Bildern, die aus
 den neun Objektausschnitten und den sieben Hintergründen erzeugt werden;
 Validierung und Test erfolgen auf den echten Aufnahmen. Damit ist die
 Augmentierungspipeline nicht mehr eine Menge von Zusatztransformationen auf einem
 vorhandenen Datensatz, sondern sie \emph{ist} der Datensatz: Sie definiert die
 gesamte Trainingsverteilung.
 
-Daraus ergibt sich die Gliederung der Arbeit, und es lohnt, die Rangfolge
-ausdrücklich zu benennen. Ziel ist die \textbf{Detektion} der
+Daraus ergibt sich die Gliederung der Arbeit; die Rangfolge sei dabei
+ausdrücklich benannt. Ziel ist die \textbf{Detektion} der
 Rohrprofil-Stirnflächen. Der Schwerpunkt auf der Synthese-Pipeline ist diesem Ziel
 \emph{nachgeordnet} und durch die Datenlage erzwungen: Ohne annotierte Realbilder
-gibt es keinen Trainingsdatensatz, den man augmentieren könnte -- er muss erst
+liegt kein Trainingsdatensatz vor, der augmentiert werden könnte; er muss erst
 entstehen. Ein zweiter Hebel auf dieselbe Größe wäre die Architektur -- die
 geringe Objektgröße relativ zur Gitterauflösung des Detektors ist dieselbe
 Ursache, an der auch die Pipeline ansetzt (Abschnitt~\ref{subsec:kleine-objekte}).
-Dieser Hebel wird hier nicht \emph{untersucht}, aber auch nicht verschenkt: Als
+Dieser Hebel wird hier nicht \emph{untersucht}, bleibt aber nicht ungenutzt: Als
 Detektor dient durchgängig \code{yolo26s-p2}, also YOLO26 in der Größe \enquote{s}
 mit zusätzlichem P2-Kopf, dessen feinste Detektionsebene die Schrittweite~4 statt
 8 hat (Abschnitt~\ref{sec:p2kopf}). Diese Wahl ist kein Gegenstand der
 Experimente, sondern ihre \emph{Konstante}: Eine Ablation der Datenerzeugung
-soll auf dem Modell laufen, das man auch einsetzen würde, damit ein gemessener
-Datengewinn nicht bloß die Schwäche eines unterlegenen Detektors kompensiert.
+ist auf dem Modell durchzuführen, das auch im Einsatz stünde, damit ein
+gemessener Datengewinn nicht lediglich die Schwäche eines unterlegenen
+Detektors ausgleicht.
 Entscheidungsmaß ist \mAPfifty{} auf den realen Aufnahmen, ergänzt um das beste
 $F_1$ und den zugehörigen Betriebspunkt (Abschnitt~\ref{sec:metriken}).
 
 Die Arbeit verfolgt drei Ziele. Erstens die \textbf{theoretische Einordnung der
-Datenaugmentierung} (Kapitel~\ref{kap:augtheorie}): Was leistet Augmentierung
-formal, welche Verfahrensklassen gibt es, welche Besonderheiten gelten bei der
-Objektdetektion? Zweitens die \textbf{vollständige Dokumentation und Begründung
+Datenaugmentierung} (Kapitel~\ref{kap:augtheorie}): Sie klärt, was Augmentierung
+formal leistet, welche Verfahrensklassen bestehen und welche Besonderheiten bei
+der Objektdetektion gelten. Zweitens die \textbf{vollständige Dokumentation und Begründung
 der konkreten Pipeline} (Kapitel~\ref{kap:pipeline} und
 \ref{kap:trainingszeit}): Für jede Transformation werden Parameterbereich,
 gemessener Ist-Anteil im erzeugten Datensatz und Begründung angegeben. Die
@@ -99,7 +100,8 @@ ausschließlich durch ein Argument gestützt ist die andere:
   (Abschnitt~\ref{sec:ablationB}) -- photographisch, prozedural-kalibriert und
   prozedural-naiv. Sie prüfen die einzige Begründung, mit der die Pipeline ihre
   aus Realaufnahmen geschnittene Okkluder-Bibliothek rechtfertigt: dass ein
-  \emph{gemalter} Balken eine andere Textur-, Rausch- und Glanzstatistik hätte
+  \emph{prozedural erzeugter} Balken eine andere Textur-, Rausch- und
+  Glanzstatistik hätte
   und damit selbst zur Abkürzung würde.
 \end{description}
 
@@ -111,8 +113,8 @@ die Begründungspflicht durchgehalten wird. Copy-Paste-Synthese ist ein
 etabliertes Verfahren \parencite{dwibedi2017,dvornik2018,ghiasi2021}; die Frage,
 welche ihrer Bestandteile in einem konkreten industriellen Anwendungsfall tragen
 und welche nicht, wird in der Literatur dagegen selten so kleinteilig
-beantwortet. Ablation~B geht dabei einen Schritt weiter als die übliche
-Datensatz-Ablation: Weil die drei Trainingssätze aus demselben Seed stammen und
+beantwortet. Ablation~B reicht dabei über die übliche
+Datensatz-Ablation hinaus: Weil die drei Trainingssätze aus demselben Seed stammen und
 sich nur in den Pixelwerten der Okkluder unterscheiden, sind ihre Labeldateien
 \emph{byte-identisch}. Der Versuch ist damit gepaart -- ein Unterschied im
 Ergebnis kann nicht auf eine andere Objektverteilung zurückgehen.

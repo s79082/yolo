@@ -4,9 +4,9 @@
 \section{Was ist belegt, was ist nur begründet?}
 \label{sec:tragend}
 
-Kapitel~\ref{kap:pipeline} hat gezeigt, dass die Pipeline die Anforderungen
-A1--A6 erfüllt. Das ist eine Aussage über den Entwurf, nicht über die Wirkung.
-Für eine ehrliche Bilanz ist zwischen Entscheidungen zu unterscheiden, deren
+Kapitel~\ref{kap:pipeline} hat gezeigt, dass die Pipeline die Anforderungen A1
+--A6 erfüllt. Das ist eine Aussage über den Entwurf, nicht über die Wirkung.
+Für eine belastbare Bilanz ist zwischen Entscheidungen zu unterscheiden, deren
 Nutzen \emph{gemessen} wurde, und solchen, die lediglich \emph{begründet} sind
 (Tabelle~\ref{tab:belegstand}).
 
@@ -61,12 +61,12 @@ Parameterwerten: 9 sind an den Realdaten gemessen, 8 literaturgestützt, 3
 physikalisch begründet, 9 gemischt und \textbf{14 ausdrücklich als Annahme
 gekennzeichnet}. Rund 67\,\% sind damit auf eine der drei zulässigen Quellen
 zurückgeführt -- die neun gemischten allerdings nur zur Hälfte --, 33\,\% sind
-Annahmen. Das ist keine Nebenbuchhaltung: Bei rein synthetischen Trainingsdaten
+Annahmen. Diese Bilanz ist nicht nebensächlich: Bei rein synthetischen Trainingsdaten
 ist die Liste dieser 43 Werte die vollständige Beschreibung der
 Trainingsverteilung.
 
-Kontrolliert \emph{abliert} ist davon \textbf{einer}. Das ist wenig, und es soll
-nicht schöngeredet werden: Die Begründungssystematik trägt den Entwurf, der
+Kontrolliert \emph{abliert} ist davon \textbf{einer}. Das ist wenig und wird hier nicht
+beschönigt: Die Begründungssystematik trägt den Entwurf, der
 experimentelle Nachweis trägt genau einen Punkt daraus.
 
 \absatz{Warum gerade dieser eine.} An der Okklusionsstufe sind zwei Fragen zu
@@ -74,56 +74,56 @@ stellen -- \emph{wie viel} verdeckt wird und \emph{woraus} die Verdecker
 bestehen. Die erste ist keine echte Entwurfsfreiheit: In den Realbildern liegen
 ausnahmslos Rohre vor den Stirnflächen, die Verdeckung ist also physikalische
 Randbedingung und nicht Dosierung. Die zweite dagegen ist frei entschieden, sie
-ist die teuerste Einzelentscheidung der Pipeline -- eine eigene
+ist die aufwendigste Einzelentscheidung der Pipeline -- eine eigene
 Verarbeitungsstufe mit Struktur-Tensor und Achsdetektion --, und sie war
 ausschließlich durch ein Argument gedeckt. Hinzu kommt ein methodischer Vorzug,
 den kaum eine Datensatz-Ablation hat: Weil sich nur die Pixelwerte innerhalb der
 Verdeckermasken unterscheiden, sind Labelzahl, Objektpositionen und
 Verdeckungsgrade \emph{byte-identisch}. Es gibt keine zweite Variable, auf die
-ein Ergebnisunterschied geschoben werden könnte.
+ein Ergebnisunterschied zurückgeführt werden könnte.
 
 \absatz{Was die Ablation ergeben hat.} Sie fällt anders aus, als die Pipeline
-es unterstellt hatte, und in eine lehrreiche Richtung: Die Behauptung ist
+es unterstellt hatte: Die Behauptung ist
 \emph{in der Sache} bestätigt und \emph{in ihrer starken Form} widerlegt.
 
 Der Unterschied zwischen einem naiv gezeichneten und einem sorgfältig
 modellierten Verdecker beträgt auf dem unberührten Testbild \zablBTestGap\PP{}
-\mAPfifty{} und \zablBTestGapFf\PP{} $F_1$ -- der größte Effekt, den diese Arbeit
-über einen Eingriff in die Trainingsdaten gemessen hat --, und er sitzt fast
-vollständig beim kleinsten Drittel der Objekte, wo der Rückruf von
+\mAPfifty{} und \zablBTestGapFf\PP{} $F_1$ -- der größte Effekt, den diese
+Arbeit über einen Eingriff in die Trainingsdaten gemessen hat; er entfällt
+fast vollständig auf das kleinste Drittel der Objekte, wo der Rückruf von
 \zBZeroTestRecKlein{} auf \zBTwoTestRecKlein{} fällt. Damit ist die zentrale
 Behauptung von \code{src/occluders.py} erstmals belegt: Die Textur- und
 Rauschstatistik des Verdeckers ist eine relevante Größe, kein Detail.
 
 Zugleich ist ihre starke Form widerlegt. Das an fünf Kennwerten kalibrierte
 Zylindermodell erreicht auf \code{test} dieselbe Leistung wie die
-photographische Bibliothek; die aufwendigste Vorstufe der Pipeline --
-Struktur-Tensor, Achsdetektion, Bindung an vier Clean Plates -- lässt sich durch
-rund vierzig Zeilen prozeduralen Code ersetzen. Für den Entwurf synthetischer
+photographische Bibliothek; die aufwendigste Vorstufe der Pipeline (Struktur-
+Tensor, Achsdetektion, Bindung an vier Clean Plates) lässt sich durch rund
+vierzig Zeilen prozeduralen Code ersetzen. Für den Entwurf synthetischer
 Pipelines ist das die übertragbare Aussage: \emph{Nicht die Herkunft der Pixel
 entscheidet, sondern ob ihre Statistik zur Umgebung passt.} Photographisches
-Material ist ein bequemer Weg dorthin, aber kein notwendiger -- und wo es fehlt,
-ist ein kalibriertes Modell die gleichwertige Alternative.
+Material ist ein naheliegender Weg dorthin, aber kein notwendiger -- und wo es
+fehlt, ist ein kalibriertes Modell die gleichwertige Alternative.
 
-Ein Detail verdient dabei besondere Beachtung, weil es die Erwartung verfehlt,
-die Abschnitt~\ref{sec:sim2real} aufgebaut hatte: Der naive Verdecker erzeugt
+Ein Detail verdient dabei besondere Beachtung, weil es der Erwartung
+widerspricht, die Abschnitt~\ref{sec:sim2real} aufgebaut hatte: Der naive Verdecker erzeugt
 \emph{keine} Falschpositiven. Die Precision bleibt bei \zBTwoTestPrec{} (gegen
 \zBZeroTestPrec{} bei B0), es bricht allein der Rückruf ein. Das Netz hat also
-nicht die Abkürzung \enquote{Objekt neben Balken} gelernt; es hat schlicht nie
-gesehen, wie ein \emph{texturierter} Zylinder über eine Stirnfläche läuft, und
-scheitert im Testbild an genau diesen Stellen. Die Signaturenliste S1--S6
+nicht die Abkürzung \enquote{Objekt neben Balken} gelernt; in seinen Trainingsdaten kam der Übergang
+eines \emph{texturierten} Zylinders über eine Stirnfläche nicht vor, und im
+Testbild scheitert es an eben diesen Stellen. Die Signaturenliste S1--S6
 beschreibt damit für Okkluder nicht das richtige Versagensmuster: Es ist keine
-Abkürzung, sondern eine gewöhnliche Domänenlücke -- nur eben eine, die nicht das
-Objekt betrifft, sondern das, was davorliegt.
+Abkürzung, sondern eine gewöhnliche Domänenlücke -- allerdings eine, die nicht das
+Objekt betrifft, sondern das davorliegende Material.
 
-\absatz{Die unbequeme Bilanz.} Der größte gemessene Einzeleffekt ist \emph{keine}
-Augmentierungsentscheidung, sondern die Inferenzauflösung: \zswValGain\PP{}
-\mAPfifty{} zwischen \code{imgsz}~640 und \zswValBestAt. Alle
-Augmentierungsentscheidungen zusammen bewegen sich in der Größenordnung weniger
-Prozentpunkte. Das relativiert den Aufwand der Pipeline nicht -- ohne sie gäbe es
-überhaupt keinen Trainingsdatensatz --, verschiebt aber die Priorität: Wer eine
-solche Anwendung baut, sollte die Auflösungsfrage \emph{zuerst} klären und erst
-danach die Feinheiten der Synthese optimieren.
+\absatz{Bilanz der Effektgrößen.} Der größte gemessene Einzeleffekt ist
+\emph{keine} Augmentierungsentscheidung, sondern die Inferenzauflösung:
+\zswValGain\PP{} \mAPfifty{} zwischen \code{imgsz}~640 und \zswValBestAt. Alle
+Augmentierungsentscheidungen zusammen bewegen sich in der Größenordnung
+weniger Prozentpunkte. Das relativiert den Aufwand der Pipeline nicht, denn
+ohne sie gäbe es überhaupt keinen Trainingsdatensatz; es verschiebt aber die
+Priorität: Bei der Entwicklung einer solchen Anwendung ist die Auflösungsfrage
+\emph{zuerst} zu klären; die Feinheiten der Synthese folgen danach.
 
 \absatz{Eine Größe verbindet fünf Entscheidungen.} Rückblickend trägt eine
 einzige Kenngröße den größten Teil der Arbeit: die effektive Objektgröße
@@ -134,7 +134,7 @@ Realobjekte 6--36\px{} groß sind (Abschnitt~\ref{sec:valtest});
 \emph{zweitens} die Trainingsauflösung 1024, weil sie der Leinwandgröße
 entspricht und die kalibrierte Verteilung damit unskaliert beim Netz ankommt
 (Abschnitt~\ref{sec:trainingsaufbau}); \emph{drittens} die Wahl des P2-Kopfes,
-weil er $S$ von 8 auf 4 senkt und die Zuweisungsgrenze $S\sqrt{2}$ damit unter
+weil er $S$ von 8 auf 4 senkt und die kritische Größe $S\sqrt{2}$ damit unter
 alle auftretenden Objektgrößen schiebt (Abschnitt~\ref{sec:p2kopf});
 \emph{viertens} die Inferenzauflösung (Abschnitt~\ref{sec:imgsz}); und
 \emph{fünftens} die Erklärung des größten gemessenen Einzeleffekts der Arbeit --
@@ -149,10 +149,11 @@ ist.
 
 \absatz{Grenzen der Pipeline.} \emph{(1)} Nur neun Quellobjekte -- jedes
 erscheint rund 15\,100-mal als gelabeltes Objekt. Die photometrische und
-geometrische Streuung mildert das, hebt es aber nicht auf; Augmentierung erzeugt
-keine neue Information über die Objektklasse. Das ist der Hauptgrund für die
-Wahl der Modellgröße \enquote{s}: Kapazität, die über die vorhandene Formvielfalt
-hinausgeht, kann sie nur memorieren \parencite{zhang2017rethinking}. \emph{(2)} Nur diffuses Licht im
+geometrische Streuung mildert das, hebt es aber nicht auf; Augmentierung
+erzeugt keine neue Information über die Objektklasse. Das ist der Hauptgrund
+für die Wahl der Modellgröße \enquote{s}: Kapazität, die über die vorhandene
+Formvielfalt hinausgeht, kann sie nur memorieren
+\parencite{zhang2017rethinking}. \emph{(2)} Nur diffuses Licht im
 Quellmaterial: Harte Schlagschatten, Gegenlicht, Nässe und Schnee fehlen
 vollständig und werden nur approximativ über die globale photometrische Stufe
 angenähert -- die größte verbleibende Domänenlücke, von der Fehleranalyse
@@ -163,23 +164,24 @@ erzeugt damit eine schwächere neue Auffälligkeit. \emph{(4)} Elf Werte sind
 Annahmen (Dellen, Perspektive, Schlagschatten, vertikale Spiegelung, HSV je
 Instanz, globale Helligkeit/Kontrast, globale Farbtemperatur,
 Bewegungsunschärfe, die Clustergröße des Layoutmodells sowie Reflect-Padding
-und Vignettierung). \emph{(4a)} Der Generator deckt 12--44\px{} ab, \code{test}
-enthält aber vier Objekte darunter; diese Lücke schließt erst die
-Trainingsskalierung. \emph{(5)} Die synthetischen Cluster sind
-dichter als real -- bewusst als Robustheitsreserve belassen; die umgekehrte
-Abweichung wäre gefährlich gewesen. \emph{(6)} Die Schaftrichtung ist an der
-gemessenen Säulenrichtung des Clusters kalibriert, nicht an der Rohrrichtung des
-Hintergrunds: Sie entsteht als Senkrechte zur Säulenrichtung mit einer Streuung
-von $55^\circ$ bis $125^\circ$, während die vier Clean Plates ihre Rohre
-zwischen $-1{,}6^\circ$ und $+6{,}6^\circ$ zur Waagerechten haben
+und Vignettierung). \emph{(4a)} Der Generator deckt 12--44\px{} ab,
+\code{test} enthält aber vier Objekte darunter; diese Lücke schließt erst die
+Trainingsskalierung. \emph{(5)} Die synthetischen Cluster sind dichter als
+real -- bewusst als Robustheitsreserve belassen; die umgekehrte Abweichung
+wäre problematisch. \emph{(6)} Die Schaftrichtung ist an der gemessenen
+Säulenrichtung des Clusters kalibriert, nicht an der Rohrrichtung des
+Hintergrunds: Sie entsteht als Senkrechte zur Säulenrichtung mit einer
+Streuung von $55^\circ$ bis $125^\circ$, während die vier Clean Plates ihre
+Rohre zwischen $-1{,}6^\circ$ und $+6{,}6^\circ$ zur Waagerechten haben
 (Struktur-Tensor, \code{src/occluders.py}). In 19,1\,\% der Cluster kreuzt der
 Schaft die Hintergrundrohre deshalb unter mehr als $60^\circ$; betroffen sind
-21,6\,\% aller erzeugten Bilder. Weil alle Rohre eines Stapels parallel liegen,
-ist das dieselbe Unstimmigkeit, gegen die die enge Streuung von $\pm11^\circ$
-\emph{innerhalb} eines Clusters gesetzt ist -- zwischen Cluster und Hintergrund
-wird sie nicht erzwungen. Auch hier geht die Abweichung in Richtung mehr
-Variation, ihr Nutzen ist aber nicht geprüft; ein Angleich wäre billig, weil die
-dominante Hintergrundrichtung gemessen vorliegt.
+21,6\,\% aller erzeugten Bilder. Weil alle Rohre eines Stapels parallel
+liegen, ist das dieselbe Unstimmigkeit, gegen die die enge Streuung von
+$\pm11^\circ$ \emph{innerhalb} eines Clusters gesetzt ist -- zwischen Cluster
+und Hintergrund wird sie nicht erzwungen. Auch hier geht die Abweichung in
+Richtung mehr Variation, ihr Nutzen ist aber nicht geprüft; ein Angleich wäre
+mit geringem Aufwand möglich, weil die dominante Hintergrundrichtung gemessen
+vorliegt.
 
 \absatz{Grenzen der Bewertung.} Die schwerwiegendste methodische Schwäche liegt
 nicht in der Pipeline, sondern in der Bewertung: \emph{je ein Bild} pro Split.
@@ -200,28 +202,28 @@ Inferenzauflösung. \code{test} ist damit ein sauberer Endtest, \code{val} aber
 kein unabhängiger Bewertungssplit mehr; die belastbaren Zahlen sind die
 \code{test}-Zahlen.
 
-\absatz{Grenzen der Ablation.} Vier Vorbehalte bleiben.
-\emph{Erstens} das reduzierte Budget: 3000 Bilder und 30 Epochen sind aus der
-Rechenzeit gewählt, nicht aus einem Konvergenzkriterium. Es ist für alle drei
-Arme gleich und kann den Vergleich deshalb nicht verzerren, begrenzt aber die
-absolute Höhe der Zahlen -- ein Effekt, der sich erst nach 60 Epochen zeigte,
-bliebe unentdeckt. \emph{Zweitens} je ein Lauf pro Arm: Ohne Wiederholung mit
-verschiedenen Trainings-Seeds ist die Streuung des Trainings selbst unbekannt und
-von der Wirkung des Datensatzes nicht zu trennen. Das ist die gewichtigste
-Einschränkung, und sie ist mit Rechenzeit behebbar -- drei Seeds je Arm wären
-neun statt drei Läufen. Der B2-Effekt ist groß genug, um sie zu überstehen; die
-Aussage \enquote{B1 ist so gut wie B0} ist es nicht, sie bleibt eine
-Nicht-Ablehnung. \emph{Drittens} ist die Ablation ein \emph{Eingriff in eine
-Richtung}: Sie zeigt, was passiert, wenn man die Okkluder verschlechtert, nicht,
-was ein besserer Entwurf derselben Stufe brächte. \emph{Viertens} trifft die
-Kalibrierung von B1 fünf skalare Kennwerte, nicht die räumliche
-Korrelationsstruktur des Restsignals. B1 ist damit ein sorgfältig kalibriertes,
-nicht das bestmögliche prozedurale Modell; jede Aussage zugunsten der
-photographischen Bibliothek gilt gegen \emph{diese} Modellklasse, nicht gegen
-prozedurale Okkluder schlechthin. \emph{Fünftens} ist die Aufschlüsselung nach
-Objektgröße nur ein Stellvertreter für die Stapeltiefe -- die realen Bilder
-tragen keine Verdeckungsannotation, der Verdeckungsgrad je Objekt ist also nicht
-direkt messbar.
+\absatz{Grenzen der Ablation.} Vier Vorbehalte bleiben. \emph{Erstens} das
+reduzierte Budget: 3000 Bilder und 30 Epochen sind aus der Rechenzeit gewählt,
+nicht aus einem Konvergenzkriterium. Es ist für alle drei Arme gleich und kann
+den Vergleich deshalb nicht verzerren, begrenzt aber die absolute Höhe der
+Zahlen; ein Effekt, der sich erst nach 60 Epochen zeigte, bliebe unentdeckt.
+\emph{Zweitens} je ein Lauf pro Arm: Ohne Wiederholung mit verschiedenen
+Trainings-Seeds ist die Streuung des Trainings selbst unbekannt und von der
+Wirkung des Datensatzes nicht zu trennen. Das ist die gewichtigste
+Einschränkung, und sie ist mit Rechenzeit behebbar: Drei Seeds je Arm wären
+neun statt drei Läufen. Der B2-Effekt ist groß genug, um dieser Einschränkung
+standzuhalten; die Aussage \enquote{B1 ist so gut wie B0} ist es nicht, sie
+bleibt eine Nicht-Ablehnung. \emph{Drittens} ist die Ablation ein
+\emph{Eingriff in eine Richtung}: Sie zeigt die Folgen einer Verschlechterung
+der Okkluder, nicht den Ertrag eines besseren Entwurfs derselben Stufe.
+\emph{Viertens} trifft die Kalibrierung von B1 fünf skalare Kennwerte, nicht
+die räumliche Korrelationsstruktur des Restsignals. B1 ist damit ein
+sorgfältig kalibriertes, nicht das bestmögliche prozedurale Modell; jede
+Aussage zugunsten der photographischen Bibliothek gilt gegen \emph{diese}
+Modellklasse, nicht gegen prozedurale Okkluder schlechthin. \emph{Fünftens}
+ist die Aufschlüsselung nach Objektgröße nur ein Stellvertreter für die
+Stapeltiefe; die realen Bilder tragen keine Verdeckungsannotation, der
+Verdeckungsgrad je Objekt ist also nicht direkt messbar.
 
 \absatz{Nächste Schritte.} Jede der genannten Grenzen hat eine Gegenmaßnahme;
 nach erwartetem Nutzen geordnet:
@@ -229,8 +231,7 @@ nach erwartetem Nutzen geordnet:
 \begin{enumerate}[itemsep=3pt,leftmargin=1.6em]
   \item \textbf{Labelkonvention angleichen.} Eine geänderte Boxschwelle im
   Generator genügt, und die Sensitivitätsrechnung lässt auf \code{test} rund
-  \zsensTestGain{} Punkte \mAPseven{} erwarten -- der billigste große Gewinn der
-  Liste, zu erledigen vor jeder weiteren Optimierung.
+  \zsensTestGain{} Punkte \mAPseven{} erwarten; das ist der mit geringstem Aufwand erreichbare Gewinn dieser Liste, anzugehen vor jeder weiteren Optimierung.
   \item \textbf{Mehr Bewertungsdaten und mehrere Seeds.} Zehn bis zwanzig
   annotierte Realbilder würden die Konfidenzintervalle auf ein Maß bringen, bei
   dem auch kleinere Differenzen entscheidbar wären; drei Trainings-Seeds je Arm
@@ -238,15 +239,14 @@ nach erwartetem Nutzen geordnet:
   Zusammen sind das die beiden Punkte, die aus einem Hinweis einen Nachweis
   machen.
   \item \textbf{Die übrigen Anti-Abkürzungs-Maßnahmen ablieren.} Diese Arbeit
-  hat den Weg für eine Maßnahme vorgemacht; je ein Lauf mit abgeschaltetem
+  hat das Vorgehen an einer Maßnahme gezeigt; je ein Lauf mit abgeschaltetem
   Farb-, Rausch- und Unschärfeangleich sowie ohne JPEG-Durchlauf würde die
   restlichen Signaturen entsprechend prüfen. Zielgröße wäre der
   Sim-to-Real-Abstand. Dazu gehört auch der Verdeckungs\emph{grad}, dessen Arme
   im Repositorium bereits trainiert vorliegen (\code{runs/A0\_keine\_okklusion}, \code{A1\_baseline},
   \code{A2\_starke\_okklusion}), aber nicht Teil dieser Auswertung sind.
   \item \textbf{Breiteres Quellmaterial.} Zusätzliche Clean Plates bei harter
-  Sonne, Gegenlicht und Nässe gegen die verbleibende Domänenlücke -- die
-  Fehleranalyse weist sie als den Fehlertyp aus, der nicht auf Objektgröße
+  Sonne, Gegenlicht und Nässe gegen die verbleibende Domänenlücke; die Fehleranalyse weist sie als den Fehlertyp aus, der nicht auf Objektgröße
   zurückgeht.
 \end{enumerate}
 
@@ -255,36 +255,32 @@ nach erwartetem Nutzen geordnet:
 Ein ausschließlich auf synthetischen Bildern trainierter Detektor erreicht auf
 zwei echten Aufnahmen \mAPfifty{} von \textbf{\zrefValMap} und
 \textbf{\zrefTestMap} bei einem besten $F_1$ von \zrefValFf{} und \zrefTestFf;
-auf \code{test}, das Training und Modellauswahl nie berührt, sitzt von
-\znPredTest{} Detektionen \zfpTest{} nicht auf einem annotierten Objekt. Für eine
-Anwendung, für die kein einziges handannotiertes Trainingsbild existiert, ist das
-ein brauchbares Ergebnis.
+auf \code{test}, das Training und Modellauswahl nie berührt, liegt von
+\znPredTest{} Detektionen \zfpTest{} nicht auf einem annotierten Objekt. Für
+eine Anwendung, für die kein einziges handannotiertes Trainingsbild existiert,
+ist das ein tragfähiges Ergebnis.
 
 Methodisch tragen drei Einsichten:
 
 \begin{enumerate}[itemsep=3pt]
   \item \textbf{Bei rein synthetischen Trainingsdaten ist die Pipeline die
   Hypothese.} Jede Entscheidung über eine Transformation ist eine Aussage
-  darüber, welche Invarianzen in der Zieldomäne gelten. Die Begründungspflicht --
-  Messung, physikalische Randbedingung oder ausgewiesene Annahme -- ist deshalb
-  keine Formalität, sondern das eigentliche Handwerk. Und sie hat einen
-  Nebeneffekt, den diese Arbeit ausnutzt: Wer jede Begründung ausschreibt, macht
+  darüber, welche Invarianzen in der Zieldomäne gelten. Die Begründungspflicht (Messung, physikalische Randbedingung oder ausgewiesene Annahme) ist deshalb keine Formalität, sondern das eigentliche Handwerk. Sie hat zudem einen
+  Nebeneffekt, den diese Arbeit nutzt: Wer jede Begründung ausschreibt, macht
   sichtbar, welche davon noch nie geprüft wurde.
   \item \textbf{Nicht die Herkunft der eingefügten Pixel entscheidet, sondern
   ihre Statistik -- und das gilt auch für alles, was vor dem Objekt liegt.} Der
-  teuerste Baustein der Pipeline, eine aus Realaufnahmen extrahierte
+  aufwendigste Baustein der Pipeline, eine aus Realaufnahmen extrahierte
   Okkluder-Bibliothek, lässt sich durch ein an fünf Kennwerten kalibriertes
   prozedurales Modell ersetzen, ohne messbaren Verlust. Weglassen lässt sich die
   Kalibrierung dagegen nicht: Ein flächig grauer Balken kostet
   \zablBTestGap\PP{} \mAPfifty{} auf dem Testbild. Der Verlust zeigt sich nicht
-  als Falschpositive, sondern als eingebrochener Rückruf bei den kleinsten
-  Objekten -- also genau dort, wo im Zielbild tatsächlich verdeckt wird. Wer
+  als Falschpositive, sondern als eingebrochener Rückruf bei den kleinsten Objekten, also genau dort, wo im Zielbild tatsächlich verdeckt wird. Wer
   Copy-Paste-Synthese betreibt, muss die Realismusanforderungen, die er an das
   Objekt stellt, auch an die Verdecker stellen.
   \item \textbf{Auflösung dominiert, und die Labelkonvention ist Teil des
   Messinstruments.} Zwischen \code{imgsz}~640 und dem Optimum liegen
-  \zswValGain\PP{} \mAPfifty{} -- mehr als alle Augmentierungsentscheidungen
-  zusammen. Und ein systematischer Größenversatz von rund zwei Pixeln zwischen
+  \zswValGain\PP{} \mAPfifty, mehr als alle Augmentierungsentscheidungen zusammen. Und ein systematischer Größenversatz von rund zwei Pixeln zwischen
   Generatorlabel und Handannotation verschiebt \mAPseven{} auf dem Testbild von
   \zsensTestMapSOrig{} auf \zsensTestMapSNeu, ohne dass sich am Modell etwas
   ändert. Wer Lokalisierungsmetriken bei 20\px-Objekten berichtet, muss beide

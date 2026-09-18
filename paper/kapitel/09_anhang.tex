@@ -43,8 +43,8 @@ python paper/tools/abbildungen_vorbereiten.py
 \end{verbatim}
 \end{footnotesize}
 
-Zwei Eigenheiten der Ausführungsumgebung erzwingen Trainingsparameter, die man
-sonst anders setzen würde. Erstens verklemmt sich in der verwendeten Kombination
+Zwei Eigenheiten der Ausführungsumgebung erzwingen Trainingsparameter, die sonst
+anders zu setzen wären. Erstens blockiert in der verwendeten Kombination
 aus \code{opencv-python}~5.0.0.93 und \code{torch}~2.13 der fork-basierte
 DataLoader reproduzierbar beim ersten Batch, sobald \code{workers > 0} gesetzt
 ist -- unabhängig von \code{cv2.setNumThreads(0)}, deaktiviertem OpenCL,
@@ -134,9 +134,9 @@ Skalenfaktoren -- für Querschnittskontrast, Kornstärke und Farbsättigung -- p
 Fixpunktiteration so bestimmt, dass die erzeugte Bibliothek die an
 \code{assets/bars/} gemessenen Kennwerte trifft. Die Iteration ist nötig, weil
 das Beleuchtungsmodell systematisch verzerrt: Der Lambert-Term erzeugt mehr
-Querschnittskontrast als real gemessen, und der Hochpass-Schätzer nach
-Die Hochpassschätzung (Abschnitt~\ref{sec:modellentscheidungen}) unterschätzt weißes Rauschen gegenüber korrelierter
-Sensortextur. Ohne Angleich unterschieden sich die Bibliotheken nicht nur in der
+Querschnittskontrast als real gemessen, und die Hochpassschätzung
+(Abschnitt~\ref{sec:modellentscheidungen}) unterschätzt weißes Rauschen
+gegenüber korrelierter Sensortextur. Ohne Angleich unterschieden sich die Bibliotheken nicht nur in der
 Mikrotextur, sondern auch in Kontrast, Korn und Farbe -- ein Ergebnis wäre dann
 nicht zuzuordnen.
 
@@ -188,9 +188,9 @@ Alphamaske & \multicolumn{3}{c}{identisch (dieselbe Kapselfunktion)} \\
 \end{table}
 
 Zwei Kennwerte weichen bewusst ab. Der \emph{Farbstich} wird nicht frei
-gewürfelt, sondern aus dem gemessenen Kanalverhältnis gezogen: Verzinkter Stahl
+variiert, sondern aus dem gemessenen Kanalverhältnis gezogen: Verzinkter Stahl
 unter bedecktem Himmel ist fast neutral mit leichtem Blaustich. Ein
-gleichverteilter Farbton hätte die Stangen rosa und grün gemacht -- ein
+gleichverteilter Farbton hätte rosa und grün gefärbte Stangen erzeugt -- ein
 Unterschied, den die Ablation nicht messen soll. Das \emph{Korn} ist überwiegend
 Luminanzrauschen, also über alle drei Kanäle identisch; Bayer-Interpolation und
 die 4:2:0-Chroma-Unterabtastung von JPEG tiefpassfiltern den Farbanteil, und
@@ -309,7 +309,7 @@ eigene Analyse am $F_1$-optimalen Betriebspunkt &
 \code{src/analyse\_ablationB.py} \\
 \addlinespace
 Abgeleitete Größen: IoU-Verläufe, effektive Objektgröße, Kandidatenzellen,
-Zuweisungsgrenze, effektive Größenspanne &
+kritische Größe, effektive Größenspanne &
 \textbf{abgeleitet} -- aus den Gleichungen~\eqref{eq:iou},
 \eqref{eq:ioushift}, \eqref{eq:deff} und~\eqref{eq:gridcount} berechnet &
 im Text nachrechenbar \\
@@ -409,7 +409,7 @@ vertikale Spiegelung & 14,9\,\% & Ebenfalls label-exakt. Der genaue Anteil ist b
 Kleinrotation $\pm6^\circ$ (Zoom 1,06) & 34,3\,\% & Die Rohrlinien sind nie exakt achsparallel: Der Struktur-Tensor misst für die vier Clean Plates $+0{,}9$, $-1{,}6$, $+0{,}9$ und $+6{,}6$ Grad (Abschnitt~\ref{sec:matting}), was den Bereich setzt. Wirkt vor dem Einfügen, betrifft also keine Boxen. & M \\
 \addlinespace
 \multicolumn{4}{@{}l}{\textbf{T2 -- Instanzgeometrie} \hfill\emph{Anteile je gerenderter Instanz}}\\
-Rotation $0$--$360^\circ$ & 100\,\% & Rohrenden haben keine kanonische Orientierung -- die einzige Orientierungsinformation ist das Glanzlicht, und dessen Richtung hängt vom Sonnenstand ab. Volle Rotationsinvarianz ist korrekt \emph{und} kostenlos, daher 100\,\% statt eines Bruchteils. & P \\
+Rotation $0$--$360^\circ$ & 100\,\% & Rohrenden haben keine kanonische Orientierung -- die einzige Orientierungsinformation ist das Glanzlicht, und dessen Richtung hängt vom Sonnenstand ab. Volle Rotationsinvarianz ist korrekt \emph{und} ohne Mehraufwand, daher 100\,\% statt eines Bruchteils. & P \\
 Skalierung auf 12--44\px{} (Abschnitt~\ref{sec:modellentscheidungen}) & 100\,\% & Realmessung 12,2--35,8\px{} plus 25\,\% Reserve; Ist-Verteilung p05/Median/p95 = 11,6/22,5/39,9\px. Verkleinerung flächentreu, weil bilineare Interpolation Aliasing im Objekt zurückließe. & M (S3) \\
 Ovalisierung 0,66--0,97 bzw.\ 1,03--1,30 & 57,1\,\% & Gemessenes Seitenverhältnis p10--p90 = 0,85--1,31; über die Hälfte der echten Boxen weicht um $\geq5\,\%$ vom Quadrat ab. Oblat dominiert (45:12), weil Schrägansicht die Höhe verkürzt. & M \\
 Delle, 1--2 Sektoren, Tiefe 10--30\,\% & 18,1\,\% & Mechanisch beschädigte Enden. \textbf{Anteil ist Annahme} -- Dellen sind nicht annotiert. 18\,\% lässt das Modell die Verformung regelmäßig sehen, ohne die Rundheit als Merkmal zu verwässern. & A \\
@@ -431,17 +431,17 @@ Schlagschatten, $\kappa$ 0,18--0,45 & 49,3\,\% & Ohne Kontaktschatten \enquote{s
 gescherte Gitterpackung, 1--3 Cluster, Gl.~\eqref{eq:layout} & 100\,\% & Kalibriert am gemessenen NN-Abstand und an der Nachbarzahl (Tabelle~\ref{tab:kalibrierung}); eine Basisgröße pro Cluster nach Befund~7. & M \\
 \quad Gitterabstände $s_1$, $s_2$ & -- & $s_1 \in [0{,}98;\,1{,}60]\,d_0$ und $s_2 \in [0{,}98;\,1{,}85]\,d_0$. Untergrenze physikalisch (Rohrzentren durchdringen sich nicht); die 2\,\% Spiel wegen der modalen Boxkonvention, die $d_0$ bei Verdeckung kleiner macht als das Rohr -- gemessener NN-Abstand p10 $=0{,}86$ bzw.\ $0{,}83\,\Oe$. Die Obergrenzen sind an Median und p90 des NN-Abstands eingestellt. & P/M \\
 \quad Gitterrauschen $\sigma$ & -- & $\sigma = 0{,}17\,d_0$, \emph{an der erzeugten Statistik gegen die Realmessung kalibriert}: Der Wert setzt p10 und Berührungsquote (Tabelle~\ref{tab:kalibrierung}); ohne diesen Term entstünden sichtbar künstliche Reihen. & M \\
-\quad Winkel zwischen $\mathbf{e}_1$ und $\mathbf{e}_2$: $55^\circ$--$125^\circ$ & 100\,\% & Scherung des Gitters, abgeleitet aus dem Histogramm der Nachbarrichtungen (quasi isotrop, Häufung $90$--$150^\circ$). & M \\
+\quad Winkel zwischen $\mathbf{e}_1$ und $\mathbf{e}_2$: $55^\circ$--$125^\circ$ & 100\,\% & Scherung des Gitters, abgeleitet aus dem Histogramm der Nachbarrichtungen (näherungsweise isotrop, Häufung $90$--$150^\circ$). & M \\
 \quad Clusterorientierung $\varphi$ & 100\,\% & Absolute Lage des Gitters im Bild: $\varphi \sim \mathcal{U}[60^\circ;\,150^\circ]$ in 60\,\% der Cluster, sonst $\mathcal{U}[0^\circ;\,180^\circ]$. Nicht an der Stapelorientierung der Realbilder gemessen. & A \\
 \quad Clustergröße $n_1 \le 13$, $n_2 \le 6$ & -- & Steuert Nachbarzahl und Objektzahl je Bild (erzeugt: 22,7 Objekte je Bild), ist aber nicht einzeln kalibriert -- die Realbilder geben keine Clusterausdehnung her (Annahme). & A \\
-abgedunkelte Mulde je Cluster & 0,87 je Bild & Die Stirnflächen liegen vor dem verschatteten Stapelinneren -- das ist die physikalische Randbedingung; ohne Abdunklung stünden die dunklen Bohrungen kontrastmäßig zu isoliert da. \textbf{Häufigkeit und Stärke sind gesetzt.} & P/A \\
+abgedunkelte Mulde je Cluster & 0,87 je Bild & Die Stirnflächen liegen vor dem verschatteten Stapelinneren -- das ist die physikalische Randbedingung; ohne Abdunklung stünden die dunklen Bohrungen im Kontrast zu isoliert. \textbf{Häufigkeit und Stärke sind gesetzt.} & P/A \\
 \addlinespace
 \multicolumn{4}{@{}l}{\textbf{T5 -- Rohrschaft} \hfill\emph{je Instanz}}\\
-echter Rohrschaft dahinter, Länge 2--24\,\Oe & 88,0\,\% & \textbf{Wichtigste Einzelentscheidung} (Befund~8): Ein dunkler Kreis mitten auf einem durchgehenden Rohr ist physikalisch unmöglich. Lange Schäfte, weil real jedes Rohr aus dem Ausschnitt herausläuft; kurze Stummel wären ein verräterisches Muster. Die Randbedingung begründet \emph{jede} Instanz; \textbf{der Anteil von 88\,\% und der Längenbereich sind gesetzt} -- die verbleibenden 12\,\% halten den Schaft als Merkmal davon ab, mit der Stirnfläche vollständig zusammenzufallen. Dass der Schaft aus einer \emph{photographischen} Bibliothek stammt, ist durch Ablation~B belegt (Abschnitt~\ref{sec:ablationB}). & P/A \\
+echter Rohrschaft dahinter, Länge 2--24\,\Oe & 88,0\,\% & \textbf{Wichtigste Einzelentscheidung} (Befund~8): Ein dunkler Kreis mitten auf einem durchgehenden Rohr ist physikalisch unmöglich. Lange Schäfte, weil real jedes Rohr aus dem Ausschnitt herausläuft; kurze Stummel wären ein erkennbares Muster. Die Randbedingung begründet \emph{jede} Instanz; \textbf{der Anteil von 88\,\% und der Längenbereich sind gesetzt} -- die verbleibenden 12\,\% halten den Schaft als Merkmal davon ab, mit der Stirnfläche vollständig zusammenzufallen. Dass der Schaft aus einer \emph{photographischen} Bibliothek stammt, ist durch Ablation~B belegt (Abschnitt~\ref{sec:ablationB}). & P/A \\
 Schaftrichtung je Cluster parallel, $\pm11^\circ$ & 100\,\% & Alle Rohre eines Stapels liegen parallel; die Randbedingung begründet damit die Parallelität, nicht die Streuung: \textbf{die $\pm11^\circ$ sind am optischen Eindruck kalibriert}, weil $\pm18^\circ$ einen sternförmigen Fächer erzeugte, den es real nicht gibt. Die Bedingung gilt \emph{innerhalb} eines Clusters; gegen die
 Rohrrichtung des Hintergrunds ist sie nicht erzwungen
 (Abschnitt~\ref{sec:grenzen}). & P/A \\
-Helligkeitsangleich des Schafts, $\kappa$ 0,35--0,75 & 100\,\% & Die Bibliothek stammt aus vier Aufnahmen mit Hintergrundmittel 70--102 Grauwerten; ohne Angleich klebten sichtbar zu dunkle Rohre im Bild. & M \\
+Helligkeitsangleich des Schafts, $\kappa$ 0,35--0,75 & 100\,\% & Die Bibliothek stammt aus vier Aufnahmen mit Hintergrundmittel 70--102 Grauwerten; ohne Angleich stünden sichtbar zu dunkle Rohre im Bild. & M \\
 Tiefenmodell: 75\,\% ganz hinten, 25\,\% eingereiht & -- & An der erzeugten Statistik kalibriert: Mit zufälliger Tiefenordnung stieg der synthetische NN-Abstand auf $1{,}55\,\Oe$, rund 40\,\% über dem realen Wert; mit 75/25 liegt er bei $1{,}17\,\Oe$. & M \\
 \addlinespace
 \multicolumn{4}{@{}l}{\textbf{T6 -- Okklusion} \hfill\emph{Anteile je Bild}}\\
@@ -492,15 +492,15 @@ Standard; verhindert eine Positionsverzerrung zur Bildmitte. \\
 \code{fliplr} & 0,5 &
 Label-exakt und physikalisch korrekt. \\
 \code{flipud} & 0,5 &
-Ebenfalls label-exakt. Für Naturbilder unüblich, hier richtig: Ein Rohrende hat
-kein \enquote{oben}. \\
+Ebenfalls label-exakt. Für Naturbilder unüblich, hier jedoch zutreffend: Ein Rohrende
+besitzt keine ausgezeichnete Oberseite. \\
 \code{hsv\_h/s/v} & 0,015 / 0,7 / 0,4 &
 Kleiner Farbtonversatz (verzinkter Stahl ist neutral), kräftige
 Sättigungsvariation (neutralgrau bis rostbraun), Helligkeitsvariation für
 Sonne und Schatten. \\
 \midrule
 \code{degrees} \code{shear} \code{perspective} & 0,0 &
-\textbf{Bewusst aus.} Bildrotation bläht achsparallele Boxen auf -- bei
+\textbf{Bewusst aus.} Bildrotation weitet achsparallele Boxen auf -- bei
 $10^\circ$ um 15,8\,\% der Kantenlänge, was die Überlappung mit der korrekten Box
 auf 0,745 senkt (Abschnitt~\ref{subsec:aabb-rotation}). Die nötige Rotations- und
 Perspektivinvarianz liefert der Generator label-exakt. \\
