@@ -4,48 +4,45 @@
 \thispagestyle{plain}
 
 An gestapelten mobilen Bauzaunfeldern sind die Stirnflächen der Rahmenrohre zu
-detektieren: kleine, nahezu identische Kreisringe, dicht gepackt und
-wechselseitig verdeckt. Annotierte Datensätze existieren nicht, die
-Handannotation hunderter Kleinobjekte pro Bild ist teuer. Der Ansatz umgeht es:
-Trainiert wird \emph{ausschließlich} auf synthetischen Bildern aus neun
-freigestellten Objektausschnitten und sieben Hintergrundaufnahmen, validiert
-und getestet auf echten Aufnahmen.
+detektieren: kleine, nahezu identische Kreisringe in dichter Packung und
+wechselseitiger Verdeckung. Annotierte Datensätze liegen nicht vor, und die
+Handannotation hunderter Kleinobjekte je Bild ist aufwendig. Die Arbeit
+umgeht diese Abhängigkeit: Trainiert wird \emph{ausschließlich} auf
+synthetischen Bildern aus neun freigestellten Objektausschnitten und sieben
+Hintergrundaufnahmen, validiert und getestet auf realen Aufnahmen.
 
-Den Schwerpunkt trägt damit die \textbf{Augmentierungs- und Synthese-Pipeline},
-nicht die Netzarchitektur: Sie erzeugt die Trainingsverteilung vollständig. Aus
-den Grundlagen der Datenaugmentierung -- Kodierung von Invarianzen,
-Rauschregularisierung, Mittel gegen \enquote{Shortcut Learning} -- entwickelt
-die Arbeit eine Begründungspflicht: Jeder Parameter stützt sich auf eine an den
-Realdaten \emph{gemessene} Eigenschaft, eine \emph{physikalische
-Randbedingung} oder ein \emph{Literaturargument} -- sonst gilt er ausdrücklich
-als \emph{Annahme}. Die Pipeline umfasst 36 Transformationen mit 43
-Parameterwerten (6000 Bilder, 136\,384 gelabelte Objekte): 9 gemessen, 8
-literaturgestützt, 3 physikalisch begründet, 9 gemischt, \textbf{14 als Annahme
-gekennzeichnet}. Auf zwei realen Aufnahmen erreicht das Verfahren \mAPfifty{}
-von \textbf{\zrefValMap} und \textbf{\zrefTestMap} bei einem besten $F_1$ von
-\zrefValFf{} und \zrefTestFf; \code{test} berührt Training und Modellauswahl
-nie. Der Sim-to-Real-Abstand zum synthetischen Split beträgt nur
-\zsimRealVal{} bzw.\ \zsimRealTest\PP.
+Der methodische Schwerpunkt verlagert sich damit von der Netzarchitektur auf
+die \textbf{Augmentierungs- und Synthese-Pipeline}, die die Trainingsverteilung
+vollständig erzeugt. Aus den theoretischen Grundlagen der Datenaugmentierung --
+Invarianzkodierung, Rauschregularisierung, Shortcut-Vermeidung -- wird eine
+Begründungspflicht abgeleitet: Jeder Parameter stützt sich auf eine gemessene
+Eigenschaft der Realdaten, eine \emph{physikalische Randbedingung} oder ein
+\emph{Literaturargument}; andernfalls wird er als \emph{Annahme} ausgewiesen. Die Pipeline umfasst 36 Transformationen mit 43
+Parameterwerten; davon sind 9 gemessen, 8 literaturgestützt, 3 physikalisch
+begründet, 9 gemischt und \textbf{14 als Annahme gekennzeichnet}. Auf zwei
+realen Aufnahmen erreicht das Verfahren \mAPfifty{} von \textbf{\zrefValMap}
+und \textbf{\zrefTestMap} bei bestem $F_1$ von \zrefValFf{} und
+\zrefTestFf; \code{test} geht weder in Training noch Modellauswahl ein. Der
+Sim-to-Real-Abstand zum synthetischen Validierungssplit beträgt \zsimRealVal{}
+bzw.\ \zsimRealTest\PP.
 
-Geprüft wird die Pipeline an ihrer aufwendigsten Stufe, der Verdeckung:
-\textbf{woraus die Verdecker bestehen dürfen}. Die aus Realaufnahmen
-geschnittene Okkluder-Bibliothek wird durch zwei prozedurale ersetzt, eine
-kalibrierte und eine naive -- gleicher Seed, byte-identische Labels, also ein
-gepaarter Versuch mit allein variierenden Verdeckerpixeln. Ein naiv
-gezeichneter grauer Balken kostet auf dem unberührten Testbild
-\textbf{\zablBTestGap\PP{} \mAPfifty} und \zablBTestGapFf\PP{} $F_1$ -- fast
-vollständig beim kleinsten Objektdrittel, wo der Rückruf von
-\zBZeroTestRecKlein{} auf \zBTwoTestRecKlein{} fällt. Das an fünf Kennwerten
-kalibrierte Zylindermodell erreicht dagegen dieselbe Leistung wie die
-photographische Bibliothek: Entscheidend ist nicht die \emph{Herkunft} der
-Verdeckerpixel, sondern ob ihre Statistik zur Umgebung passt.
+Überprüft wird die Pipeline an ihrer aufwendigsten Stufe, der Verdeckung: Die
+aus Realaufnahmen geschnittene Okkluder-Bibliothek wird durch zwei prozedurale ersetzt, eine an ihr kalibrierte und eine naive. Alle drei Datensätze
+entstammen demselben Seed; ihre Labeldateien sind byte-identisch -- ein
+gepaarter Versuch, in dem allein die Verdeckerpixel variieren. Ein naiv gezeichneter grauer
+Balken senkt auf dem unberührten Testbild
+\mAPfifty{} um \textbf{\zablBTestGap\PP{}} und $F_1$ um \zablBTestGapFf\PP{} --
+nahezu vollständig im kleinsten Objektdrittel, dessen Rückruf von
+\zBZeroTestRecKlein{} auf \zBTwoTestRecKlein{} sinkt. Ein an fünf Kennwerten kalibriertes Zylindermodell erreicht dagegen dieselbe Leistung wie
+die photographische Bibliothek: Maßgeblich ist nicht die \emph{Herkunft} der
+Verdeckerpixel, sondern die Übereinstimmung ihrer Statistik mit der Umgebung.
 
-Der größte Einzeleffekt ist schließlich keine Augmentierungsentscheidung,
-sondern die Inferenzauflösung: \mAPfifty{} auf \code{val} steigt von
-\zswValNiedrig{} bei 640\px{} auf \zswValBest{} (\zswValGain\PP). Und ein
+Der größte Einzeleffekt geht nicht auf die Augmentierung zurück,
+sondern auf die Inferenzauflösung: \mAPfifty{} auf \code{val} steigt von
+\zswValNiedrig{} bei 640\px{} auf \zswValBest{} (\zswValGain\PP). Ein
 systematischer Größenversatz von \zboxValOff{} bis \zboxTestOff\px{} zwischen
-Generatorlabel und Handannotation erklärt den niedrigen \mAPseven{}-Wert auf
-dem Testbild: Eine Sensitivitätsrechnung hebt ihn von \zsensTestMapSOrig{} auf
-\zsensTestMapSNeu{}, während \mAPfifty{} und $F_1$ unberührt bleiben. Bei
-programmatisch erzeugten Labels wird die Labelkonvention selbst zur messbaren
-Größe.
+Generatorlabel und Handannotation erklärt zudem den niedrigen
+\mAPseven{}-Wert; eine Sensitivitätsrechnung hebt ihn von
+\zsensTestMapSOrig{} auf \zsensTestMapSNeu{}, ohne \mAPfifty{} und $F_1$ zu
+verändern. Bei programmatisch erzeugten Labels wird die Labelkonvention selbst zur
+messbaren Größe.
