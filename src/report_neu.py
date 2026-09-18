@@ -732,8 +732,9 @@ def zahlen():
             put(f"xc{S}UltA", v["ultralytics_mAP50_95"])
             put(f"xc{S}Diff", abs(v["eigen_mAP50"] - v["ultralytics_mAP50"]),
                 1, pp=True)
-        put("xcMaxDiff", max(abs(v["eigen_mAP50"] - v["ultralytics_mAP50"])
-                             for v in a["crosscheck"].values()), 1, pp=True)
+        put("xcMaxDiff", max(abs(v[f"eigen_{m}"] - v[f"ultralytics_{m}"])
+                             for v in a["crosscheck"].values()
+                             for m in ("mAP50", "mAP50_95")), 1, pp=True)
         e = a.get("best_epoch") or {}
 
     import csv as _csv

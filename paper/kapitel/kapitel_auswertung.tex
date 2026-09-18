@@ -43,7 +43,7 @@ Größen gibt die Standardfunktion der Werkzeugkette nicht aus. Zur Absicherung
 wurde sie gegen die Referenzimplementierung geprüft: \code{val}
 \zxcValEigen/\zxcValEigenA gegen \zxcValUlt/\zxcValUltA und \code{test}
 \zxcTestEigen/\zxcTestEigenA gegen \zxcTestUlt/\zxcTestUltA
-(\mAPfifty{}/\mAPall{}); die Abweichung von höchstens \zxcMaxDiff\PP{} ist
+(\mAPfifty{}/\mAPall{}); die Abweichung von höchstens \zxcMaxDiff\,Prozentpunkten ist
 durch Detailunterschiede in der AP-Interpolation erklärbar.
 
 Zwei Angaben gelten für alle folgenden Zahlen. \emph{Erstens} wird, wo nichts
@@ -71,12 +71,12 @@ steht, widerspricht ihm das eigene Kapitel.
 Ein ausschließlich auf synthetischen Bildern trainiertes Modell erreicht auf
 echten, nie im Training gesehenen Aufnahmen \mAPfifty{} von
 \textbf{\zrefValMap} (\code{val}) und \textbf{\zrefTestMap} (\code{test}); das
-ist die Antwort auf die Aufgabenstellung. Am $F_1$-optimalen Betriebspunkt
-erreicht es einen Rückruf von \zrefValRec{} (\code{val}) bzw.\ \zrefTestRec{}
-(\code{test}) bei einer Precision von \zrefValPrec{} und \zrefTestPrec: Auf
-\code{test} liefert es \znPredTest{} Detektionen, von denen \zfpTest{} nicht
-auf einem annotierten Objekt liegt, und übersieht \zfnTest{} der 89
-Stirnflächen.
+ist die Antwort auf die Aufgabenstellung (Tabelle~\ref{tab:hauptergebnis}). Am
+$F_1$-optimalen Betriebspunkt erreicht es einen Rückruf von \zrefValRec{}
+(\code{val}) bzw.\ \zrefTestRec{} (\code{test}) bei einer Precision von
+\zrefValPrec{} und \zrefTestPrec: Auf \code{test} liefert es \znPredTest{}
+Detektionen, von denen \zfpTest{} nicht auf einem annotierten Objekt liegt,
+und übersieht \zfnTest{} der 89 Stirnflächen.
 
 Der auffällige Unterschied zwischen den Splits -- \mAPseven{} \zrefValMapS{}
 auf \code{val}, aber nur \zrefTestMapS{} auf \code{test} bei \emph{höherem}
@@ -95,9 +95,9 @@ Detektionen zeigt Abbildung~\ref{abb:qualitativ} im Anhang.
 \absatz{Sim-to-Real-Abstand.}\label{sec:simtoreal}
 Der Split \code{sval} besteht aus 400 synthetischen Bildern derselben Pipeline
 mit anderem Seed und trennt damit zwei Fragen: \emph{Kann das Modell die Aufgabe
-überhaupt lösen?} und \emph{überträgt es sich auf echte Bilder?} Der Abstand beträgt
-$\zrefSvalMap - \zrefValMap = \mathbf{\zsimRealVal}$ bzw.\
-$\zrefSvalMap - \zrefTestMap = \mathbf{\zsimRealTest}$\PP{} \mAPfifty{}; bei
+überhaupt lösen?} und \emph{überträgt es sich auf echte Bilder?} Gegenüber
+\zrefSvalMap{} auf \code{sval} beträgt der Abstand \textbf{\zsimRealVal} bzw.\
+\textbf{\zsimRealTest}\PP{} \mAPfifty{}; bei
 \mAPall{} sind es \zsimRealValA{} (\code{val}) bzw.\ \zsimRealTestA{}
 Prozentpunkte. Er ist damit \textbf{klein} und \textbf{weit entfernt von dem
 Muster, das reines Artefaktlernen erzeugen würde}: Wäre die Pipeline an einer der
@@ -132,7 +132,7 @@ Gewählt wird damit \code{imgsz}~\zbestImgsz.
 
 
 Von \code{imgsz}~640 auf \zswValBestAt{} steigt \mAPfifty{} auf \code{val} von
-\zswValNiedrig{} auf \zswValBest{} -- ein Zuwachs von \zswValGain\PP{} und damit
+\zswValNiedrig{} auf \zswValBest{} -- ein Zuwachs von \zswValGain\,Prozentpunkten und damit
 der größte gemessene Einzeleffekt der Arbeit, größer als jede einzelne
 Entscheidung in der Augmentierungspipeline. Die Erklärung ist rein geometrisch
 und wurde in Abschnitt~\ref{subsec:kleine-objekte} vorhergesagt: Nach
@@ -143,7 +143,7 @@ $M = 640$, also $M/N = 0{,}26$; die dort gemessenen 12--36\px{} schrumpfen damit
 auf 3--9\px. Der
 Rückruf bricht entsprechend auf \zswValNiedrigRec{} ein: Das Modell
 \emph{findet} die Objekte nicht mehr, es lokalisiert sie nicht bloß schlechter.
-Auf \code{test} fällt derselbe Übergang mit \zswTestGain\PP{} schwächer aus, weil
+Auf \code{test} fällt derselbe Übergang mit \zswTestGain\,Prozentpunkten schwächer aus, weil
 das Bild nur 1600\px{} breit ist und der Verkleinerungsfaktor entsprechend
 milder.
 
@@ -179,8 +179,8 @@ entspricht. Die Feststellung: Objektgrößenbereich des Generators und
 Inferenzauflösung sind \emph{nicht} unabhängig voneinander wählbar; eine
 Entscheidung in der Datenerzeugung legt eine Entscheidung zur Inferenzzeit
 fest. Das Auswahlkriterium \mAPall{} auf \code{val} entscheidet sich für
-\code{imgsz}~\zbestImgsz; der Unterschied zu \zswValBestAt{} liegt mit einem
-halben Prozentpunkt unter dem Bootstrap-Intervall und ist damit nicht
+\code{imgsz}~\zbestImgsz; der Unterschied zu \zswValBestAt{} liegt in \mAPfifty{} mit
+einem Prozentpunkt unter dem Bootstrap-Intervall und ist damit nicht
 bedeutsam.
 
 Die übrigen Inferenzparameter sind unkritisch, und zwei entfallen bei diesem
@@ -263,7 +263,9 @@ einen Gewinn erbringt.
 
 Das Beleuchtungsmodell selbst -- Lambert-Term, Glanzlicht, Umgebungslicht,
 Längsvariation und Korn über einen Arc des Zylindermantels -- steht mit
-Gleichung~\eqref{eq:zylinder} in Abschnitt~\ref{sec:anhangbalken} des Anhangs.
+Gleichung~\eqref{eq:zylinder} in Abschnitt~\ref{sec:anhangbalken} des Anhangs;
+Abbildung~\ref{abb:balken} stellt die drei Bibliotheken mit ihren Kennwerten
+gegenüber.
 
 \begin{figure}[htbp]
 \centering
@@ -286,7 +288,8 @@ Labelverzeichnisse der drei Datensätze sind \textbf{byte-identisch} (SHA-256,
 gekürzt auf 16 Stellen: \code{951f6e23e65486f1}), die Bildverzeichnisse
 paarweise verschieden. Objektpositionen, Objektgrößen, Verdeckungsgrade,
 Labelzahl (68\,281), mittlere Sichtbarkeit (0,901) und Anteil teilverdeckter
-Objekte (29,9\,\%) stimmen exakt überein.
+Objekte (29,9\,\%) stimmen exakt überein; Abbildung~\ref{abb:balkenszene}
+zeigt denselben Bildausschnitt in allen drei Armen.
 
 Damit ist ausgeschlossen, was eine gewöhnliche Datensatz-Ablation offenlassen
 müsste: dass ein Ergebnisunterschied von einer anderen Objektverteilung, einer
@@ -313,7 +316,7 @@ plausible Zylinder. In B2 sind sie als flache graue Balken sofort erkennbar.}
 \input{kapitel/tab_ablation_b}
 
 \absatz{Ergebnis.} Die Behauptung ist \textbf{in der Sache bestätigt und in
-ihrer starken Form widerlegt}.
+ihrer starken Form widerlegt} (Tabelle~\ref{tab:ablationB}).
 
 \emph{(1) Ein naiv gezeichneter Balken kostet messbar Leistung.} Arm~B2 verliert auf dem
 unberührten \code{test} gegenüber B0 \textbf{\zablBTestGap\PP{} \mAPfifty}
@@ -332,12 +335,9 @@ unterscheiden (\zBOneTestMap{} gegen \zBZeroTestMap{} \mAPfifty, $F_1$ sogar
 leicht höher) und liegt auf \code{val} um $\zablBValGapEins$\PP{} \mAPfifty{}
 darunter. Die beiden Splits widersprechen sich in der Richtung; die Differenz
 ist damit nicht entscheidbar. Was bleibt, ist ein schwacher Hinweis über den
-Rückruf, der auf beiden Splits leicht unter dem von B0 liegt ($-2{,}3$ und
-$-4{,}1$\PP). % PRUEFEN: B1 verliert auf val ebenfalls 4,1 PP Rueckruf, genau
-wie B2. % Bei 98 Objekten entspricht das in beiden Faellen exakt vier
-Objekten, % ist also plausibel -- bitte dennoch gegen die Ergebnisdatei
-pruefen, % da identische Werte fuer zwei Arme auch ein Uebertragungsfehler
-waeren.
+Rückruf, der auf beiden Splits leicht unter dem von B0 liegt ($-2{,}2$ auf
+\code{test} und $-4{,}1$\PP{} auf \code{val}; dort verfehlen B1 und B2
+dieselbe Zahl von Objekten, weshalb der Wert für beide Arme gleich ausfällt).
 
 \input{kapitel/tab_ablation_b_groesse}
 
@@ -346,7 +346,7 @@ Tabelle~\ref{tab:ablationBgroesse} trennt den Rückruf nach Objektgröße, und d
 wird der Befund deutlich. Auf dem kleinsten Drittel von \code{test} (Objekte bis
 \zgrenzeTest\px, \znKleinTest{} Stück) fällt der Rückruf von
 \zBZeroTestRecKlein{} (B0) über \zBOneTestRecKlein{} (B1) auf
-\zBTwoTestRecKlein{} (B2) -- ein Verlust von 23\PP{} gegenüber nur
+\zBTwoTestRecKlein{} (B2) -- ein Verlust von 23\,Prozentpunkten gegenüber nur
 $3{,}4$\PP{} bei den größeren zwei Dritteln. Die Reihenfolge B0 $>$ B1 $>$ B2
 ist in drei der vier Zellen aus Größenklasse~$\times$~Split monoton, und die
 Gesamtzahl der Falsch-Negativen widerspricht ihr in keinem Fall (\code{test}
@@ -412,15 +412,14 @@ wäre. Nicht betroffen ist der Auflösungseffekt, dessen Größe von
 
 \absatz{Falsch-Negative.} Am $F_1$-optimalen Betriebspunkt bleiben auf
 \code{test} \zfnTest{} Objekte unentdeckt, auf \code{val} \zfnVal. Auf
-\code{test} sind \zfnKleinTest{} davon kleiner als 18\px; die Fehler treten
+\code{test} sind \zfnKleinTest{} davon kleiner als 18\px{} -- die feste
+Klassengrenze der Fehleranalyse, nicht die datenabhängige Drittelgrenze von
+\zgrenzeTest\px{} aus Tabelle~\ref{tab:ablationBgroesse}. Die Fehler treten
 also ganz überwiegend bei den kleinsten Objekten der Aufnahme auf, am linken
 Bildrand und am oberen Stapelrand. Der zweite wiederkehrende Fehlertyp sind
 Enden ohne sichtbaren hellen Kranz; das ist der Anteil, der auf die
 verbleibende Domänenlücke zurückgeht, denn alle vier Clean Plates sind bei
-diffusem Licht aufgenommen. % PRUEFEN: Die 18 px hier und die Grenze
-\zgrenzeTest der Groessenklassen % in tab:ablationBgroesse sind zwei
-verschiedene Schwellen. Wenn moeglich % eine gemeinsame verwenden, sonst den
-Unterschied benennen.
+diffusem Licht aufgenommen.
 
 \absatz{Falsch-Positive.} Sie sind selten: \zfpTest{} auf \code{test} bei
 \znPredTest{} Detektionen und \zfpVal{} auf \code{val} bei \znPredVal. Zu

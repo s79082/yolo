@@ -25,11 +25,12 @@
 
 Dieses Kapitel vermisst zunächst das verfügbare Quellmaterial und dokumentiert
 anschließend die Pipeline, die daraus (aus neun Objektausschnitten und sieben
-Hintergrundaufnahmen) den Trainingsdatensatz erzeugt. Die in
-Tabelle~\ref{tab:parameter} genannten Anteile sind keine konfigurierten
-Sollwerte, sondern \emph{gemessene} Ist-Werte aus dem Erzeugungsbericht
-\code{synth/train/generation\_report.json} über 6000 Bilder mit 173\,100
-gerenderten Instanzen und 136\,384 gelabelten Objekten.
+Hintergrundaufnahmen) den Trainingsdatensatz erzeugt;
+Abbildung~\ref{abb:pipeline} zeigt Herkunft der Bausteine und Reihenfolge der
+Stufen im Überblick. Die in Tabelle~\ref{tab:parameter} genannten Anteile sind
+keine konfigurierten Sollwerte, sondern \emph{gemessene} Ist-Werte aus dem
+Erzeugungsbericht \code{synth/train/generation\_report.json} über 6000 Bilder
+mit 173\,100 gerenderten Instanzen und 136\,384 gelabelten Objekten.
 
 \input{kapitel/kapitel_datengrundlage}
 
@@ -157,7 +158,7 @@ eine Parameterwahl hinausgeht.
 Die neun Stufen T1--T9 -- Hintergrund, Instanzgeometrie, Photometrie, Layout,
 Rohrschaft, Okklusion, Sichtbarkeitsrechnung, globale Bildstufe und
 Negativbilder -- sind mit Parameterbereich, gemessenem Ist-Anteil, Begründung
-und Belegart aller 36 Transformationen in Tabelle~\ref{tab:parameter} im Anhang
+und Belegart aller 37 Transformationen in Tabelle~\ref{tab:parameter} im Anhang
 aufgeführt.
 
 \begin{figure}[htbp]
@@ -203,7 +204,7 @@ Stangen und Fremdkörper. (f)~Das Ergebnis der Sichtbarkeitsrechnung: grün die
 und T9 sind in den Abbildungen~\ref{abb:stufendetail}
 und~\ref{abb:stufenglobal} im Anhang vergrößert dargestellt. Zur Lesbarkeit ist
 ein Bild am oberen Ende des Größenbereichs gewählt (Basisdurchmesser 44\px{}
-statt des Medians von 22,5\px) und mit überdurchschnittlicher Verdeckung;
+statt des Medians von 23,5\px) und mit überdurchschnittlicher Verdeckung;
 Abbildung~\ref{abb:synthbeispiele} zeigt typische Bilder. Erzeugt mit
 \code{paper/tools/fig\_stufen.py}, Seed~302.}
 \label{abb:stufen}
@@ -239,7 +240,7 @@ Clean Plates und beschneidet dort den Zielbereich, sodass Basisdurchmesser über
 entstehen. Objektgröße und Hintergrundwahl sind am oberen Ende des
 Größenbereichs damit korreliert -- die Art von Kopplung also, die das
 Leitprinzip dieses Kapitels vermeiden soll; die erzeugte
-Größenverteilung endet entsprechend bei knapp 40 statt 44\px{}
+Größenverteilung endet entsprechend bei gut 40 statt 44\px{}
 (Abschnitt~\ref{sec:datensatz}). Die untere Klammer greift dagegen nie. Für die
 drei Fremdszenen ist Gleichung~\eqref{eq:zoom} mangels $d_{\text{Rohr}}$ nicht
 definiert; dort werden Zoom und Objektgröße unabhängig gezogen
@@ -470,8 +471,8 @@ belassen: Eine höhere Dichte im Training ist eine Robustheitsreserve, weil sie
 den Detektor auf schwierigere Szenen vorbereitet als die, die er zur
 Inferenzzeit vorfindet; die umgekehrte Abweichung wäre problematisch. Die
 zweite betrifft die Objektgröße: Der Generator soll 12--44\px{} abdecken,
-erreicht am oberen Ende aber nur knapp 40\px{} (p95 der erzeugten Verteilung:
-39,9\px); das ist eine Folge der Zoomdeckelung nach Gleichung~\eqref{eq:zoom}.
+erreicht am oberen Ende aber nur gut 40\px{} (p95 der erzeugten Verteilung:
+40,4\px); das ist eine Folge der Zoomdeckelung nach Gleichung~\eqref{eq:zoom}.
 Am unteren Ende enthält \code{test} vier Objekte unterhalb von 12\px{}
 (kleinstes 6,4\px). Diese Lücke schließt erst die Trainingsskalierung, die die
 Untergrenze nach Gleichung~\eqref{eq:effgroesse} auf $d_{\min}\,(1-s) =
@@ -512,7 +513,8 @@ A6 & Belegart je Parameterwert; die beiden numerischen Absicherungen
 \end{tabularx}
 \end{table}
 
-Die Anforderungen sind damit \emph{formal} erfüllt; die Erfüllung einer
-Entwurfsanforderung ist aber kein empirischer Nachweis, wie die letzte Spalte
-zeigt. Wie viel von den 43 Parameterwerten der 36 Transformationen tatsächlich
+Tabelle~\ref{tab:nachweis} stellt die Umsetzung der sechs Anforderungen
+zusammen. Sie sind damit \emph{formal} erfüllt; die Erfüllung einer
+Entwurfsanforderung ist aber kein empirischer Nachweis, wie ihre letzte Spalte
+zeigt. Wie viel von den 44 Parameterwerten der 37 Transformationen tatsächlich
 belegt ist, bilanziert Abschnitt~\ref{sec:tragend}.

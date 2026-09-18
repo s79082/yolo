@@ -86,6 +86,12 @@ inst_occluded (je Label)         0.3009    glob_vignette   (je Bild)  0.2502
 \end{verbatim}
 \end{footnotesize}
 
+Die drei \code{dropped}-Zähler erfassen nur Instanzen, die die
+Sichtbarkeitsrechnung überhaupt erreichen. Sie summieren sich auf 34\,875;
+die Differenz zu den insgesamt 36\,716 verworfenen Instanzen sind 1841
+Instanzen, die vollständig außerhalb der Leinwand liegen und deshalb schon
+vor der Sichtbarkeitsprüfung entfallen (\code{src/generate.py}).
+
 Ein Wert ist nicht als Anteil lesbar: \code{recess} zählt die \emph{Anzahl} der
 abgedunkelten Mulden je Bild. Eine Mulde entsteht nur in einem Bild mit Objekten
 und wird dort je Cluster mit der Wahrscheinlichkeit $p_{\text{Mulde}}$ gezogen;
@@ -118,10 +124,10 @@ Abschnitt~\ref{sec:imgsz} um die fehlenden Stufen.
 
 \section{Sensitivität gegenüber dem Größenversatz}
 
-Die Rechnung zu Abschnitt~\ref{sec:boxversatz} (1,15\px{} je Seite auf
-\code{test}, 0,58\px{} auf \code{val}): Alle vorhergesagten Boxen werden
-um den gemessenen medianen Fehlbetrag je Seite aufgeweitet (1,27\px{} auf
-\code{test}, 0,58\px{} auf \code{val}) und neu ausgewertet.
+Die Rechnung zu Abschnitt~\ref{sec:boxversatz}: Alle vorhergesagten Boxen
+werden um den gemessenen medianen Fehlbetrag je Seite aufgeweitet
+(\zsensTestGrow\px{} auf \code{test}, \zsensValGrow\px{} auf \code{val}) und
+neu ausgewertet.
 
 \input{kapitel/tab_sensitivitaet}
 
@@ -376,7 +382,7 @@ ja -- Kern des Verfahrens (Abschnitt~\ref{sec:sim2real}) \\
 
 {\footnotesize
 \begin{longtable}{@{}L{0.195\textwidth}L{0.065\textwidth}L{0.55\textwidth}L{0.022\textwidth}@{}}
-\caption[Alle Transformationen der Pipeline]{Alle 36 Transformationen der
+\caption[Alle Transformationen der Pipeline]{Alle 37 Transformationen der
 Pipeline mit Parameterbereich, gemessenem Ist-Anteil und Begründung. \emph{S}
 verweist auf die geschlossene Abkürzung aus Abschnitt~\ref{sec:sim2real},
 \emph{Art} auf die Belegart wie in Tabelle~\ref{tab:befunde}: \emph{M} = Messung
@@ -410,13 +416,13 @@ Kleinrotation $\pm6^\circ$ (Zoom 1,06) & 34,3\,\% & Die Rohrlinien sind nie exak
 \addlinespace
 \multicolumn{4}{@{}l}{\textbf{T2 -- Instanzgeometrie} \hfill\emph{Anteile je gerenderter Instanz}}\\
 Rotation $0$--$360^\circ$ & 100\,\% & Rohrenden haben keine kanonische Orientierung -- die einzige Orientierungsinformation ist das Glanzlicht, und dessen Richtung hängt vom Sonnenstand ab. Volle Rotationsinvarianz ist korrekt \emph{und} ohne Mehraufwand, daher 100\,\% statt eines Bruchteils. & P \\
-Skalierung auf 12--44\px{} (Abschnitt~\ref{sec:modellentscheidungen}) & 100\,\% & Realmessung 12,2--35,8\px{} plus 25\,\% Reserve; Ist-Verteilung p05/Median/p95 = 11,6/22,5/39,9\px. Verkleinerung flächentreu, weil bilineare Interpolation Aliasing im Objekt zurückließe. & M (S3) \\
-Ovalisierung 0,66--0,97 bzw.\ 1,03--1,30 & 57,1\,\% & Gemessenes Seitenverhältnis p10--p90 = 0,85--1,31; über die Hälfte der echten Boxen weicht um $\geq5\,\%$ vom Quadrat ab. Oblat dominiert (45:12), weil Schrägansicht die Höhe verkürzt. & M \\
+Skalierung auf 12--44\px{} (Abschnitt~\ref{sec:modellentscheidungen}) & 100\,\% & Realmessung 12,2--35,8\px{} plus 25\,\% Reserve; Ist-Verteilung p05/Median/p95 = 12,0/23,5/40,4\px. Verkleinerung flächentreu, weil bilineare Interpolation Aliasing im Objekt zurückließe. & M (S3) \\
+Ovalisierung 0,66--0,97 bzw.\ 1,03--1,30 & 57,1\,\% & Gemessenes Seitenverhältnis p10--p90 = 0,82--1,40; über die Hälfte der echten Boxen weicht um $\geq5\,\%$ vom Quadrat ab. Oblat dominiert (45:12), weil Schrägansicht die Höhe verkürzt. & M \\
 Delle, 1--2 Sektoren, Tiefe 10--30\,\% & 18,1\,\% & Mechanisch beschädigte Enden. \textbf{Anteil ist Annahme} -- Dellen sind nicht annotiert. 18\,\% lässt das Modell die Verformung regelmäßig sehen, ohne die Rundheit als Merkmal zu verwässern. & A \\
 Perspektive, Homographie $\pm9\,\%$ & 30,2\,\% & Bei Schrägblick wird der Kranz einseitig \emph{breiter} (sichtbare Rohrinnenwand); anisotrope Skalierung kann das nicht abbilden. Anteil ist Annahme. & A \\
 \addlinespace
 \multicolumn{4}{@{}l}{\textbf{T3 -- Photometrie und Einbettungsrealismus} \hfill\emph{je Instanz}}\\
-Helligkeit $\times0{,}70$--$1{,}35$ & 99,8\,\% & Stirnflächen liegen in praller Sonne oder tiefem Schatten; Spannweite aus den Ausschnitten ablesbar (Kranzhelligkeit 88--156 Grauwerte). & M \\
+Helligkeit $\times0{,}70$--$1{,}35$ & 99,8\,\% & Stirnflächen liegen in praller Sonne oder tiefem Schatten; Spannweite aus den Ausschnitten ablesbar (Kranz-p90 der neun Ausschnitte: 123--162 Grauwerte). & M \\
 Gamma $0{,}75$--$1{,}35$ & 79,7\,\% & Gamma statt Kontrast, weil es die nichtlineare Tonwertkurve verschiedener Kameras abbildet \parencite{grossberg2003} und das Verhältnis Bohrung $\leftrightarrow$ Kranz verändert. & L \\
 HSV: Ton $\pm16^\circ$, Sättigung $\times0{,}45$--$1{,}60$ & 69,7\,\% & Verzinkter Stahl ist neutralgrau, nimmt aber Farbstiche an (Flugrost, Moos, Himmelsreflex); Farbtonhub moderat, da große Sprünge unphysikalisch wären. \textbf{Weder Hub noch Anteil sind gemessen} -- die Farbstiche sind beobachtet, nicht quantifiziert. Der Code zieht $\pm8$ Einheiten des OpenCV-H-Kanals, der $0$--$179$ für den vollen Kreis nutzt; eine Einheit sind also zwei Grad. & A \\
 Farbangleich an den lokalen Hintergrund, Gl.~\eqref{eq:harmonize} & 84,8\,\% & \textbf{Wichtigste Anti-Abkürzungs-Maßnahme:} Ohne Angleich bleibt ein konstanter Farb- und Helligkeitsversatz, den ein CNN trivial als Einfügemarke lernt. Partieller Statistiktransfer \parencite{reinhard2001,tsai2017}, bewusst nicht vollständig. & L (S2) \\
@@ -429,7 +435,7 @@ Schlagschatten, $\kappa$ 0,18--0,45 & 49,3\,\% & Ohne Kontaktschatten \enquote{s
 \addlinespace
 \multicolumn{4}{@{}l}{\textbf{T4 -- Layout}}\\
 gescherte Gitterpackung, 1--3 Cluster, Gl.~\eqref{eq:layout} & 100\,\% & Kalibriert am gemessenen NN-Abstand und an der Nachbarzahl (Tabelle~\ref{tab:kalibrierung}); eine Basisgröße pro Cluster nach Befund~7. & M \\
-\quad Gitterabstände $s_1$, $s_2$ & -- & $s_1 \in [0{,}98;\,1{,}60]\,d_0$ und $s_2 \in [0{,}98;\,1{,}85]\,d_0$. Untergrenze physikalisch (Rohrzentren durchdringen sich nicht); die 2\,\% Spiel wegen der modalen Boxkonvention, die $d_0$ bei Verdeckung kleiner macht als das Rohr -- gemessener NN-Abstand p10 $=0{,}86$ bzw.\ $0{,}83\,\Oe$. Die Obergrenzen sind an Median und p90 des NN-Abstands eingestellt. & P/M \\
+\quad Gitterabstände $s_1$, $s_2$ & -- & $s_1 \in [0{,}98;\,1{,}60]\,d_0$ und $s_2 \in [0{,}98;\,1{,}85]\,d_0$. Untergrenze physikalisch (Rohrzentren durchdringen sich nicht); die 2\,\% Spiel wegen der modalen Boxkonvention, die $d_0$ bei Verdeckung kleiner macht als das Rohr -- gemessener NN-Abstand p10 $=0{,}86$ bzw.\ $0{,}78\,\Oe$. Die Obergrenzen sind an Median und p90 des NN-Abstands eingestellt. & P/M \\
 \quad Gitterrauschen $\sigma$ & -- & $\sigma = 0{,}17\,d_0$, \emph{an der erzeugten Statistik gegen die Realmessung kalibriert}: Der Wert setzt p10 und Berührungsquote (Tabelle~\ref{tab:kalibrierung}); ohne diesen Term entstünden sichtbar künstliche Reihen. & M \\
 \quad Winkel zwischen $\mathbf{e}_1$ und $\mathbf{e}_2$: $55^\circ$--$125^\circ$ & 100\,\% & Scherung des Gitters, abgeleitet aus dem Histogramm der Nachbarrichtungen (näherungsweise isotrop, Häufung $90$--$150^\circ$). & M \\
 \quad Clusterorientierung $\varphi$ & 100\,\% & Absolute Lage des Gitters im Bild: $\varphi \sim \mathcal{U}[60^\circ;\,150^\circ]$ in 60\,\% der Cluster, sonst $\mathcal{U}[0^\circ;\,180^\circ]$. Nicht an der Stapelorientierung der Realbilder gemessen. & A \\
@@ -478,7 +484,7 @@ Trainings; Standardwerte der Werkzeugkette nach \textcite{ultralyticsdocs}.}
 \midrule
 \code{mosaic} & 1,0 &
 Immer aktiv \parencite{bochkovskiy2020}: erhöht die Objektzahl pro Iteration,
-bringt Objekte an Kachelränder (in \code{test} sind 5,8\,\% der Labels
+bringt Objekte an Kachelränder (in \code{test} sind 6,7\,\% der Labels
 angeschnitten) und kombiniert Hintergründe. Boxen bleiben exakt. \\
 \code{close\_mosaic} & 10 &
 Abschalten in den letzten zehn Epochen: Vierfachkacheln sind eine Bildstatistik,
@@ -560,8 +566,7 @@ Alle fünf Kacheln zeigen dasselbe Objekt bei gleichem Durchmesser.
 demselben Hintergrund -- roh eingefügt, dann mit Photometrie, dann mit
 Farbangleich, dann mit Einbettung und Schlagschatten. Der Farbangleich nach
 Gleichung~\eqref{eq:harmonize} verschiebt die Verteilung nur teilweise; die
-Einbettung ergänzt Kantenweichzeichnung, Rauschangleich nach
-Rauschangleich und Schlagschatten. Für die Darstellung ist der
+Einbettung ergänzt Kantenweichzeichnung, Rauschangleich und Schlagschatten. Für die Darstellung ist der
 Zieldurchmesser auf 100\px{} gesetzt; im Datensatz liegt er bei 12--44\px.
 Erzeugt mit \code{paper/tools/fig\_stufen.py}.}
 \label{abb:stufendetail}

@@ -42,7 +42,7 @@ Nutzen für die Detektionsgüte ist damit \emph{nicht} gemessen \\
 \addlinespace
 \textbf{indirekt gestützt} &
 das Bündel der Anti-Abkürzungs-Maßnahmen S1--S6 &
-Der Sim-to-Real-Abstand von \zsimRealVal\PP{} (\code{val}) bzw.\
+Der Sim-to-Real-Abstand von \zsimRealVal\,Prozentpunkten (\code{val}) bzw.\
 \zsimRealTest\PP{} (\code{test}) ist ein Indiz, kein Nachweis für einzelne
 Maßnahmen \\
 \addlinespace
@@ -56,11 +56,11 @@ Dellen- und Perspektivanteil & --- \\
 
 \absatz{Bilanz der Begründungen.} Die Zielsetzung hatte drei zulässige Quellen
 festgelegt und für alles andere die Kennzeichnung als Annahme verlangt.
-Tabelle~\ref{tab:parameter} dokumentiert 36 Transformationen mit 43
+Tabelle~\ref{tab:parameter} dokumentiert 37 Transformationen mit 44
 Parameterwerten: 9 sind an den Realdaten gemessen, 8 literaturgestützt, 3
-physikalisch begründet, 9 gemischt und \textbf{14 ausdrücklich als Annahme
-gekennzeichnet}. Rund 67\,\% sind damit auf eine der drei zulässigen Quellen
-zurückgeführt -- die neun gemischten allerdings nur zur Hälfte --, 33\,\% sind
+physikalisch begründet, 9 gemischt und \textbf{15 ausdrücklich als Annahme
+gekennzeichnet}. Rund 66\,\% sind damit auf eine der drei zulässigen Quellen
+zurückgeführt -- die neun gemischten allerdings nur zur Hälfte --, 34\,\% sind
 Annahmen. Diese Bilanz ist nicht nebensächlich: Bei rein synthetischen Trainingsdaten
 ist die Liste dieser 43 Werte die vollständige Beschreibung der
 Trainingsverteilung.
@@ -160,11 +160,12 @@ angenähert -- die größte verbleibende Domänenlücke, von der Fehleranalyse
 bestätigt. \emph{(3)} Reflect-Padding erzeugt Spiegelsymmetrie, wenn ein
 Hintergrund für den gewünschten Zoom zu klein ist; eine spiegelsymmetrische
 Bildhälfte ist selbst ein erkennbares Merkmal, die Maßnahme gegen Signatur~S1
-erzeugt damit eine schwächere neue Auffälligkeit. \emph{(4)} Elf Werte sind
+erzeugt damit eine schwächere neue Auffälligkeit. \emph{(4)} Fünfzehn Werte sind
 Annahmen (Dellen, Perspektive, Schlagschatten, vertikale Spiegelung, HSV je
 Instanz, globale Helligkeit/Kontrast, globale Farbtemperatur,
-Bewegungsunschärfe, die Clustergröße des Layoutmodells sowie Reflect-Padding
-und Vignettierung). \emph{(4a)} Der Generator deckt 12--44\px{} ab,
+Bewegungsunschärfe, Reflect-Padding, Vignettierung, der Zoombereich der
+Fremdszenen, die Angleichstärken des Farbangleichs, der Streufaktor des
+Rauschangleichs sowie Orientierung und Größe der Layoutcluster). \emph{(4a)} Der Generator deckt 12--44\px{} ab,
 \code{test} enthält aber vier Objekte darunter; diese Lücke schließt erst die
 Trainingsskalierung. \emph{(5)} Die synthetischen Cluster sind dichter als
 real -- bewusst als Robustheitsreserve belassen; die umgekehrte Abweichung
