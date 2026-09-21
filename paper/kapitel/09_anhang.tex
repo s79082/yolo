@@ -510,11 +510,20 @@ Sonne und Schatten. \\
 $10^\circ$ um 15,8\,\% der Kantenlänge, was die Überlappung mit der korrekten Box
 auf 0,745 senkt (Abschnitt~\ref{subsec:aabb-rotation}). Die nötige Rotations- und
 Perspektivinvarianz liefert der Generator label-exakt. \\
-\code{mixup} \code{cutmix} & 0,0 &
-\textbf{Aus.} Beide überlagern Bildinhalte bei erhaltenen Labels
-\parencite{zhang2018mixup,yun2019cutmix} und erzeugen damit Geisterobjekte mit
-vollem Boxlabel; bei dicht gepackten 20\px-Objekten überwiegt der
-Labelkonflikt. Verdeckung entsteht stattdessen im Generator physikalisch korrekt. \\
+\code{mixup} & 0,0 &
+\textbf{Aus.} Überblendet zwei Bilder im Verhältnis $r \approx 0{,}5$ und
+verkettet beide Labelsätze ungewichtet \parencite{zhang2018mixup}: Jedes Objekt
+erscheint halbtransparent und trägt ein volles Boxlabel. \\
+\code{cutmix} & 0,0 &
+\textbf{Aus.} Setzt den Flicken in eine Fläche ohne Box des Primärbildes und
+übernimmt aus dem zweiten Bild alle Instanzen ab 10\,\% Flächenanteil mit
+beschnittener Box \parencite{yun2019cutmix} -- Labels auf Fragmenten, die die
+Sichtbarkeitsregel des Generators bei 30\,\% aussortiert
+(Abschnitt~\ref{sec:sichtbarkeit}). Die Flächenwahl findet auf den 6000
+erzeugten Bildern in 67,7\,\% der Positivbilder eine boxfreie Fläche
+(\code{src/cutmix\_flaechen.py}); beide Angaben beziehen sich auf
+Ultralytics~8.4.117 und sind implementierungsabhängig. Verdeckung entsteht
+stattdessen im Generator physikalisch korrekt. \\
 \code{erasing} & 0,0 &
 \textbf{Aus.} Random Erasing \parencite{zhong2020erasing} wirkt in der
 Werkzeugkette nur bei der Klassifikation; die Funktion übernimmt die

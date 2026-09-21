@@ -145,10 +145,21 @@ Bildrotation achsparallele Boxen nach Gleichung~\eqref{eq:dbox} um den Faktor
 $|\cos\theta|+|\sin\theta|$ aufweitet und die Überlappung mit der korrekten Box
 nach Gleichung~\eqref{eq:iou} auf $1/(1+|\sin 2\theta|)$ senkt -- für
 $\theta = 10^\circ$ sind das 15,8\,\% mehr Kantenlänge und $\IoU = 0{,}745$
-(Abschnitt~\ref{subsec:aabb-rotation}) --, sowie \code{mixup} und \code{cutmix}, die
-Bildinhalte bei erhaltenen Labels überlagern und damit Geisterobjekte mit vollem
-Boxlabel erzeugen \parencite{zhang2018mixup,yun2019cutmix}: Bei dicht gepackten
-20\px-Objekten überwiegt der Labelkonflikt. \code{erasing} und
+(Abschnitt~\ref{subsec:aabb-rotation}). Abgeschaltet sind ferner \code{mixup}
+und \code{cutmix}, allerdings aus zwei verschiedenen Gründen. \code{mixup}
+überblendet zwei Bilder im Verhältnis $r \approx 0{,}5$ und verkettet
+anschließend beide Labelsätze ungewichtet \parencite{zhang2018mixup}: Jedes
+Objekt erscheint halbtransparent und trägt dennoch ein volles Boxlabel.
+\code{cutmix} setzt den Flicken des zweiten Bildes dagegen gezielt in eine
+Fläche, die keine Box des ersten trifft, und übernimmt aus dem zweiten Bild
+alle Instanzen ab einem Flächenanteil von 10\,\% mit auf den Flicken
+beschnittener Box \parencite{yun2019cutmix}. Es entstehen Labels auf
+Objektfragmenten bis hinab zu einem Zehntel der Fläche -- gerade das, was die
+Sichtbarkeitsregel des Generators mit ihrer Grenze von 30\,\% aussortiert
+(Abschnitt~\ref{sec:sichtbarkeit}). Der Fall ist nicht selten: Auf die 6000
+erzeugten Bilder angewandt, findet die Flächenwahl der Werkzeugkette in
+67,7\,\% der Positivbilder eine boxfreie Fläche
+(\code{src/cutmix\_flaechen.py}). \code{erasing} und
 \code{copy\_paste} entfallen, weil beides der Generator physikalisch korrekt
 übernimmt. Die vollständige Tabelle mit Begründung je Parameter steht im Anhang
 (Tabelle~\ref{tab:trainaug}).
