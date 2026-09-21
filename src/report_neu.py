@@ -51,6 +51,13 @@ B_ARME = [("A1_baseline", "B0 photogr."),
           ("B2_prozedural_naiv", "B2 naiv")]
 CS = {"val": "#1f77b4", "test": "#d62728"}
 
+# Beispielstangen der Bibliotheksabbildung. Bewusst ueber Dicke (16/18/20/21 px)
+# und Grauwert (50/163/70/143) gestreut, damit die vier Kacheln die Bandbreite
+# der Bibliothek zeigen und nicht nur ihren Anfang. Dieselben Namen gelten fuer
+# alle drei Bibliotheken -- die Stangen sind paarweise gleich gross und tragen
+# dieselbe Alphamaske.
+BAR_BEISPIELE = ["bar_007", "bar_019", "bar_048", "bar_037"]
+
 
 def _load(name):
     p = os.path.join(EXP, name)
@@ -84,7 +91,7 @@ def fig_balken():
     gs = fig.add_gridspec(3, 3, width_ratios=[2.3, 1.0, 1.0], hspace=0.45,
                           wspace=0.28)
     for i, ((d, titel), key) in enumerate(zip(libs, keys)):
-        paths = sorted(glob.glob(os.path.join(d, "*.png")))[:4]
+        paths = [os.path.join(d, n + ".png") for n in BAR_BEISPIELE]
         tiles = []
         for p in paths:
             im = cv2.imread(p, cv2.IMREAD_UNCHANGED)
