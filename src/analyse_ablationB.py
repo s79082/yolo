@@ -78,14 +78,19 @@ def analysiere(arm, split, model):
 
 
 def tabelle(rows):
+    # Die Schwelle ist das 33. Perzentil der GT-Durchmesser und haengt damit
+    # nur vom Split ab, nicht vom Arm -- eine beliebige Zeile je Split genuegt.
+    thr = {s: next(r for r in rows if r["split"] == s)["schwelle_px"]
+           for s in ("test", "val")}
     L = [r"\begin{table}[htbp]", r"\centering",
          r"\caption[Rückruf nach Objektgröße]{Rückruf am $F_1$-optimalen "
          r"Betriebspunkt, getrennt nach Objektgröße. \enquote{klein} ist das "
-         r"kleinste Drittel des jeweiligen Splits (Schwelle 14,9\px{} auf "
-         r"\code{test}, 25,4\px{} auf \code{val}). Der Verlust des naiven "
-         r"Okkluders konzentriert sich fast vollständig auf die kleinen "
-         r"Objekte -- also auf die, die tief im Stapel liegen und dort von "
-         r"anderen Rohren gekreuzt werden.}",
+         r"kleinste Drittel des jeweiligen Splits (Schwelle "
+         + _de(thr["test"], 1) + r"\px{} auf \code{test}, "
+         + _de(thr["val"], 1) + r"\px{} auf \code{val}). Der Verlust des "
+         r"naiven Okkluders konzentriert sich fast vollständig auf die "
+         r"kleinen Objekte -- also auf die, die tief im Stapel liegen und "
+         r"dort von anderen Rohren gekreuzt werden.}",
          r"\label{tab:ablationBgroesse}", r"\footnotesize",
          r"\begin{tabular}{@{}lrrr|rrr@{}}", r"\toprule",
          r"\textbf{Arm} & \multicolumn{3}{c}{\code{test}} & "
