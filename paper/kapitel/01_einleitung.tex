@@ -88,12 +88,13 @@ Wert ausdrücklich als Annahme gekennzeichnet. Tabelle~\ref{tab:herkunft} im
 Anhang benennt zusätzlich für jede Klasse von Zahlenwerten die Datei, aus der
 sie stammt. Drittens die
 \textbf{experimentelle Bewertung} (Kapitel~\ref{kap:auswertung}). Sie stützt
-sich auf \emph{eine} Ablation, und zwar bewusst auf die, die die eigene Pipeline
-an ihrer aufwendigsten Stufe prüft -- der Verdeckung. Von den beiden Fragen, die
-dort zu stellen sind, ist die eine bereits durch die Datensichtung entschieden
+sich auf \emph{zwei} Ablationen. Die erste prüft die eigene Pipeline an ihrer
+aufwendigsten Stufe -- der Verdeckung. Von den beiden Fragen, die dort zu
+stellen sind, ist die eine bereits durch die Datensichtung entschieden
 (\emph{dass} verdeckt werden muss, ist physikalische Randbedingung: In den
 Realbildern liegen ausnahmslos Rohre vor den Stirnflächen); offen und
-ausschließlich durch ein Argument gestützt ist die andere:
+ausschließlich durch ein Argument gestützt ist die andere. Die zweite prüft das
+Leitprinzip der Pipeline als Ganzes:
 
 \begin{description}[leftmargin=1.4em,itemsep=2pt,font=\normalfont\bfseries]
   \item[Woraus dürfen die Verdecker bestehen?] Drei Trainingssätze, die sich
@@ -104,6 +105,14 @@ ausschließlich durch ein Argument gestützt ist die andere:
   \emph{prozedural erzeugter} Balken eine andere Textur-, Rausch- und
   Glanzstatistik hätte
   und damit selbst zur Abkürzung würde.
+
+  \item[Wie viel trägt die Einbettung?] Zwei Trainingssätze, die sich darin
+  unterscheiden, ob die eingefügten Objekte photometrisch, in Schärfe, Rauschen
+  und Kompression an ihre Umgebung angeglichen werden
+  (Abschnitt~\ref{sec:ablationC}). Geprüft wird damit das Bündel jener
+  Maßnahmen, mit denen die Pipeline überhaupt begründet ist -- bis dahin
+  gestützt allein durch den kleinen Sim-to-Real-Abstand des Referenzmodells und
+  damit durch ein Indiz.
 \end{description}
 
 \noindent Die Inferenzauflösung wird ergänzend über einen Sweep bestimmt, ohne

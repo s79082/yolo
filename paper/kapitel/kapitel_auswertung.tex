@@ -322,10 +322,11 @@ unberührten \code{test} gegenüber B0 \textbf{\zablBTestGap\PP{} \mAPfifty}
 $10{,}1$\PP{} Rückruf; die Zählung fällt von \zBZeroTestCnt{} auf
 \zBTwoTestCnt{} von 89 Objekten. Auf \code{val} zeigt derselbe Arm dieselbe
 Richtung, wenn auch schwächer ($-\zablBValGap$\PP{} \mAPfifty,
-$-2{,}2$\PP{} $F_1$, $-4{,}1$\PP{} Rückruf). Der Effekt auf \code{test} ist der
-größte, der in dieser Arbeit über einen Eingriff in die Trainingsdaten gemessen
-wurde, und er übersteigt das Bootstrap-Intervall ($\pm\zbootTestStd$) um mehr
-als das Doppelte.
+$-2{,}2$\PP{} $F_1$, $-4{,}1$\PP{} Rückruf). Der Effekt auf \code{test}
+übersteigt die Halbbreite des 95\,\%-Bootstrap-Intervalls auf \code{test}
+($[\zbootTestLo;\,\zbootTestHi]$, also rund 2,2\PP) um gut das Doppelte; nur
+der Eingriff in die Einbettung (Abschnitt~\ref{sec:ablationC}) fällt in dieser
+Arbeit noch stärker aus.
 
 \emph{(2) Photographisches Material ist dennoch nicht erforderlich.} Arm~B1
 (das kalibrierte Zylindermodell) ist auf \code{test} von B0 nicht zu
@@ -384,6 +385,161 @@ Korn und Farbstich der Umgebung trägt. Die Begründung in
 \code{src/occluders.py} zeigt damit auf die richtige Größe -- die Textur- und
 Rauschstatistik des Verdeckers -- und zieht daraus nur den zu starken Schluss,
 dass sie photographisch beschafft werden müsse.
+
+\section{Die zweite Ablation: Wie viel trägt die Einbettung?}
+\label{sec:ablationC}
+
+\absatz{Warum diese Frage.} Ablation~B prüft eine einzelne Stufe -- das
+Material der Verdecker. Das Leitprinzip der Pipeline
+(Abschnitt~\ref{sec:leitprinzip}) ist damit nicht geprüft, denn es betrifft
+nicht die Verdecker, sondern das Einfügen selbst: Jede Stufe, die gegen eine
+der Signaturen S1--S6 gerichtet ist, kostet Rechenzeit und ist mit demselben
+Argument begründet -- ein eingefügtes Objekt, das sich statistisch von seiner
+Umgebung unterscheidet, sei eine Abkürzung. Gestützt war dieses Argument
+bislang nur \emph{indirekt}, über den kleinen Sim-to-Real-Abstand des
+Referenzmodells (Abschnitt~\ref{sec:hauptergebnis}); ein Indiz, kein Nachweis.
+Ablation~C trägt den Nachweis nach, indem sie das Bündel abschaltet.
+
+\absatz{Versuchsaufbau.} Zwei Arme, im Budget identisch zu
+Ablation~B (\code{yolo26s-p2}, 3000~Bilder, 30~Epochen, Batch~8, Seed~0,
+\code{imgsz}=1024, Auswahl über dasselbe reale \code{val}-Bild):
+
+\begin{description}[leftmargin=1.4em,itemsep=2pt,font=\normalfont\bfseries]
+  \item[C0 Kontrolle] die vollständige Pipeline aus
+  Kapitel~\ref{kap:pipeline}, mit demselben Codestand erzeugt wie C1.
+  \item[C1 naiv eingeklebt] dieselbe Pipeline mit abgeschalteten
+  Gegenmaßnahmen: harte Alphakante statt weicher (S1), kein Farbangleich
+  (S2), kein Unschärfeangleich (S3), kein Rauschangleich (S4), keine
+  JPEG-Requantisierung (S5), kein Schlagschatten. Die gemessenen Ist-Anteile
+  fallen entsprechend von 0,849 / 0,597 / 0,699 / 0,496 auf \textbf{0,000}
+  (Erzeugungsbericht, Abschnitt~\ref{sec:anhangbericht}).
+\end{description}
+
+\noindent Alles andere bleibt unverändert: Layoutmodell, Instanzgeometrie,
+photometrische Variation je Instanz, Rohrschaft, Okkluder-Bibliothek,
+Negativbildanteil und die globale Bildstufe. C1 ist damit das
+\enquote{Copy-Paste ohne Sorgfalt}, gegen das die Pipeline entworfen ist --
+dieselbe Szene\emph{n}verteilung, nur ohne Einbettung
+(Abbildung~\ref{abb:einbettung}).
+
+\absatz{Zwei Einschränkungen, die vor dem Ergebnis stehen.} \emph{Erstens} ist
+dieser Versuch \textbf{nicht gepaart}. Wird eine Einbettungsstufe
+übersprungen, entfallen auch ihre inneren Ziehungen -- die Angleichstärken aus
+Gleichung~\eqref{eq:harmonize}, die Unschärfe- und Rauschbeträge --, und der
+Zufallsstrom des Generators läuft auseinander. C0 und C1 sind deshalb zwei
+\emph{unabhängige Realisierungen} derselben Layoutverteilung und nicht,
+wie bei Ablation~B, dasselbe Bild mit anderen Pixeln: Über die ersten 200
+Bilder findet nur etwa ein Sechstel der Boxen im jeweils anderen Arm einen
+Partner näher als ein Pixel. Die Verteilungen stimmen dabei eng überein --
+beide Arme rendern 86\,617 Instanzen und labeln \zCZeroLabels{} gegenüber
+\zCOneLabels{} Objekten, ein Unterschied von \zablCLabelDiffProz\,\% --, die
+Einzelszenen aber nicht. Ablation~C ist damit eine gewöhnliche
+Datensatz-Ablation und entbehrt des methodischen Vorzugs, den
+Abschnitt~\ref{sec:ablationB} für sich in Anspruch nehmen kann. Behebbar wäre
+das mit geringem Aufwand, indem der Generator die Stufenparameter
+unbedingt zieht und nur ihre \emph{Anwendung} von $\pi_k$ abhängig macht
+(Gleichung~\eqref{eq:mischung}); dann wären auch die C-Datensätze gepaart.
+
+\emph{Zweitens} ist das Bündel nicht auflösbar. Sechs Maßnahmen werden
+gemeinsam abgeschaltet; welche davon wie viel trägt, sagt der Versuch nicht.
+Und die Zuordnung zu den Signaturen ist nicht ganz sauber: S1--S5 sind
+vollständig abgeschaltet, von S6 dagegen nur der Schlagschatten -- die
+physikalisch plausiblen Okkluder, die andere Hälfte dieser Signatur, bleiben
+in beiden Armen aktiv. Für S1 und S5 führt der Erzeugungsbericht zudem keinen
+Zähler; ihr Beleg ist der Quelltext (\code{src/generate.py}), nicht eine
+Messung am erzeugten Datensatz.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{abbildungen/neu_einbettung.png}
+\caption[Einbettung gegen naives Einkleben]{Je ein typischer Ausschnitt aus
+beiden Armen, dreifach vergrößert -- wegen der fehlenden Paarung
+\emph{nicht} dieselbe Szene. Links (C0) gehen die eingefügten Stirnflächen in
+Kantenschärfe, Farbe, Rauschen und Kompression im Hintergrund auf. Rechts (C1)
+stehen sie als scharf umrissene, kontrastreiche Fremdkörper auf einem
+weicheren Untergrund: genau der Unterschied, den ein Faltungsnetz als
+Abkürzung verwenden kann. Erzeugt mit \code{src/report\_neu.py}.}
+\label{abb:einbettung}
+\end{figure}
+
+\input{kapitel/tab_ablation_c}
+
+\absatz{Ergebnis.} Der Verzicht auf die Einbettung kostet auf dem unberührten
+\code{test} \textbf{$\zablCTestGap$\PP{} \mAPfifty} (\zCOneTestMap{} gegen
+\zCZeroTestMap), $\zablCTestGapFf$\PP{} $F_1$ und $\zablCTestGapRec$\PP{}
+Rückruf; auf \code{val} sind es $\zablCValGap$, $\zablCValGapFf$ und
+$\zablCValGapRec$\PP{} (Tabelle~\ref{tab:ablationC}). Anders als bei
+Ablation~B zeigen \emph{beide} Splits in dieselbe Richtung und in
+vergleichbarer Größenordnung. Der Effekt ist zugleich der größte, den diese
+Arbeit über einen Eingriff in die Trainingsdaten gemessen hat -- gut das
+Doppelte des naiven Verdeckers aus Abschnitt~\ref{sec:ablationB}.
+
+\absatz{Warum das trotz fehlender Paarung trägt.} Der Einwand gegen eine
+ungepaarte Ablation lautet, der Unterschied könne von der anderen
+Szenenrealisierung stammen. Dagegen sprechen zwei Beobachtungen. Die erste
+ist eine Größenordnung: Die Arme~B0 und C0 sind zwei nominell gleichwertige
+Kontrollen derselben Pipeline und trennen auf \code{test} 1,3\PP{}
+\mAPfifty{} (\zBZeroTestMap{} gegen \zCZeroTestMap). Das ist die beste
+verfügbare Schätzung dafür, wie weit zwei Läufe dieser Pipeline
+auseinanderliegen dürfen, ohne dass sich etwas geändert hätte -- der
+C1-Effekt ist rund das Neunfache davon.
+
+Die zweite Beobachtung ist die eigentliche, und sie ist gegen den Einwand
+\emph{immun}, weil sie innerhalb jedes Arms bleibt: Auf seinem \emph{eigenen}
+synthetischen Validierungssplit ist C1 von C0 praktisch nicht zu unterscheiden
+(\zCOneSval{} gegen \zCZeroSval{} \mAPfifty, $\zablCSvalGap$\PP). Der naiv
+eingeklebte Trainingssatz ist also keine schwerere Aufgabe -- das Netz löst
+ihn ebenso gut. Nur überträgt sich das Gelernte nicht: Der
+Sim-to-Real-Abstand wächst von \zgapCZeroTest{} auf \zgapCOneTest\PP{} auf
+\code{test} und von \zgapCZeroVal{} auf \zgapCOneVal\PP{} auf \code{val},
+also auf das Drei- bis Vierfache.
+
+Damit tritt genau das Muster auf, das Abschnitt~\ref{sec:hauptergebnis} als
+Signatur des Artefaktlernens benannt und für das Referenzmodell
+\emph{ausgeschlossen} hatte: synthetisch nahezu unverändert, real deutlich
+abgefallen. Die Aussage über das Referenzmodell gewinnt dadurch erst ihren
+Maßstab -- sie ist nicht mehr nur die Feststellung eines kleinen Abstands,
+sondern der Kontrast zu einem Arm, bei dem derselbe Abstand unter sonst
+gleichen Bedingungen drei- bis viermal so groß ausfällt.
+
+\absatz{Was der Versuch über den \emph{Mechanismus} nicht sagt.} Naheliegend
+ist die Deutung, das Netz habe die Einklebespur als Abkürzung gelernt: Im
+Trainingsbild trägt jedes gelabelte Objekt diese Spur und sonst nichts, die
+Korrelation mit dem Label ist also perfekt. Das Fehlermuster stützt diese
+Deutung jedoch nur zur Hälfte. Der Einbruch sitzt fast vollständig im Rückruf:
+Auf \code{test} fallen die Treffer von 80 auf 66, während die Zahl der
+Falsch-Positiven mit 8 gegenüber 10 praktisch unverändert bleibt; die Precision
+sinkt von \zCZeroTestPrec{} auf \zCOneTestPrec{} überwiegend deshalb, weil ihr
+Zähler kleiner wird. Auf \code{val} steigen die Falsch-Positiven von 6 auf 13,
+bei insgesamt \emph{weniger} Detektionen. Das Modell wird also still, es
+halluziniert nicht.
+
+Dieses Muster ist mit zwei Erklärungen gleichermaßen verträglich. Die eine ist
+die Abkürzung: Das Netz sucht die Einklebespur, findet sie im Realbild nicht
+und schweigt. Die andere ist eine gewöhnliche Domänenlücke: Ohne Angleich
+\emph{sehen} die Trainingsobjekte schlicht anders aus als reale Rohrenden --
+schärfer, kontrastreicher, mit dunklerer Bohrung --, und das Netz hat ein zu
+enges Erscheinungsmodell gelernt. Beide sagen denselben Rückrufeinbruch bei
+etwa gleichbleibender Falschalarmzahl voraus, und der Versuch kann sie nicht
+trennen, weil das Abschalten der Einbettung zweierlei zugleich bewirkt: Es
+erzeugt die künstliche Kante \emph{und} verfälscht die Erscheinung des Objekts
+selbst. Belegt ist damit, \emph{dass} die Einbettung trägt und dass ihr Fehlen
+an den synthetischen Daten unsichtbar bleibt -- nicht, über welchen der beiden
+Wege der Verlust entsteht.
+
+Entscheidbar wäre das durch eine Aufteilung des Bündels: ein Arm mit harter
+Kante, aber photometrisch angeglichenem Objekt gegen einen mit weicher Kante
+und unangeglichener Photometrie. Trägt der erste den größeren Teil des
+Verlusts, spricht das für die Abkürzung, denn die Kante gehört nicht zum
+Objekt; trägt der zweite ihn, für die Domänenlücke.
+
+\absatz{Konsequenz für die Pipeline.} Die Einbettungsstufen sind damit die
+erste Gruppe von Maßnahmen, deren Nutzen nicht nur begründet, sondern belegt
+ist -- und sie sind es deutlich. Wer Copy-Paste-Synthese ohne sie betreibt,
+verliert auf dieser Aufgabe acht bis elf Prozentpunkte \mAPfifty, ohne dass
+eine synthetische Kennzahl davon etwas anzeigte. Offen bleibt die Aufteilung
+innerhalb des Bündels; sie verlangt vier weitere Läufe mit je einer
+abgeschalteten Maßnahme.
 
 \section{Statistische Belastbarkeit und Fehleranalyse}
 \label{sec:bootstrap}

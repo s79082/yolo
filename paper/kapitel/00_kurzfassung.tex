@@ -26,7 +26,8 @@ und \textbf{\zrefTestMap} bei bestem $F_1$ von \zrefValFf{} und
 Sim-to-Real-Abstand zum synthetischen Validierungssplit beträgt \zsimRealVal{}
 bzw.\ \zsimRealTest\PP.
 
-Überprüft wird die Pipeline an ihrer aufwendigsten Stufe, der Verdeckung: Die
+Zwei kontrollierte Ablationen prüfen die Pipeline. Die erste betrifft ihre
+aufwendigste Stufe, die Verdeckung: Die
 aus Realaufnahmen geschnittene Okkluder-Bibliothek wird durch zwei prozedurale ersetzt, eine an ihr kalibrierte und eine naive. Alle drei Datensätze
 entstammen demselben Seed; ihre Labeldateien sind byte-identisch -- ein
 gepaarter Versuch, in dem allein die Verdeckerpixel variieren. Ein naiv gezeichneter grauer
@@ -36,6 +37,15 @@ nahezu vollständig im kleinsten Objektdrittel, dessen Rückruf von
 \zBZeroTestRecKlein{} auf \zBTwoTestRecKlein{} sinkt. Ein an fünf Kennwerten kalibriertes Zylindermodell erreicht dagegen dieselbe Leistung wie
 die photographische Bibliothek: Maßgeblich ist nicht die \emph{Herkunft} der
 Verdeckerpixel, sondern die Übereinstimmung ihrer Statistik mit der Umgebung.
+
+Die zweite Ablation prüft das Leitprinzip selbst und schaltet die
+Gegenmaßnahmen gegen die Signaturen S1--S5 gemeinsam ab. Das kostet
+$\zablCTestGap$\PP{} \mAPfifty{} und $\zablCTestGapFf$\PP{} $F_1$ auf
+\code{test} sowie $\zablCValGap$\PP{} auf \code{val} -- der stärkste
+gemessene Eingriff in die Trainingsdaten. Auf dem \emph{eigenen}
+synthetischen Split desselben Arms beträgt der Verlust dagegen nur
+$\zablCSvalGap$\PP: Der Sim-to-Real-Abstand wächst auf das Drei- bis
+Vierfache, ohne dass eine synthetische Kennzahl davon etwas anzeigte.
 
 Der größte Einzeleffekt geht nicht auf die Augmentierung zurück,
 sondern auf die Inferenzauflösung: \mAPfifty{} auf \code{val} steigt von

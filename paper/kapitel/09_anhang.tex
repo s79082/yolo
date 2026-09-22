@@ -24,6 +24,11 @@ python src/generate_neu.py --out synth/abl_B1_proz_balken \
 python src/generate_neu.py --out synth/abl_B2_proz_balken_naiv \
     --n 3000 --seed 1 --bars-dir assets/bars_proc_naiv
 
+# --- Datensaetze der Ablation C (Einbettung) -------------------------------
+python src/generate.py --out synth/C0_kontrolle   --n 3000 --seed 1
+python src/generate.py --out synth/C1_naive_paste --n 3000 --seed 1 \\
+    --naive-paste                               # S1-S5 und Schlagschatten aus
+
 # --- Training und Auswertung -----------------------------------------------
 python src/experiment_neu.py data           # data/*.yaml, Datensatzkennwerte
 python src/experiment_neu.py check          # Nachweis der Paarung
@@ -35,6 +40,9 @@ python src/train_neu.py --name referenz \
 python src/experiment_neu.py main  --weights runs/referenz/weights/best.pt
 python src/experiment_neu.py sweep --weights runs/referenz/weights/best.pt
 python src/analyse_neu.py          --weights runs/referenz/weights/best.pt
+python src/train_neu.py --name C0_kontrolle   --data data/C0_kontrolle.yaml
+python src/train_neu.py --name C1_naive_paste --data data/C1_naive_paste.yaml
+python src/eval_armC.py                     # Arme C0/C1, eigene Ergebnisdatei
 
 # --- Abbildungen und Tabellen ----------------------------------------------
 python src/report_neu.py
