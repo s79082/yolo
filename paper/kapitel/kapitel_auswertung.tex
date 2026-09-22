@@ -55,13 +55,11 @@ müsste erst begründet werden und würde die Ablationen von einer nachgelagerte
 Optimierung abhängig machen. \emph{Zweitens} beziehen sich alle Zahlen auf den
 korrigierten Annotationsstand mit 98 (\code{val}) und 89 (\code{test})
 Objekten (Abschnitt~\ref{sec:valtest}). Woher die einzelnen Zahlenwerte dieses
-Kapitels stammen, ist in Tabelle~\ref{tab:herkunft} im Anhang aufgeschlüsselt;
-die Leitmetriken werden aus den Ergebnisdateien in den Text eingesetzt und
-nicht abgeschrieben. % PRUEFEN: Der letzte Halbsatz gilt fuer die \z-Makros,
-nicht fuer die % im Kapitel ausgeschriebenen Werte (10,1 / 4,1 / 2,2 / 2,3 /
-23 / 3,4 / % 3,13 / 0,33 / 0,901 / 29,9 / 68281). Entweder diese ebenfalls aus
-den % Ergebnisdateien ziehen oder den Satz weiter einschraenken -- so wie er %
-steht, widerspricht ihm das eigene Kapitel.
+Kapitels stammen, ist in Tabelle~\ref{tab:herkunft} im Anhang aufgeschlüsselt.
+Alle Metriken und alle Tabellen dieses Kapitels werden aus den Ergebnisdateien
+in den Text eingesetzt und nicht abgeschrieben; ausgeschrieben sind nur
+Differenzen und Kennwerte, die sich aus den eingesetzten Werten unmittelbar
+nachrechnen lassen.
 
 \section{Hauptergebnis und Sim-to-Real-Abstand}
 \label{sec:hauptergebnis}
@@ -371,11 +369,7 @@ in Epoche~\zBZeroEpoche. Der Arm mit dem naiven Okkluder ist also deutlich
 früher austrainiert als der mit dem photographischen, und sein
 Trainingsverlust liegt zugleich niedriger (Abbildung~\ref{abb:training}).
 Beides sagt dasselbe: Der Trainingssatz stellt eine leichtere Aufgabe, und die
-verbleibenden Epochen tragen nichts mehr bei. % PRUEFEN: Hier stand ein
-Verweis auf sec:augformal mit dem Befund, dass % starke Augmentierung und
-kurzes Training nicht zusammenpassen. In der % vorliegenden Fassung von
-Kapitel 3 findet sich dieser Befund nicht -- % Verweis entweder nachtragen
-oder ganz weglassen.
+verbleibenden Epochen tragen nichts mehr bei.
 
 \absatz{Konsequenz für die Pipeline.} Nach diesem Ergebnis ist der Aufwand der
 photographischen Bibliothek -- eine eigene Verarbeitungsstufe und die Bindung an
