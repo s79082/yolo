@@ -1,0 +1,18 @@
+\begin{table}[htbp]
+\centering
+\caption[Ablation C: Einbettung der eingefügten Objekte]{Ablation~C -- Einbettung. \code{C0} ist die vollständige Pipeline, \code{C1} dieselbe Pipeline ohne die Gegenmaßnahmen gegen die Signaturen S1--S5 und ohne Schlagschatten; beide Datensätze ziehen aus derselben Layoutverteilung, sind aber \emph{nicht} gepaart. \code{sval} ist der \emph{jeweils eigene} synthetische Validierungssplit des Arms und beantwortet damit die Frage, ob der Arm seine eigenen Trainingsdaten gelernt hat. Die Differenzzeile steht in Prozentpunkten, die Labelspalte absolut.}
+\label{tab:ablationC}
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}lrr|rrr|rr@{}}
+\toprule
+\textbf{Arm} & \textbf{Labels} & \code{sval} & \multicolumn{3}{c|}{\code{test}} & \multicolumn{2}{c}{\code{val}} \\
+ & & \mAPfifty{} & \mAPfifty{} & $F_1$ & $R$ & \mAPfifty{} & $F_1$ \\
+\midrule
+C0 Kontrolle & 68\,280 & 0{,}982 & 0{,}948 & 0{,}904 & 0{,}899 & 0{,}947 & 0{,}917 \\
+C1 naiv eingeklebt & 67\,727 & 0{,}978 & 0{,}835 & 0{,}800 & 0{,}742 & 0{,}867 & 0{,}825 \\
+\midrule
+\emph{Differenz} & $-553$ & $-0{,}4$ & $-11{,}3$ & $-10{,}4$ & $-15{,}7$ & $-8{,}0$ & $-9{,}1$ \\
+\bottomrule
+\end{tabular}
+\end{table}

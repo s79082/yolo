@@ -49,6 +49,10 @@ A_ARME = [("A0_keine_okklusion", "A0 ohne"),
 B_ARME = [("A1_baseline", "B0 photogr."),
           ("B1_prozedural", "B1 prozedural"),
           ("B2_prozedural_naiv", "B2 naiv")]
+# Ablation C liegt in eigenen Ergebnisdateien (src/eval_armC.py), damit ein
+# erneutes "experiment_neu.py eval" ablationen.json nicht ueberschreibt.
+C_ARME = [("C0_kontrolle", "C0 Kontrolle"),
+          ("C1_naive_paste", "C1 naiv eingeklebt")]
 CS = {"val": "#1f77b4", "test": "#d62728"}
 
 # Beispielstangen der Bibliotheksabbildung. Bewusst ueber Dicke (16/18/20/21 px)
@@ -371,6 +375,122 @@ def tabellen():
           lambda d: _de(100 * d.get("teilverdeckt", 0), 1) + r"\,\%")])
 
 
+def fig_einbettung(idx=15, crop=(360, 420, 260, 260)):
+    """Je ein Bildausschnitt aus den Armen C0 und C1.
+
+    Ausdruecklich NICHT dieselbe Szene: Anders als bei Ablation B sind die
+    beiden Datensaetze nicht gepaart. Sobald eine Einbettungsstufe
+    uebersprungen wird, entfallen ihre inneren Ziehungen und der Zufallsstrom
+    laeuft auseinander (vgl. den Abschnitt zur Ablation C). Gezeigt wird
+    deshalb der typische Bildeindruck beider Arme, nicht ein Paar.
+
+    Labels sind bewusst nicht eingezeichnet -- die Abbildung soll die
+    Einbettung zeigen, nicht die Annotation.
+    """
+    ds = [("synth/C0_kontrolle", "C0 -- vollständige Einbettung"),
+          ("synth/C1_naive_paste", "C1 -- naiv eingeklebt")]
+    name = f"syn_1_{idx:06d}"
+    x, y, w, h = crop
+    fig, axes = plt.subplots(1, 2, figsize=(9.6, 5.0))
+    for ax, (d, titel) in zip(axes, ds):
+        im = cv2.imread(os.path.join(d, "images", name + ".jpg"))
+        if im is None:
+            ax.axis("off")
+            continue
+        sub = im[y:y + h, x:x + w]
+        sub = cv2.resize(sub, None, fx=3, fy=3, interpolation=cv2.INTER_NEAREST)
+        ax.imshow(cv2.cvtColor(sub, cv2.COLOR_BGR2RGB))
+        ax.set_xticks([]); ax.set_yticks([])
+        ax.set_title(titel, fontsize=10)
+    fig.tight_layout()
+    out = os.path.join(DOC, "fig_einbettung.png")
+    fig.savefig(out, dpi=170, bbox_inches="tight")
+    plt.close(fig)
+    shutil.copy(out, os.path.join(FIGDIR, "neu_einbettung.png"))
+    print("->", out)
+
+
+def _c_daten():
+    """Ergebnisse und Datensatzkennwerte der Arme C0/C1.
+
+    Anders als bei A und B stehen die Kennwerte nicht in datensaetze.json --
+    die Arme sind nach jenem Lauf entstanden. Gelesen wird deshalb direkt der
+    Erzeugungsbericht, den der Generator neben jeden Datensatz schreibt.
+    """
+    rows = _load("ablationC.json")
+    sval = _load("ablationC_sval.json")
+    if not rows:
+        return None, None, None
+    ds = {}
+    for arm, _ in C_ARME:
+        p = os.path.join("synth", arm, "generation_report.json")
+        if os.path.exists(p):
+            ds[arm] = json.load(open(p))
+    return rows, sval, ds
+
+
+def tab_ablation_c():
+    """Ergebnistabelle der Ablation C mit Differenzzeile.
+
+    Bei nur zwei Armen ist die Differenz die eigentliche Aussage; sie steht
+    deshalb als eigene Zeile und nicht nur im Fliesstext. Die sval-Spalte
+    gehoert dazu: Erst sie zeigt, dass der Einbruch auf den Realbildern
+    nicht von einem schlechter gelernten Trainingsdatensatz kommt.
+    """
+    rows, sval, ds = _c_daten()
+    if not rows:
+        print("Ablation C: Ergebnisse fehlen -- Tabelle uebersprungen")
+        return
+    def hole(arm, sp, key):
+        if sp == "sval":
+            r = _row(sval or [], arm, "sval_eigen")
+        else:
+            r = _row(rows, arm, sp)
+        return None if r is None else r[key]
+
+    L = [r"\begin{table}[htbp]", r"\centering",
+         r"\caption[Ablation C: Einbettung der eingefügten Objekte]{Ablation~C"
+         r" -- Einbettung. \code{C0} ist die vollständige Pipeline, \code{C1}"
+         r" dieselbe Pipeline ohne die Gegenmaßnahmen gegen die Signaturen"
+         r" S1--S5 und ohne Schlagschatten; beide Datensätze ziehen aus"
+         r" derselben Layoutverteilung, sind aber \emph{nicht} gepaart."
+         r" \code{sval} ist der \emph{jeweils eigene} synthetische"
+         r" Validierungssplit des Arms und beantwortet damit die Frage, ob der"
+         r" Arm seine eigenen Trainingsdaten gelernt hat."
+         r" Die Differenzzeile steht in Prozentpunkten, die Labelspalte"
+         r" absolut.}",
+         r"\label{tab:ablationC}", r"\footnotesize",
+         r"\setlength{\tabcolsep}{4pt}",
+         r"\begin{tabular}{@{}lrr|rrr|rr@{}}", r"\toprule",
+         r"\textbf{Arm} & \textbf{Labels} & \code{sval} & "
+         r"\multicolumn{3}{c|}{\code{test}} & \multicolumn{2}{c}{\code{val}} \\",
+         r" & & \mAPfifty{} & \mAPfifty{} & $F_1$ & $R$ & \mAPfifty{} & $F_1$ \\",
+         r"\midrule"]
+    reihen = [("sval", "mAP50"), ("test", "mAP50"), ("test", "best_f1"),
+              ("test", "recall_at_best_f1"), ("val", "mAP50"), ("val", "best_f1")]
+    for arm, lab in C_ARME:
+        n = (ds.get(arm) or {}).get("instances_labeled")
+        cells = [lab, "--" if n is None else f"{n:,}".replace(",", r"\,")]
+        cells += [("--" if (v := hole(arm, sp, k)) is None else _de(v, 3))
+                  for sp, k in reihen]
+        L.append(" & ".join(cells) + r" \\")
+    a, b = C_ARME[0][0], C_ARME[1][0]
+    na, nb = ((ds.get(a) or {}).get("instances_labeled"),
+              (ds.get(b) or {}).get("instances_labeled"))
+    diff = [r"\emph{Differenz}",
+            "--" if None in (na, nb) else f"${nb - na}$"]
+    for sp, k in reihen:
+        va, vb = hole(a, sp, k), hole(b, sp, k)
+        diff.append("--" if None in (va, vb) else
+                    r"$" + _de(100 * (vb - va), 1).replace("-", "-") + r"$")
+    L.append(r"\midrule")
+    L.append(" & ".join(diff) + r" \\")
+    L += [r"\bottomrule", r"\end{tabular}", r"\end{table}"]
+    p = os.path.join(TEXDIR, "tab_ablation_c.tex")
+    open(p, "w").write("\n".join(L) + "\n")
+    print("->", p)
+
+
 # ---------------------------------------------------------------------------
 # Weitere LaTeX-Tabellen
 # ---------------------------------------------------------------------------
@@ -608,6 +728,20 @@ def zahlen():
                 M[f"sw{S}HochAt"] = str(hoch)
                 put(f"sw{S}HochDeff", med * hoch / N, 1)
         M["bestImgsz"] = str(rep.get("best_imgsz", "??"))
+        # Metriken bei der ausgewaehlten Auflaesung. Gebraucht werden sie,
+        # weil die Arbeit ihre Zahlen beim nativen Massstab berichtet, die
+        # Auswahl aber eine andere Stufe trifft -- der Unterschied gehoert
+        # benannt und nicht dem Leser ueberlassen.
+        try:
+            _sel = int(rep.get("best_imgsz"))
+        except (TypeError, ValueError):
+            _sel = None
+        for sp in ("val", "test"):
+            r = tab.get(_sel, {}).get(sp) if _sel else None
+            if r:
+                put(f"sel{sp.capitalize()}Map", r["mAP50"])
+                put(f"sel{sp.capitalize()}MapA", r["mAP50_95"])
+                put(f"sel{sp.capitalize()}Rec", r["recall_at_best_f1"])
         for sp in ("val", "test"):
             o = next((x for x in rep["tta"] if x["split"] == sp
                       and x["tag"] == "plain"), None)
@@ -667,6 +801,58 @@ def zahlen():
         put("ablBTestGapRec", sp_delta("B2_prozedural_naiv", "A1_baseline",
                                        "test", "recall_at_best_f1"), 1, pp=True)
 
+    # --- Ablation C: Einbettung -------------------------------------------
+    crows, csval, cds = _c_daten()
+    if crows:
+        kurzC = {"C0_kontrolle": "CZero", "C1_naive_paste": "COne"}
+        for arm, tag in kurzC.items():
+            for sp in ("val", "test"):
+                r = _row(crows, arm, sp)
+                if not r:
+                    continue
+                put(f"{tag}{sp.capitalize()}Map", r["mAP50"])
+                put(f"{tag}{sp.capitalize()}MapA", r["mAP50_95"])
+                put(f"{tag}{sp.capitalize()}Ff", r["best_f1"])
+                put(f"{tag}{sp.capitalize()}Rec", r["recall_at_best_f1"])
+                put(f"{tag}{sp.capitalize()}Prec", r["precision_at_best_f1"])
+                M[f"{tag}{sp.capitalize()}Cnt"] = str(r["count_pred"])
+            s = _row(csval or [], arm, "sval_eigen")
+            if s:
+                put(f"{tag}Sval", s["mAP50"])
+                put(f"{tag}SvalFf", s["best_f1"])
+                # Sim-to-Real-Abstand gegen den EIGENEN sval des Arms: nur so
+                # misst die Groesse die Uebertragung und nicht zusaetzlich den
+                # Unterschied der beiden synthetischen Verteilungen.
+                for sp in ("val", "test"):
+                    r = _row(crows, arm, sp)
+                    if r:
+                        put(f"gap{tag}{sp.capitalize()}",
+                            s["mAP50"] - r["mAP50"], 1, pp=True)
+            n = (cds.get(arm) or {}).get("instances_labeled")
+            if n is not None:
+                M[f"{tag}Labels"] = f"{n:,}".replace(",", r"\,")
+
+        def c_delta(sp, key):
+            ra = _row(crows, "C0_kontrolle", sp)
+            rb = _row(crows, "C1_naive_paste", sp)
+            return None if not (ra and rb) else rb[key] - ra[key]
+
+        put("ablCTestGap", c_delta("test", "mAP50"), 1, pp=True)
+        put("ablCValGap", c_delta("val", "mAP50"), 1, pp=True)
+        put("ablCTestGapFf", c_delta("test", "best_f1"), 1, pp=True)
+        put("ablCValGapFf", c_delta("val", "best_f1"), 1, pp=True)
+        put("ablCTestGapRec", c_delta("test", "recall_at_best_f1"), 1, pp=True)
+        put("ablCValGapRec", c_delta("val", "recall_at_best_f1"), 1, pp=True)
+        sa = _row(csval or [], "C0_kontrolle", "sval_eigen")
+        sb = _row(csval or [], "C1_naive_paste", "sval_eigen")
+        if sa and sb:
+            put("ablCSvalGap", sb["mAP50"] - sa["mAP50"], 1, pp=True)
+        na = (cds.get("C0_kontrolle") or {}).get("instances_labeled")
+        nb = (cds.get("C1_naive_paste") or {}).get("instances_labeled")
+        if na and nb:
+            M["ablCLabelDiff"] = str(na - nb)
+            put("ablCLabelDiffProz", (na - nb) / na, 1, pp=True)
+
     a = _load("analyse.json")
     if a:
         for r in a["boxversatz"]:
@@ -692,6 +878,18 @@ def zahlen():
                 1, pp=True)
             put(f"sens{S}FfOrig", v["original"]["best_f1"])
             put(f"sens{S}FfNeu", v["aufgeweitet"]["best_f1"])
+        # Sim-to-Real-Abstand bei mAP@0,5:0,95 NACH Angleich der
+        # Boxkonvention. Erst diese Groesse trennt im grossen mAPall-Abstand
+        # den Anteil der Labelkonvention von dem, was Verteilungsdivergenz
+        # bleibt; der rohe Abstand allein ueberzeichnet die Divergenz.
+        _hs = {r["split"]: r for r in (haupt or [])}
+        if "sval" in _hs:
+            for sp in ("val", "test"):
+                v = a["sensitivitaet"].get(sp)
+                if v:
+                    put(f"simReal{sp.capitalize()}AKorr",
+                        _hs["sval"]["mAP50_95"] - v["aufgeweitet"]["mAP50_95"],
+                        1, pp=True)
         for r in a["fehler"]:
             S = r["split"].capitalize()
             M[f"fp{S}"] = str(r["falsch_positiv"])
@@ -862,26 +1060,38 @@ def ergebnisse_md():
 
 
 if __name__ == "__main__":
+    import argparse
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("--nur-tabellen", action="store_true",
+                    help="nur tab_*.tex und zahlen.tex erzeugen; die "
+                         "Abbildungen bleiben unveraendert (schnell, und "
+                         "braucht die Bilddatensaetze nicht)")
+    args = ap.parse_args()
     os.makedirs(DOC, exist_ok=True)
-    fig_balken()
-    fig_balken_szene()
-    rows = _load("ablationen.json")
-    if rows:
-        _fig_ablation(rows, A_ARME,
-                      "Ablation A -- Okklusionsanteil in den Trainingsdaten",
-                      "fig_ablation_a.png")
-        _fig_ablation(rows, B_ARME,
-                      "Ablation B -- Herkunft der Okkluderbalken",
-                      "fig_ablation_b.png")
-    fig_imgsz()
-    fig_training()
-    fig_training(B_ARME, "fig_training_b.png",
-                 "Lernkurven der drei Arme (yolo26s-p2, 3000 Bilder, 30 Epochen)")
+    if not args.nur_tabellen:
+        fig_balken()
+        fig_balken_szene()
+        rows = _load("ablationen.json")
+        if rows:
+            _fig_ablation(rows, A_ARME,
+                          "Ablation A -- Okklusionsanteil in den Trainingsdaten",
+                          "fig_ablation_a.png")
+            _fig_ablation(rows, B_ARME,
+                          "Ablation B -- Herkunft der Okkluderbalken",
+                          "fig_ablation_b.png")
+        fig_einbettung()
+        fig_imgsz()
+        fig_training()
+        fig_training(B_ARME, "fig_training_b.png",
+                     "Lernkurven der drei Arme "
+                     "(yolo26s-p2, 3000 Bilder, 30 Epochen)")
     tabellen()
+    tab_ablation_c()
     tab_hauptergebnis()
     tab_imgsz()
     tab_sensitivitaet()
     tab_boxversatz()
-    qualbilder()
+    if not args.nur_tabellen:
+        qualbilder()
     zahlen()
     ergebnisse_md()
