@@ -19,11 +19,11 @@ sie liegen im letzten Commit unter `paper/kapitel`, `paper/kapitel_kurz` und
 ### Woher die Zahlen kommen
 
 Jede im Fließtext genannte Messzahl steht in `kapitel/zahlen.tex` und wird
-von `neu/src/report_neu.py` erzeugt — ebenso alle Ergebnistabellen
+von `src/report_neu.py` erzeugt — ebenso alle Ergebnistabellen
 (`kapitel/tab_*.tex`). Wird ein Lauf wiederholt, genügt
 
 ```bash
-.venv/bin/python neu/src/report_neu.py
+.venv/bin/python src/report_neu.py --nur-tabellen
 ```
 
 im Projektwurzelverzeichnis, damit Text und Tabellen wieder zu den Daten passen.
@@ -79,7 +79,7 @@ sudo apt install texlive-latex-recommended texlive-latex-extra texlive-lang-germ
 |---|---|
 | `main.tex` | Dokumentrahmen, bindet alle Kapitel ein |
 | `praeambel.tex` | Pakete, Satzspiegel, Makros (`\code`, `\px`, `\PP`, `\mAPfifty` …) |
-| `literatur.bib` | 77 Quellen |
+| `literatur.bib` | 67 Quellen |
 | `kapitel/00_titel.tex` | Titelseite |
 | `kapitel/00_kurzfassung.tex` | Kurzfassung |
 | `kapitel/01_einleitung.tex` | 1 Einleitung: Aufgabe, Zielsetzung, Aufbau |
