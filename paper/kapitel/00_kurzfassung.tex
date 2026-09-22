@@ -6,53 +6,38 @@
 An gestapelten mobilen Bauzaunfeldern sind die Stirnflächen der Rahmenrohre zu
 detektieren: kleine, nahezu identische Kreisringe in dichter Packung und
 wechselseitiger Verdeckung. Annotierte Datensätze liegen nicht vor, und die
-Handannotation hunderter Kleinobjekte je Bild ist aufwendig. Die Arbeit
-umgeht diese Abhängigkeit: Trainiert wird \emph{ausschließlich} auf
-synthetischen Bildern aus neun freigestellten Objektausschnitten und sieben
+Handannotation vieler Kleinobjekte je Bild ist aufwendig. Die Arbeit umgeht
+diese Abhängigkeit: Trainiert wird \emph{ausschließlich} auf synthetischen
+Bildern aus wenigen freigestellten Objektausschnitten und
 Hintergrundaufnahmen, validiert und getestet auf realen Aufnahmen.
 
 Der methodische Schwerpunkt verlagert sich damit von der Netzarchitektur auf
 die \textbf{Augmentierungs- und Synthese-Pipeline}, die die Trainingsverteilung
-vollständig erzeugt. Aus den theoretischen Grundlagen der Datenaugmentierung --
-Invarianzkodierung, Rauschregularisierung, Shortcut-Vermeidung -- wird eine
-Begründungspflicht abgeleitet: Jeder Parameter stützt sich auf eine gemessene
-Eigenschaft der Realdaten, eine \emph{physikalische Randbedingung} oder ein
-\emph{Literaturargument}; andernfalls wird er als \emph{Annahme} ausgewiesen. Die Pipeline umfasst 37 Transformationen mit 44
-Parameterwerten; davon sind 8 gemessen, 8 literaturgestützt, 3 physikalisch
-begründet, 10 gemischt und \textbf{15 als Annahme gekennzeichnet}. Auf zwei
-realen Aufnahmen erreicht das Verfahren \mAPfifty{} von \textbf{\zrefValMap}
-und \textbf{\zrefTestMap} bei bestem $F_1$ von \zrefValFf{} und
-\zrefTestFf; \code{test} geht weder in Training noch Modellauswahl ein. Der
-Sim-to-Real-Abstand zum synthetischen Validierungssplit beträgt \zsimRealVal{}
-bzw.\ \zsimRealTest\PP.
+vollständig erzeugt. Aus den Grundlagen der Datenaugmentierung leitet die
+Arbeit eine Begründungspflicht ab: Jeder Parameter stützt sich auf eine Messung
+an den Realdaten, eine physikalische Randbedingung oder ein Literaturargument,
+andernfalls wird er als Annahme ausgewiesen. Auf dem realen Testbild, das
+weder in Training noch Modellauswahl eingeht, erreicht der so trainierte
+Detektor ein \mAPfifty{} von \textbf{\zrefTestMap}.
 
-Zwei kontrollierte Ablationen prüfen die Pipeline. Die erste betrifft ihre
-aufwendigste Stufe, die Verdeckung: Die
-aus Realaufnahmen geschnittene Okkluder-Bibliothek wird durch zwei prozedurale ersetzt, eine an ihr kalibrierte und eine naive. Alle drei Datensätze
-entstammen demselben Seed; ihre Labeldateien sind byte-identisch -- ein
-gepaarter Versuch, in dem allein die Verdeckerpixel variieren. Ein naiv gezeichneter grauer
-Balken senkt auf dem unberührten Testbild
-\mAPfifty{} um \textbf{\zablBTestGap\PP{}} und $F_1$ um \zablBTestGapFf\PP{} --
-nahezu vollständig im kleinsten Objektdrittel, dessen Rückruf von
-\zBZeroTestRecKlein{} auf \zBTwoTestRecKlein{} sinkt. Ein an fünf Kennwerten kalibriertes Zylindermodell erreicht dagegen dieselbe Leistung wie
-die photographische Bibliothek: Maßgeblich ist nicht die \emph{Herkunft} der
-Verdeckerpixel, sondern die Übereinstimmung ihrer Statistik mit der Umgebung.
+Zwei kontrollierte Ablationen prüfen die Pipeline. Die erste tauscht die aus
+Realaufnahmen geschnittene Okkluder-Bibliothek gegen prozedural erzeugte
+Verdecker; der Versuch ist gepaart, allein die Verdeckerpixel variieren. Ein an
+der Bibliothek kalibriertes Modell erreicht dieselbe Leistung, ein naiv
+gezeichneter grauer Balken senkt \mAPfifty{} auf dem Testbild dagegen um
+\zablBTestGap\PP{} -- fast vollständig über den Rückruf der kleinsten Objekte.
+Maßgeblich ist also nicht die Herkunft der Verdeckerpixel, sondern ob ihre
+Statistik zur Umgebung passt. Die zweite Ablation schaltet die Einbettung ab,
+also den Angleich der eingefügten Objekte an ihre Umgebung in Kante, Farbe,
+Schärfe, Rauschen und Kompression. Das kostet so viel wie kein anderer
+gemessener Eingriff in die Trainingsdaten ($\zablCTestGap$\PP{} \mAPfifty{}
+auf dem Testbild). Auf synthetischen Validierungsbildern derselben Machart ist
+davon dagegen kaum etwas zu sehen: Eine synthetische Kennzahl hätte den Schaden
+nicht angezeigt.
 
-Die zweite Ablation prüft das Leitprinzip selbst und schaltet die
-Gegenmaßnahmen gegen die Signaturen S1--S5 gemeinsam ab. Das kostet
-$\zablCTestGap$\PP{} \mAPfifty{} und $\zablCTestGapFf$\PP{} $F_1$ auf
-\code{test} sowie $\zablCValGap$\PP{} auf \code{val} -- der stärkste
-gemessene Eingriff in die Trainingsdaten. Auf dem \emph{eigenen}
-synthetischen Split desselben Arms beträgt der Verlust dagegen nur
-$\zablCSvalGap$\PP: Der Sim-to-Real-Abstand wächst auf das Drei- bis
-Vierfache, ohne dass eine synthetische Kennzahl davon etwas anzeigte.
-
-Der größte Einzeleffekt geht nicht auf die Augmentierung zurück,
-sondern auf die Inferenzauflösung: \mAPfifty{} auf \code{val} steigt von
-\zswValNiedrig{} bei 640\px{} auf \zswValBest{} (\zswValGain\PP). Ein
-systematischer Größenversatz von \zboxValOff{} bis \zboxTestOff\px{} zwischen
-Generatorlabel und Handannotation erklärt zudem den niedrigen
-\mAPseven{}-Wert; eine Sensitivitätsrechnung hebt ihn von
-\zsensTestMapSOrig{} auf \zsensTestMapSNeu{}, ohne \mAPfifty{} und $F_1$ zu
-verändern. Bei programmatisch erzeugten Labels wird die Labelkonvention selbst zur
-messbaren Größe.
+Den größten Einzeleffekt hat keine Augmentierungsentscheidung, sondern die
+Inferenzauflösung, die festlegt, wie groß die Objekte beim Netz ankommen. Ein
+systematischer Größenversatz zwischen Generatorlabel und Handannotation erklärt
+zudem großenteils die niedrigen Werte bei strengeren IoU-Schwellen: Bei
+programmatisch erzeugten Labels wird die Labelkonvention selbst zur messbaren
+Größe.
