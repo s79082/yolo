@@ -23,11 +23,25 @@ stark überlappende Vorhersagen anhand ihrer Intersection over Union unterdrück
 \absatz{Schrittweite und Objektgröße.} Von alledem ist für diese Arbeit
 ein einziger Aspekt tragend: die schrittweise Reduktion der räumlichen Auflösung,
 klassisch durch Pooling, in modernen Architekturen überwiegend durch Faltungen
-mit Schrittweite $s=2$. Nach $L$ solchen Stufen beträgt der Gesamtschritt
+mit Schrittweite $s=2$. Die \emph{Schrittweite} (engl.\ \emph{stride}) gibt an,
+um wie viele Pixel das Filterfenster einer Faltung oder eines Poolings zwischen
+zwei benachbarten Auswertungen verschoben wird. Bei $s=1$ wird der Kernel an
+jeder Position ausgewertet, und die Ausgabe behält bei passender Randauffüllung
+die räumliche Größe der Eingabe; bei $s=2$ wird er nur an jeder zweiten Position
+in Zeilen- und Spaltenrichtung ausgewertet, sodass Breite und Höhe der Ausgabe
+halbiert werden. Allgemein hat die Ausgabe einer Schicht mit Kernelgröße $k$,
+Randauffüllung $p$ und Schrittweite $s$ bei einer Eingabebreite $W$ die Breite
+$\lfloor (W+2p-k)/s \rfloor + 1$ \parencite{dumoulin2016}; mit den üblichen
+Werten $k=3$ und $p=1$ werden bei $s=2$ aus 1024 Positionen 512. Die
+Schrittweiten hintereinandergeschalteter Stufen multiplizieren sich: Nach $L$
+solchen Stufen beträgt der Gesamtschritt
 \[
   S=\prod_{\ell=1}^{L}s_\ell ,
 \]
-bei ausschließlich halbierenden Stufen also $S=2^L$. Eine Merkmalsebene mit
+bei ausschließlich halbierenden Stufen also $S=2^L$. Auch diese
+Gesamtschrittweite wird meist kurz als \emph{Stride} der Merkmalsebene
+bezeichnet; beide Begriffe werden im Folgenden gleichbedeutend verwendet. Eine
+Merkmalsebene mit
 Gesamtschrittweite $S$ besitzt Gitterpositionen im Abstand von $S$ Bildpixeln;
 ein Objekt der charakteristischen Größe $d$ wird auf ihr folglich nur durch
 etwa $d/S$ Positionen über seine Ausdehnung repräsentiert. Mit abnehmendem
@@ -44,28 +58,17 @@ in Abschnitt~\ref{subsec:kleine-objekte}.
 
 \subsection{Einordnung}
 
-Die YOLO-Familie (\enquote{You Only Look Once}) wurde als einstufiger Echtzeit-Objektdetektor eingeführt \parencite{redmon2016}. Die Weiterentwicklung durch Ultralytics führte unter anderem zu ankerfreien und entkoppelten Detektionsköpfen. YOLO26 wurde im September 2025 vorgestellt und kombiniert mehrere Änderungen gegenüber früheren YOLO-Architekturen, darunter ein Dual-Head-Design für NMS-freie Inferenz, der Wegfall der Distribution Focal Loss, ProgLoss in Verbindung mit Small-Target-Aware Label Assignment (STAL) sowie der MuSGD-Optimierer \parencite{jocher2026yolo26,sapkota2025}.
+Die YOLO-Familie (\enquote{You Only Look Once}) wurde als einstufiger Echtzeit-Objektdetektor eingeführt \parencite{redmon2016}; Abschnitt~\ref{sec:vorarbeiten} ordnet ihre Entwicklung in die übrigen Verfahrensfamilien ein. Ihre heutigen Detektionsköpfe sind ankerfrei und entkoppelt; diesen Aufbau brachte YOLOX in die Familie \parencite{ge2021yolox}, Ultralytics übernahm ihn ab YOLOv8 \parencite{terven2023}. Was beide Begriffe bedeuten, erläutert Abschnitt~\ref{sec:neck}. YOLO26 wurde im September 2025 vorgestellt und kombiniert mehrere Änderungen gegenüber früheren YOLO-Architekturen, darunter ein Dual-Head-Design für NMS-freie Inferenz, der Wegfall der Distribution Focal Loss, ProgLoss in Verbindung mit Small-Target-Aware Label Assignment (STAL) sowie der MuSGD-Optimierer \parencite{jocher2026yolo26,sapkota2025}.
 
 Für die vorliegende Arbeit sind insbesondere die Änderungen relevant, die mit der Erkennung kleiner Objekte und der Verarbeitung dicht gepackter Instanzen zusammenhängen. STAL adressiert die Zuweisung von Trainingspositionen bei kleinen Objekten, während die NMS-freie Inferenz die nachgelagerte Unterdrückung überlappender Vorhersagen vermeidet \parencite{jocher2026yolo26,sapkota2025}.
 
 \subsection{Backbone, Neck, Head und die Merkmalspyramide}
+\label{sec:neck}
 YOLO26 lässt sich konzeptionell in die drei Bestandteile Backbone, Neck und Head gliedern. Das Backbone extrahiert hierarchische Merkmale und reduziert dabei schrittweise die räumliche Auflösung. Bei einer Eingabe von \(1024\times1024\) Pixeln entstehen durch Stride-2-Operationen beispielsweise Merkmalsebenen mit räumlichen Auflösungen von \(512\times512\), \(256\times256\), \(128\times128\), \(64\times64\) und \(32\times32\) Pixeln. Mit zunehmender Tiefe sinkt damit die räumliche Auflösung, während die Merkmalsdimension zunimmt.
 
 Der Neck führt Merkmale verschiedener Auflösungsstufen wieder zusammen. Hierzu werden Prinzipien von Feature Pyramid Networks (FPN) und Path Aggregation Networks (PAN) eingesetzt \parencite{lin2017fpn}. Semantisch reichhaltige Merkmale tiefer Ebenen werden auf höhere räumliche Auflösungen gebracht und mit früheren, ortsgenaueren Merkmalen kombiniert. Umgekehrt können Informationen aus feineren Ebenen wieder in tiefere Ebenen einfließen.
 
-Der Detektionskopf erhält dadurch mehrere Merkmalsebenen, die unterschiedliche Objektgrößen abdecken. Die Standardkonfiguration verwendet die Ebenen P3, P4 und P5 mit den Gesamtschrittweiten
-
-\[
-S\in\{8,16,32\}.
-\]
-
-Für kleine Objekte kann zusätzlich eine feinere P2-Ebene mit
-
-\[
-S=4
-\]
-
-verwendet werden.
+Der Detektionskopf erhält dadurch mehrere Merkmalsebenen, die unterschiedliche Objektgrößen abdecken. Die Standardkonfiguration verwendet die Ebenen P3, P4 und P5 mit den Gesamtschrittweiten $S\in\{8,16,32\}$; die Ziffer im Namen ist der Exponent, Ebene P$\ell$ hat die Schrittweite $S=2^{\ell}$ \parencite{lin2017fpn}. Für kleine Objekte kann zusätzlich eine feinere P2-Ebene mit $S=4$ verwendet werden.
 
 Bei einer Eingabe von $1024\times1024$ Pixeln ergeben sich daraus die in
 Abbildung~\ref{abb:pyramide} gegenübergestellten Gittergrößen. Die P2-Ebene
@@ -73,7 +76,48 @@ enthält dabei allein mehr räumliche Positionen als P3, P4 und P5 zusammen; ihr
 Bedeutung liegt jedoch nicht in dieser Zahl, sondern in der geringeren
 Schrittweite und damit der feineren räumlichen Repräsentation kleiner Objekte.
 
-Der Head ist vollständig faltungsbasiert. Die Klassifikation und die Boxregression werden dabei in getrennten Zweigen verarbeitet. Der Detektor ist zudem ankerfrei: Vorhersagen werden direkt für räumliche Positionen der Merkmalsebenen erzeugt, anstatt eine feste Menge vorgegebener Ankerboxen zu verwenden \parencite{tian2019fcos}. Damit wird die räumliche Struktur der verwendeten Merkmalsebenen unmittelbar für die Detektion relevant.
+Der Head ist vollständig faltungsbasiert und sagt an jeder Position jeder
+Merkmalsebene zweierlei vorher: eine Klassenkonfidenz -- bei der hier einzigen
+Klasse also, wie wahrscheinlich an dieser Stelle eine Stirnfläche liegt -- und
+die Lage der zugehörigen Box. Wie er das tut, bestimmen zwei Eigenschaften.
+
+\absatz{Entkoppelt.} In einem \emph{gekoppelten} Kopf, wie ihn etwa YOLOv3
+verwendet, erzeugt eine gemeinsame Faltung aus denselben Merkmalen einen einzigen
+Ausgabevektor, der Boxkoordinaten, Objektkonfidenz und Klassenwerte
+nebeneinander enthält \parencite{redmon2018yolov3}. Ein \emph{entkoppelter} Kopf
+führt Klassifikation und Boxregression dagegen in zwei getrennten
+Faltungszweigen mit eigenen Gewichten; gemeinsam sind ihnen nur die
+Eingangsmerkmale. Hintergrund ist ein bekannter Konflikt zwischen beiden
+Aufgaben \parencite{song2020sibling,wu2020rethinking}: Anschaulich soll die
+Klassifikation möglichst unempfindlich dagegen sein, wo genau das Objekt im
+betrachteten Ausschnitt liegt, während die Boxregression gerade diese
+Lageinformation braucht. Aus denselben Merkmalen gelernt, arbeiten beide Ziele
+gegeneinander. YOLOX berichtet für den entkoppelten Kopf eine deutlich
+schnellere Konvergenz bei zugleich höherer Genauigkeit \parencite{ge2021yolox}.
+
+\absatz{Ankerfrei.} Die Boxregression braucht einen Bezug, relativ zu dem die
+Box angegeben wird. Ankerbasierte Detektoren legen dafür an jeder Gitterposition
+mehrere \emph{Ankerboxen} fest -- vorab gewählte Referenzboxen
+unterschiedlicher Größe und Seitenverhältnisse, bei Faster R-CNN etwa neun je
+Position \parencite{ren2015}. Das Netz sagt für jede Ankerbox eine
+Klassenkonfidenz und Korrekturen von Mittelpunkt, Breite und Höhe vorher;
+welche Anker im Training als positiv gelten, entscheidet ihre Überlappung mit
+den annotierten Boxen. Größen und Seitenverhältnisse der Anker sind damit
+Hyperparameter, die zur Größenverteilung der Objekte passen müssen -- YOLOv2
+bestimmt sie deshalb durch Clustering der Trainingsboxen
+\parencite{redmon2017yolo9000}. Ein \emph{ankerfreier} Detektor verzichtet auf
+diese Referenzboxen: Jede Gitterposition sagt direkt die Abstände von ihrem
+Mittelpunkt zu den vier Rändern der Box vorher
+\parencite{tian2019fcos}.\footnote{Die Ultralytics-Implementierung nennt diese
+Gitterpositionen dennoch \code{anchor points}; \enquote{ankerfrei} bezieht sich
+auf das Fehlen vorgegebener Referenz\emph{boxen}.} Je Position gibt es damit
+genau eine Vorhersage statt einer je Anker, und die ankerbezogenen
+Hyperparameter entfallen. Wie viele Vorhersagen für ein Objekt in Frage kommen,
+hängt dann nicht mehr von einer Ankerkonfiguration ab, sondern vom Gitter der
+Merkmalsebene -- in erster Näherung von der Zahl der Gitterpositionen, die in
+das Objekt fallen. Diese Zahl hängt über die Schrittweite von der Objektgröße
+ab (Abschnitt~\ref{sec:cnn}) und wird in Abschnitt~\ref{subsec:kleine-objekte}
+quantifiziert.
 
 \begin{figure}[htbp]
 \centering

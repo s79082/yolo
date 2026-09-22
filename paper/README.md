@@ -79,10 +79,10 @@ sudo apt install texlive-latex-recommended texlive-latex-extra texlive-lang-germ
 |---|---|
 | `main.tex` | Dokumentrahmen, bindet alle Kapitel ein |
 | `praeambel.tex` | Pakete, Satzspiegel, Makros (`\code`, `\px`, `\PP`, `\mAPfifty` …) |
-| `literatur.bib` | 67 Quellen |
+| `literatur.bib` | 99 Quellen |
 | `kapitel/00_titel.tex` | Titelseite |
 | `kapitel/00_kurzfassung.tex` | Kurzfassung |
-| `kapitel/01_einleitung.tex` | 1 Einleitung: Aufgabe, Zielsetzung, Aufbau |
+| `kapitel/01_einleitung.tex` | 1 Einleitung: Aufgabe, Vorarbeiten (Verfahren der Objektdetektion), Zielsetzung, Aufbau |
 | `kapitel/02_theorie.tex` | 2 Theoretische Grundlagen (CNN, YOLO26, Anwendung) — der vorhandene Theorieteil |
 | `kapitel/03_augmentierung_grundlagen.tex` | 3 Datenaugmentierung: Formalisierung, Wirkmechanismen, Taxonomie, Detektionsbesonderheiten, Grenzen, Sim-to-Real; leitet die Anforderungen A1–A6 ab |
 | `kapitel/04_datengrundlage.tex` | 4 Datengrundlage: alle Messungen am Quellmaterial (Belegbasis der Parameter) |
