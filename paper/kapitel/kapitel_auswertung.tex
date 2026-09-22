@@ -94,23 +94,38 @@ Detektionen zeigt Abbildung~\ref{abb:qualitativ} im Anhang.
 Der Split \code{sval} besteht aus 400 synthetischen Bildern derselben Pipeline
 mit anderem Seed und trennt damit zwei Fragen: \emph{Kann das Modell die Aufgabe
 überhaupt lösen?} und \emph{überträgt es sich auf echte Bilder?} Gegenüber
-\zrefSvalMap{} auf \code{sval} beträgt der Abstand \textbf{\zsimRealVal} bzw.\
-\textbf{\zsimRealTest}\PP{} \mAPfifty{}; bei
-\mAPall{} sind es \zsimRealValA{} (\code{val}) bzw.\ \zsimRealTestA{}
-Prozentpunkte. Er ist damit \textbf{klein} und \textbf{weit entfernt von dem
-Muster, das reines Artefaktlernen erzeugen würde}: Wäre die Pipeline an einer der
-Signaturen S1--S6 durchlässig, so fiele \code{sval} nahezu perfekt aus und die realen
-Bilder deutlich ab. Dieses Muster tritt nicht auf -- der einzige
-\emph{direkte} empirische Hinweis darauf, dass die Anti-Abkürzungs-Maßnahmen
-greifen, und ein Indiz, kein Beweis.
+\zrefSvalMap{} auf \code{sval} beträgt der Abstand \zsimRealVal{} bzw.\
+\zsimRealTest\PP{} \mAPfifty. Bei \mAPall{} sind es dagegen \zsimRealValA{}
+(\code{val}) und \zsimRealTestA{} Prozentpunkte -- ein Unterschied, der
+eine Klarstellung verlangt, bevor irgendein Urteil folgt.
 
-Erklären lässt sich dieser Rest nicht über die Labelkonvention: Eine abweichende
-Labeldefinition wäre genau ein $\lambda$-Beitrag in
-Gleichung~\eqref{eq:bendavid}, aber die Sensitivitätsrechnung zeigt, dass ein
-Angleichen der Boxgröße \mAPfifty{} nicht verbessert, sondern leicht senkt
-(Tabelle~\ref{tab:boxsens} im Anhang). Bei der Zuordnungsschwelle 0,5 ist die
-Konventionsdifferenz wirkungslos; was bleibt, ist im Wesentlichen
-Verteilungsdivergenz -- gering, aber vorhanden.
+\emph{Bei der Leitmetrik ist der Abstand klein.} Bei \mAPall{} ist er es
+\emph{nicht}, und der größere Teil davon ist Messartefakt: \code{sval} trägt
+Generatorlabels, die realen Splits Handannotation, und zwischen beiden liegt
+der in Abschnitt~\ref{sec:boxversatz} gemessene Größenversatz. Rechnet man ihn
+über die Sensitivitätsrechnung heraus (Tabelle~\ref{tab:boxsens} im Anhang),
+schrumpft der Abstand auf \zsimRealTestAKorr{} (\code{test}) bzw.\
+\zsimRealValAKorr\PP. Er verschwindet damit nicht. Bei einer Metrik, die über
+Schwellen bis 0,95 mittelt, bleibt also ein erheblicher Rest, und die Arbeit
+behauptet ausdrücklich \emph{nicht}, ihn erklären zu können; belastbar ist die
+Aussage über \mAPfifty{} und über den $F_1$-Betriebspunkt, auf die sich die
+Leitgröße aus Abschnitt~\ref{sec:metriken} beschränkt.
+
+\emph{Für \mAPfifty{} gilt das Umgekehrte.} Bei der Zuordnungsschwelle 0,5
+ist die Konventionsdifferenz wirkungslos -- das Aufweiten der Boxen verbessert
+\mAPfifty{} nicht, sondern senkt es leicht. Der dort gemessene kleine Abstand
+ist also keine Folge der Labelkonvention, sondern die Größe, die sie
+bezeichnen soll. Zugleich fehlt dem Muster die Signatur reinen
+Artefaktlernens: Wäre die Pipeline an einer der Signaturen S1--S6 durchlässig,
+so fiele \code{sval} nahezu perfekt aus und die realen Bilder deutlich ab.
+
+Wie deutlich, ist ohne Vergleichsmaßstab allerdings nicht zu sagen -- ein
+kleiner Abstand für sich genommen bleibt ein Indiz. Den Maßstab liefert
+Abschnitt~\ref{sec:ablationC} nach: Dort wird dasselbe Bündel an Maßnahmen
+abgeschaltet, und der Abstand wächst unter sonst gleichen Bedingungen auf das
+Drei- bis Vierfache, während die synthetische Leistung praktisch unverändert
+bleibt. Erst dieser Kontrast macht aus dem kleinen Abstand des
+Referenzmodells eine Aussage.
 
 \section{Die Inferenzauflösung}
 \label{sec:imgsz}
@@ -177,9 +192,25 @@ entspricht. Die Feststellung: Objektgrößenbereich des Generators und
 Inferenzauflösung sind \emph{nicht} unabhängig voneinander wählbar; eine
 Entscheidung in der Datenerzeugung legt eine Entscheidung zur Inferenzzeit
 fest. Das Auswahlkriterium \mAPall{} auf \code{val} entscheidet sich für
-\code{imgsz}~\zbestImgsz; der Unterschied zu \zswValBestAt{} liegt in \mAPfifty{} mit
-einem Prozentpunkt unter dem Bootstrap-Intervall und ist damit nicht
-bedeutsam.
+\code{imgsz}~\zbestImgsz; der Unterschied zu \zswValBestAt{} liegt in
+\mAPfifty{} mit einem Prozentpunkt unter dem Bootstrap-Intervall und ist damit
+nicht bedeutsam.
+
+\absatz{Warum die berichteten Zahlen trotzdem auf dem nativen Maßstab stehen.}
+Zwischen dieser Empfehlung und dem Bewertungsprotokoll aus
+Abschnitt~\ref{sec:metriken} besteht ein Widerspruch, der ausgesprochen
+gehört, weil er sonst wie ein Versehen aussieht. \code{imgsz}~\zbestImgsz{}
+ist die Auflösung, die für einen \emph{Einsatz} des Modells zu wählen wäre;
+sie ist an \code{val} optimiert. Alle berichteten Zahlen dieser Arbeit stehen
+dagegen beim nativen Maßstab, weil dieser ohne Auswahlentscheidung feststeht
+und die Ablationen sonst von einer nachgelagerten Optimierung abhingen. Beide
+Größen sind ablesbar: Tabelle~\ref{tab:imgszvoll} im Anhang enthält die Zeile
+\zbestImgsz{} ebenso wie die Zeilen der nativen Maßstäbe. Der Unterschied ist
+gerichtet und klein -- auf \code{test} läge \mAPfifty{} bei \zbestImgsz{} mit
+\zselTestMap{} \emph{über} dem berichteten \zrefTestMap{}, auf \code{val} mit
+\zselValMap{} knapp darunter. Die
+berichteten Werte sind damit keine Bestwerte, sondern die einer
+Bewertungskonvention, die vor den Läufen feststand.
 
 Die übrigen Inferenzparameter sind unkritisch, und zwei entfallen bei diesem
 Modell ganz: Der NMS-Schwellwert greift nicht, weil \code{yolo26s-p2} NMS-frei
@@ -337,6 +368,19 @@ ist damit nicht entscheidbar. Was bleibt, ist ein schwacher Hinweis über den
 Rückruf, der auf beiden Splits leicht unter dem von B0 liegt ($-2{,}2$ auf
 \code{test} und $-4{,}1$\PP{} auf \code{val}; dort verfehlen B1 und B2
 dieselbe Zahl von Objekten, weshalb der Wert für beide Arme gleich ausfällt).
+
+Zwei Vorbehalte gehören unmittelbar neben diese Nicht-Ablehnung. \emph{Zum
+einen} schlägt auf \code{val} der \emph{naive} Arm den kalibrierten
+(\zBTwoValMap{} gegen \zBOneValMap{} \mAPfifty, $F_1$ \zBTwoValFf{} gegen
+\zBOneValFf); die Leiter B2~$<$~B1~$<$~B0 ist also nur auf \code{test}
+vollständig. \emph{Zum anderen} liegen die hier verglichenen Differenzen von
+0,2 bis 3,0 Prozentpunkten in derselben Größenordnung wie die Abweichung
+zwischen der eigenen und der Referenzimplementierung der Metrik
+(\zxcMaxDiff\,Prozentpunkte, Abschnitt~\ref{sec:metriken}). Aussagen über
+Unterschiede dieser Größe sind mit dem vorliegenden Messaufbau nicht zu
+treffen -- weder in die eine noch in die andere Richtung. Belastbar ist an
+dieser Ablation allein der B2-Effekt, der beide Größenordnungen deutlich
+übersteigt.
 
 \input{kapitel/tab_ablation_b_groesse}
 
