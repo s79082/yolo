@@ -346,10 +346,12 @@ wird der Befund deutlich. Auf dem kleinsten Drittel von \code{test} (Objekte bis
 \zBZeroTestRecKlein{} (B0) über \zBOneTestRecKlein{} (B1) auf
 \zBTwoTestRecKlein{} (B2) -- ein Verlust von 23\,Prozentpunkten gegenüber nur
 $3{,}4$\PP{} bei den größeren zwei Dritteln. Die Reihenfolge B0 $>$ B1 $>$ B2
-ist in drei der vier Zellen aus Größenklasse~$\times$~Split monoton, und die
-Gesamtzahl der Falsch-Negativen widerspricht ihr in keinem Fall (\code{test}
-\zBZeroTestFn{} / \zBOneTestFn{} / \zBTwoTestFn, \code{val} \zBZeroValFn{} /
-\zBOneValFn{} / \zBTwoValFn).
+ist dabei nur auf \code{test} monoton, in beiden Größenklassen; auf \code{val}
+liegt B2 in beiden Klassen über B1 -- dieselbe Umkehr wie bei \mAPfifty{}. Was
+über beide Splits und beide Größenklassen hinweg gilt, ist allein die Stellung
+von B0 an der Spitze. Die Gesamtzahl der Falsch-Negativen widerspricht dem in
+keinem Fall (\code{test} \zBZeroTestFn{} / \zBOneTestFn{} / \zBTwoTestFn,
+\code{val} \zBZeroValFn{} / \zBOneValFn{} / \zBTwoValFn).
 
 Das entspricht der Erwartung: Kleine Stirnflächen liegen tief im Stapel, und
 dort kreuzen die Rohre einander. Ein Modell, dessen Trainingsdaten nur flache

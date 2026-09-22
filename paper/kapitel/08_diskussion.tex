@@ -165,11 +165,12 @@ Annahmen (Dellen, Perspektive, Schlagschatten, vertikale Spiegelung, HSV je
 Instanz, globale Helligkeit/Kontrast, globale Farbtemperatur,
 Bewegungsunschärfe, Reflect-Padding, Vignettierung, der Zoombereich der
 Fremdszenen, die Angleichstärken des Farbangleichs, der Streufaktor des
-Rauschangleichs sowie Orientierung und Größe der Layoutcluster). \emph{(4a)} Der Generator deckt 12--44\px{} ab,
+Rauschangleichs sowie Orientierung und Größe der Layoutcluster).
+\emph{(5)} Der Generator deckt 12--44\px{} ab,
 \code{test} enthält aber vier Objekte darunter; diese Lücke schließt erst die
-Trainingsskalierung. \emph{(5)} Die synthetischen Cluster sind dichter als
+Trainingsskalierung. \emph{(6)} Die synthetischen Cluster sind dichter als
 real -- bewusst als Robustheitsreserve belassen; die umgekehrte Abweichung
-wäre problematisch. \emph{(6)} Die Schaftrichtung ist an der gemessenen
+wäre problematisch. \emph{(7)} Die Schaftrichtung ist an der gemessenen
 Säulenrichtung des Clusters kalibriert, nicht an der Rohrrichtung des
 Hintergrunds: Sie entsteht als Senkrechte zur Säulenrichtung mit einer
 Streuung von $55^\circ$ bis $125^\circ$, während die vier Clean Plates ihre
@@ -186,9 +187,10 @@ vorliegt.
 
 \absatz{Grenzen der Bewertung.} Die schwerwiegendste methodische Schwäche liegt
 nicht in der Pipeline, sondern in der Bewertung: \emph{je ein Bild} pro Split.
-Daraus folgen breite Konfidenzintervalle ($\pm\zbootValStd$ auf \code{val},
-$\pm\zbootTestStd$ auf \code{test}), sodass Unterschiede unterhalb dieser Größe
-nicht entscheidbar sind; beide Bilder zeigen dieselbe Objektart bei ähnlichem
+Daraus folgen breite Konfidenzintervalle: $[\zbootValLo;\,\zbootValHi]$ auf
+\code{val} und $[\zbootTestLo;\,\zbootTestHi]$ auf \code{test}, also gut zwei
+Prozentpunkte Halbbreite -- Unterschiede unterhalb dieser Größe sind nicht
+entscheidbar; beide Bilder zeigen dieselbe Objektart bei ähnlichem
 Wetter, die Ergebnisse sagen also nichts über andere Zaunhersteller,
 Rohrdurchmesser oder Lichtsituationen; und die Ground Truth ist auf \code{val}
 unvollständig, weshalb die dortigen Precision-Werte eine Untergrenze sind -- auf
