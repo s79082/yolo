@@ -351,16 +351,16 @@ Tabelle~\ref{tab:parameter} bilanzierten Parameterwerten.
 \absatz{Layoutmodell.} Pro Cluster mit Basisdurchmesser $d_0$ liegen die
 Objektzentren auf einer gescherten, verrauschten Gitterpackung
 \begin{equation}
-p_{ij} = i\,s_1\,\mathbf{e}_1 + j\,s_2\,\mathbf{e}_2 + \mathbf{c}
+p_{ij} = i\,g_1\,\mathbf{e}_1 + j\,g_2\,\mathbf{e}_2 + \mathbf{c}
 + \boldsymbol{\epsilon}_{ij},
 \qquad \boldsymbol{\epsilon}_{ij} \sim \mathcal{N}\!\big(\mathbf{0},
 \sigma_G^2\, \mathbf{I}\big),
 \label{eq:layout}
 \end{equation}
-mit Gitterabständen $s_1 \in [s_1^-, s_1^+]\,d_0$, $s_2 \in [s_2^-, s_2^+]\,d_0$,
+mit Gitterabständen $g_1 \in [g_1^-, g_1^+]\,d_0$, $g_2 \in [g_2^-, g_2^+]\,d_0$,
 einem eingeschlossenen Winkel aus $[\gamma_{\min}, \gamma_{\max}]$ und der
 Rauschstärke $\sigma_G = c_\sigma\,d_0$. Eingesetzt werden
-$[s_1^-, s_1^+] = [0{,}98;\,1{,}60]$, $[s_2^-, s_2^+] = [0{,}98;\,1{,}85]$,
+$[g_1^-, g_1^+] = [0{,}98;\,1{,}60]$, $[g_2^-, g_2^+] = [0{,}98;\,1{,}85]$,
 $[\gamma_{\min}, \gamma_{\max}] = [55^\circ;\,125^\circ]$ und
 $c_\sigma = 0{,}17$. Diese vier Werte sind nicht gesetzt, sondern an der
 erzeugten Statistik gegen die Realmessung kalibriert: die Obergrenzen der
@@ -475,7 +475,7 @@ erreicht am oberen Ende aber nur gut 40\px{} (p95 der erzeugten Verteilung:
 40,4\px); das ist eine Folge der Zoomdeckelung nach Gleichung~\eqref{eq:zoom}.
 Am unteren Ende enthält \code{test} vier Objekte unterhalb von 12\px{}
 (kleinstes 6,4\px). Diese Lücke schließt erst die Trainingsskalierung, die die
-Untergrenze nach Gleichung~\eqref{eq:effgroesse} auf $d_{\min}\,(1-s) =
+Untergrenze nach Gleichung~\eqref{eq:effgroesse} auf $d_{\min}\,(1-a) =
 7{,}2$\px{} zieht (Abschnitt~\ref{sec:trainparam}); die vier kleinsten Objekte
 in \code{test} liegen auch dann noch am unteren Rand der Trainingsverteilung.
 

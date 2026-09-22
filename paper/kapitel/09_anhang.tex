@@ -158,7 +158,7 @@ Der Grauwert einer Stange folgt dabei
 \begin{equation}
 I(u) \;=\; \mu \cdot
 \underbrace{\Big[k_{\text{amb}} + (1-k_{\text{amb}})\max\big(0, \cos(\varphi - \varphi_L)\big)
-+ s\,e^{-\left(\frac{\varphi - \varphi_L/2}{\sigma_s}\right)^{2}}\Big]}_{\text{Zylinderschattierung}}
++ k_s\,e^{-\left(\frac{\varphi - \varphi_L/2}{\sigma_s}\right)^{2}}\Big]}_{\text{Zylinderschattierung}}
 \cdot \big(1 - k_e u^2\big),
 \label{eq:zylinder}
 \end{equation}
@@ -443,7 +443,7 @@ Schlagschatten, $\kappa$ 0,18--0,45 & 49,3\,\% & Ohne Kontaktschatten \enquote{s
 \addlinespace
 \multicolumn{4}{@{}l}{\textbf{T4 -- Layout}}\\
 gescherte Gitterpackung, 1--3 Cluster, Gl.~\eqref{eq:layout} & 100\,\% & Kalibriert am gemessenen NN-Abstand und an der Nachbarzahl (Tabelle~\ref{tab:kalibrierung}); eine Basisgröße pro Cluster nach Befund~7. & M \\
-\quad Gitterabstände $s_1$, $s_2$ & -- & $s_1 \in [0{,}98;\,1{,}60]\,d_0$ und $s_2 \in [0{,}98;\,1{,}85]\,d_0$. Untergrenze physikalisch (Rohrzentren durchdringen sich nicht); die 2\,\% Spiel wegen der modalen Boxkonvention, die $d_0$ bei Verdeckung kleiner macht als das Rohr -- gemessener NN-Abstand p10 $=0{,}86$ bzw.\ $0{,}78\,\Oe$. Die Obergrenzen sind an Median und p90 des NN-Abstands eingestellt. & P/M \\
+\quad Gitterabstände $g_1$, $g_2$ & -- & $g_1 \in [0{,}98;\,1{,}60]\,d_0$ und $g_2 \in [0{,}98;\,1{,}85]\,d_0$. Untergrenze physikalisch (Rohrzentren durchdringen sich nicht); die 2\,\% Spiel wegen der modalen Boxkonvention, die $d_0$ bei Verdeckung kleiner macht als das Rohr -- gemessener NN-Abstand p10 $=0{,}86$ bzw.\ $0{,}78\,\Oe$. Die Obergrenzen sind an Median und p90 des NN-Abstands eingestellt. & P/M \\
 \quad Gitterrauschen $\sigma$ & -- & $\sigma = 0{,}17\,d_0$, \emph{an der erzeugten Statistik gegen die Realmessung kalibriert}: Der Wert setzt p10 und Berührungsquote (Tabelle~\ref{tab:kalibrierung}); ohne diesen Term entstünden sichtbar künstliche Reihen. & M \\
 \quad Winkel zwischen $\mathbf{e}_1$ und $\mathbf{e}_2$: $55^\circ$--$125^\circ$ & 100\,\% & Scherung des Gitters, abgeleitet aus dem Histogramm der Nachbarrichtungen (näherungsweise isotrop, Häufung $90$--$150^\circ$). & M \\
 \quad Clusterorientierung $\varphi$ & 100\,\% & Absolute Lage des Gitters im Bild: $\varphi \sim \mathcal{U}[60^\circ;\,150^\circ]$ in 60\,\% der Cluster, sonst $\mathcal{U}[0^\circ;\,180^\circ]$. Nicht an der Stapelorientierung der Realbilder gemessen. & A \\
