@@ -1,0 +1,210 @@
+[
+  {
+    "split": "val",
+    "n_images": 1,
+    "n_gt": 98,
+    "infer": {
+      "imgsz": "native",
+      "conf": 0.001,
+      "iou": 0.7,
+      "max_det": 1000,
+      "augment": false,
+      "quantize": null,
+      "device": "0"
+    },
+    "mAP50": 0.9470870970857962,
+    "mAP75": 0.779598304644681,
+    "mAP50_95": 0.6201611711375126,
+    "ap_per_iou": {
+      "0.5": 0.9471,
+      "0.55": 0.9439,
+      "0.6": 0.9343,
+      "0.65": 0.9025,
+      "0.7": 0.8763,
+      "0.75": 0.7796,
+      "0.8": 0.5284,
+      "0.85": 0.2464,
+      "0.9": 0.0375,
+      "0.95": 0.0059
+    },
+    "best_f1": 0.9166666666666666,
+    "best_f1_conf": 0.24388451874256134,
+    "precision_at_best_f1": 0.9361702127659575,
+    "recall_at_best_f1": 0.8979591836734694,
+    "mean_iou_of_tp": 0.813995185853988,
+    "count_pred": 94,
+    "count_gt": 98,
+    "count_mae": 4.0,
+    "count_bias": -4.0,
+    "count_rel_err": 0.04081632653061224,
+    "per_image": [
+      {
+        "file": "PXL_20251204_073853552.jpg",
+        "n_gt": 98,
+        "n_pred": 304,
+        "imgsz": 2464
+      }
+    ],
+    "arm": "C0_kontrolle",
+    "datensatz": "synth/C0_kontrolle",
+    "beschreibung": "Kontrolle: vollstaendige Pipeline, mit demselben Code erzeugt wie C1",
+    "weights": "neu/runs/C0_kontrolle/weights/best.pt",
+    "params_M": 9.66
+  },
+  {
+    "split": "test",
+    "n_images": 1,
+    "n_gt": 89,
+    "infer": {
+      "imgsz": "native",
+      "conf": 0.001,
+      "iou": 0.7,
+      "max_det": 1000,
+      "augment": false,
+      "quantize": null,
+      "device": "0"
+    },
+    "mAP50": 0.9480764725778763,
+    "mAP75": 0.4004372363032392,
+    "mAP50_95": 0.4625456518039844,
+    "ap_per_iou": {
+      "0.5": 0.9481,
+      "0.55": 0.9281,
+      "0.6": 0.8689,
+      "0.65": 0.6638,
+      "0.7": 0.5068,
+      "0.75": 0.4004,
+      "0.8": 0.2096,
+      "0.85": 0.0639,
+      "0.9": 0.0359,
+      "0.95": 0.0
+    },
+    "best_f1": 0.9039548022598869,
+    "best_f1_conf": 0.08734741806983948,
+    "precision_at_best_f1": 0.9090909090909091,
+    "recall_at_best_f1": 0.898876404494382,
+    "mean_iou_of_tp": 0.7294785359069696,
+    "count_pred": 88,
+    "count_gt": 89,
+    "count_mae": 1.0,
+    "count_bias": -1.0,
+    "count_rel_err": 0.011235955056179775,
+    "per_image": [
+      {
+        "file": "test5.jpg",
+        "n_gt": 89,
+        "n_pred": 256,
+        "imgsz": 1600
+      }
+    ],
+    "arm": "C0_kontrolle",
+    "datensatz": "synth/C0_kontrolle",
+    "beschreibung": "Kontrolle: vollstaendige Pipeline, mit demselben Code erzeugt wie C1",
+    "weights": "neu/runs/C0_kontrolle/weights/best.pt",
+    "params_M": 9.66
+  },
+  {
+    "split": "val",
+    "n_images": 1,
+    "n_gt": 98,
+    "infer": {
+      "imgsz": "native",
+      "conf": 0.001,
+      "iou": 0.7,
+      "max_det": 1000,
+      "augment": false,
+      "quantize": null,
+      "device": "0"
+    },
+    "mAP50": 0.8667348499901573,
+    "mAP75": 0.6539864613800436,
+    "mAP50_95": 0.5570492809821862,
+    "ap_per_iou": {
+      "0.5": 0.8667,
+      "0.55": 0.8572,
+      "0.6": 0.8448,
+      "0.65": 0.8216,
+      "0.7": 0.7658,
+      "0.75": 0.654,
+      "0.8": 0.5153,
+      "0.85": 0.1916,
+      "0.9": 0.051,
+      "0.95": 0.0024
+    },
+    "best_f1": 0.8253968253968254,
+    "best_f1_conf": 0.22678589820861816,
+    "precision_at_best_f1": 0.8571428571428571,
+    "recall_at_best_f1": 0.7959183673469388,
+    "mean_iou_of_tp": 0.7998115223534538,
+    "count_pred": 91,
+    "count_gt": 98,
+    "count_mae": 7.0,
+    "count_bias": -7.0,
+    "count_rel_err": 0.07142857142857142,
+    "per_image": [
+      {
+        "file": "PXL_20251204_073853552.jpg",
+        "n_gt": 98,
+        "n_pred": 322,
+        "imgsz": 2464
+      }
+    ],
+    "arm": "C1_naive_paste",
+    "datensatz": "synth/C1_naive_paste",
+    "beschreibung": "naives Einkleben: Gegenmassnahmen zu den Signaturen S1-S5 abgeschaltet",
+    "weights": "neu/runs/C1_naive_paste/weights/best.pt",
+    "params_M": 9.66
+  },
+  {
+    "split": "test",
+    "n_images": 1,
+    "n_gt": 89,
+    "infer": {
+      "imgsz": "native",
+      "conf": 0.001,
+      "iou": 0.7,
+      "max_det": 1000,
+      "augment": false,
+      "quantize": null,
+      "device": "0"
+    },
+    "mAP50": 0.8350786667869208,
+    "mAP75": 0.19596990117358837,
+    "mAP50_95": 0.32801730101966314,
+    "ap_per_iou": {
+      "0.5": 0.8351,
+      "0.55": 0.7576,
+      "0.6": 0.6336,
+      "0.65": 0.4534,
+      "0.7": 0.2661,
+      "0.75": 0.196,
+      "0.8": 0.1182,
+      "0.85": 0.0136,
+      "0.9": 0.0066,
+      "0.95": 0.0
+    },
+    "best_f1": 0.8,
+    "best_f1_conf": 0.27859947085380554,
+    "precision_at_best_f1": 0.868421052631579,
+    "recall_at_best_f1": 0.7415730337078652,
+    "mean_iou_of_tp": 0.6888560110940265,
+    "count_pred": 76,
+    "count_gt": 89,
+    "count_mae": 13.0,
+    "count_bias": -13.0,
+    "count_rel_err": 0.14606741573033707,
+    "per_image": [
+      {
+        "file": "test5.jpg",
+        "n_gt": 89,
+        "n_pred": 289,
+        "imgsz": 1600
+      }
+    ],
+    "arm": "C1_naive_paste",
+    "datensatz": "synth/C1_naive_paste",
+    "beschreibung": "naives Einkleben: Gegenmassnahmen zu den Signaturen S1-S5 abgeschaltet",
+    "weights": "neu/runs/C1_naive_paste/weights/best.pt",
+    "params_M": 9.66
+  }
+]
