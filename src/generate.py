@@ -130,10 +130,13 @@ def make_background(rng, bgs):
 
     if bg["pipe_d"]:
         # Zoom so, dass Objektdurchmesser = pipe_d * zoom im Zielbereich liegt.
-        # Begruendung: die Stirnflaeche eines Rohres hat exakt den Durchmesser
-        # des Rohrschafts, der im Hintergrund sichtbar ist. Ein Missverhaeltnis
-        # waere physikalisch unmoeglich und wuerde dem Netz eine falsche
-        # Kontext-Groessen-Relation antrainieren.
+        # Begruendung: Stirnflaechen und Rohrschaefte derselben Aufnahme werden
+        # annaehernd im selben Massstab abgebildet; unabhaengig gezogen,
+        # wuerden zufaellige Missverhaeltnisse dem Netz eine falsche
+        # Kontext-Groessen-Relation antrainieren. Das Verhaeltnis 1:1 ist
+        # gesetzt: Die seitlichen Rahmenrohre, deren Stirnflaechen detektiert
+        # werden, muessen nicht denselben Durchmesser haben wie die Rohre der
+        # Clean Plates.
         z_lo = max(0.55, D_MIN / bg["pipe_d"])
         z_hi = min(2.20, D_MAX / bg["pipe_d"])
         zoom = _u(rng, z_lo, max(z_lo + 1e-3, z_hi))

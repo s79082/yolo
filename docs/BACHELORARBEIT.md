@@ -327,7 +327,7 @@ Instanzen, 136 384 gelabelte Objekte), nicht nur konfigurierte Sollwerte.
 | Transformation | Anteil | Begründung |
 |---|---|---|
 | Clean Plate statt Fremdszene | 80 % (6-faches Ziehgewicht) | Die vier Clean Plates sind exakt die Zieldomäne. Die drei Fremdszenen liefern zu 20 % Kontextvielfalt und harte Negative. |
-| Zoom **gekoppelt an den Rohrdurchmesser** | 100 % | **Physikalische Randbedingung.** Eine Stirnfläche hat zwangsläufig denselben Durchmesser wie der Schaft daneben, deshalb `d = pipe_d(bg) × zoom` statt zweier unabhängiger Ziehungen. Ein Missverhältnis wäre physikalisch unmöglich und würde eine falsche Kontext-Größen-Relation antrainieren. |
+| Zoom **gekoppelt an den Rohrdurchmesser** | 100 % | **Physikalische Randbedingung, Verhältnis gesetzt.** Stirnflächen und Rohrschäfte derselben Aufnahme werden annähernd im selben Maßstab abgebildet, deshalb `d = pipe_d(bg) × zoom` statt zweier unabhängiger Ziehungen. Zufällige Missverhältnisse würden eine falsche Kontext-Größen-Relation antrainieren. Gesetzt ist das Durchmesserverhältnis 1:1: Die seitlichen Rahmenrohre, deren Stirnflächen detektiert werden, müssen nicht denselben Durchmesser haben wie die Rohre der Clean Plates. |
 | Zufallsausschnitt (= **Translation**) | 100 % | Verhindert, dass immer derselbe Bildbereich als Hintergrund dient. |
 | Reflect-Padding statt Kachelung | nur bei Bedarf, max. 1.35 × kürzeste Kante | `np.tile` erzeugt harte achsparallele Nähte — genau die Art Artefakt, die ein CNN als Merkmal missbraucht. Gespiegeltes Padding hat keine Kante. |
 | Horizontale Spiegelung | **50.5 %** | Label-exakt und physikalisch korrekt: ein Stapel wird von beiden Enden fotografiert. |
@@ -1020,7 +1020,8 @@ Die Faktoren mit dem größten Hebel sind:
    Rohrschaft hinter jeder Stirnfläche, das Tiefenmodell und die Kopplung von
    Objektgröße an den Rohrdurchmesser des Hintergrunds. Diese drei
    Entscheidungen entstanden erst nach visueller Prüfung der Zwischenergebnisse
-   und korrigierten jeweils einen physikalisch unmöglichen Bildinhalt.
+   und korrigierten jeweils einen physikalisch unmöglichen oder
+   unplausiblen Bildinhalt.
 
 ## 7.4 Einschränkungen und Ausblick
 
