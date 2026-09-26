@@ -79,7 +79,7 @@ sudo apt install texlive-latex-recommended texlive-latex-extra texlive-lang-germ
 |---|---|
 | `main.tex` | Dokumentrahmen, bindet alle Kapitel ein |
 | `praeambel.tex` | Pakete, Satzspiegel, Makros (`\code`, `\px`, `\PP`, `\mAPfifty` …) |
-| `literatur.bib` | 99 Quellen |
+| `literatur.bib` | 94 Quellen |
 | `kapitel/00_titel.tex` | Titelseite |
 | `kapitel/00_kurzfassung.tex` | Kurzfassung |
 | `kapitel/01_einleitung.tex` | 1 Einleitung: Aufgabe, Vorarbeiten (Verfahren der Objektdetektion), Zielsetzung, Aufbau |
