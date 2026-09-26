@@ -152,8 +152,9 @@ synthetischen Bilder durchlaufen \emph{keine} Anpassung an die Netzeingabe, die
 kalibrierte Objektgrößenverteilung wird also nicht bereits beim Einlesen
 verschoben. Die Skalierungs- und Mosaic-Augmentierung wirkt davon unabhängig und
 verändert die effektiven Größen weiterhin (Abschnitt~\ref{sec:trainparam}). Die
-folgenden Abschnitte begründen die fünf Stellen, an denen die Modellierung über
-eine Parameterwahl hinausgeht.
+folgenden Absätze begründen die fünf Stellen, an denen die Modellierung über
+eine Parameterwahl hinausgeht; den Abschluss bildet die Sichtbarkeitsrechnung,
+aus der die Labels hervorgehen.
 
 Die neun Stufen T1--T9 -- Hintergrund, Instanzgeometrie, Photometrie, Layout,
 Rohrschaft, Okklusion, Sichtbarkeitsrechnung, globale Bildstufe und
@@ -210,10 +211,7 @@ Abbildung~\ref{abb:synthbeispiele} zeigt typische Bilder. Erzeugt mit
 \label{abb:stufen}
 \end{figure}
 
-\subsection{Fünf Modellierungsentscheidungen}
-\label{sec:modellentscheidungen}
-
-\absatz{Maßstabskopplung.} Der Zoomfaktor $z$ wird so gezogen, dass der
+\absatz{Maßstabskopplung.}\label{sec:modellentscheidungen} Der Zoomfaktor $z$ wird so gezogen, dass der
 Basisdurchmesser im Zielbereich $[d_{\min}, d_{\max}]$ liegt:
 \begin{equation}
 z \sim \mathcal{U}\!\left[\max\!\left(z_{\min},\;
@@ -383,10 +381,7 @@ trifft. Das Clusterzentrum $\mathbf{c}$ darf außerhalb der Leinwand liegen,
 sodass angeschnittene Objekte am Bildrand entstehen (Befund~9).
 
 
-\section{Sichtbarkeitsrechnung und Labelerzeugung}
-\label{sec:sichtbarkeit}
-
-Labels dürfen in einem Copy-Paste-Generator nicht ungeprüft vergeben werden.
+\absatz{Sichtbarkeitsrechnung und Labels.}\label{sec:sichtbarkeit} Labels dürfen in einem Copy-Paste-Generator nicht ungeprüft vergeben werden.
 Für \emph{jede} Instanz wird die Sichtbarkeit daher exakt berechnet. Grundlage ist die
 Alpha-Kompositionsregel von \textcite{porter1984}: Wird Instanz $i$ von allen
 später gezeichneten Schichten $j$ überlagert, so ist ihr sichtbarer Anteil

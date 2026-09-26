@@ -63,10 +63,10 @@ Arbeitsspeicher zeitweise bis auf unter 2\,GB gefüllt; die Läufe dieser Arbeit
 verwenden daher \code{batch=8} und \code{cache='disk'} statt \code{cache='ram'}
 (Abschnitt~\ref{sec:trainingsaufbau}). Beide Werte gelten für alle Läufe gleich.
 
-\section{Gemessene Anteile aus dem Erzeugungsbericht}
+\section{Ergänzende Messwerte}
 \label{sec:anhangbericht}
 
-Die folgenden Werte stammen unverändert aus
+\absatz{Anteile aus dem Erzeugungsbericht.} Die folgenden Werte stammen unverändert aus
 \code{synth/train/generation\_report.json} und sind die Belegquelle für alle
 Ist-Anteile in Tabelle~\ref{tab:parameter}.
 
@@ -122,17 +122,14 @@ echter Anteil und folgt derselben Gleichung ohne den Clusterterm: Der Sollwert
 $p_{\text{Stangen}} = 0{,}65$ reduziert sich durch die Negativbilder auf
 $0{,}65 \cdot 0{,}903 = 0{,}587$ und trifft den gezählten Wert 0,5835.
 
-\section{Vollständiger Sweep der Inferenzauflösung}
-\label{sec:anhangsweep}
-
+\absatz{Vollständiger Sweep der Inferenzauflösung.}\label{sec:anhangsweep}
 Tabelle~\ref{tab:imgszvoll} ergänzt den Auszug aus
 Abschnitt~\ref{sec:imgsz} um die fehlenden Stufen.
 
 \input{kapitel/tab_imgsz_voll}
 
-\section{Sensitivität gegenüber dem Größenversatz}
-
-Die Rechnung zu Abschnitt~\ref{sec:boxversatz}: Alle vorhergesagten Boxen
+\absatz{Sensitivität gegenüber dem Größenversatz.} Die Rechnung zu
+Abschnitt~\ref{sec:boxversatz}: Alle vorhergesagten Boxen
 werden um den gemessenen medianen Fehlbetrag je Seite aufgeweitet
 (\zsensTestGrow\px{} auf \code{test}, \zsensValGrow\px{} auf \code{val}) und
 neu ausgewertet.
@@ -339,7 +336,13 @@ damit nicht auseinanderlaufen: Wird ein Lauf wiederholt, genügt ein erneuter
 Aufruf des Skripts. Ein Wert, für den kein Lauf vorliegt, erscheint im
 übersetzten Dokument sichtbar als \textbf{??} und nicht als veraltete Zahl.
 
-\section{Verfahrensklassen der Bildaugmentierung}
+\section{Tabellen zur Augmentierung}
+
+Die drei Tabellen dieses Abschnitts ergänzen die Kapitel~\ref{kap:augtheorie}
+bis~\ref{kap:trainingszeit}: die Verfahrensklassen der Bildaugmentierung
+(Tabelle~\ref{tab:taxonomie}), alle Transformationen der Synthese-Pipeline
+(Tabelle~\ref{tab:parameter}) und die Augmentierungsparameter zur Trainingszeit
+(Tabelle~\ref{tab:trainaug}).
 
 \begin{table}[htbp]
 \centering
@@ -385,8 +388,6 @@ ja -- Kern des Verfahrens (Abschnitt~\ref{sec:sim2real}) \\
 \bottomrule
 \end{tabularx}
 \end{table}
-
-\section{Alle Transformationen der Synthese-Pipeline}
 
 {\footnotesize
 \begin{longtable}{@{}L{0.195\textwidth}L{0.065\textwidth}L{0.55\textwidth}L{0.022\textwidth}@{}}
@@ -477,8 +478,6 @@ Bilder ohne jedes Objekt & 9,7\,\% & Bestraft die dominanten Falschpositiv-Quell
 \multicolumn{4}{@{}l}{\footnotesize $^\ast$ konfigurierter Sollwert; im Bericht nicht separat gezählt.}\\
 \end{longtable}
 }
-
-\section{Augmentierungsparameter zur Trainingszeit}
 
 \begin{table}[htbp]
 \centering

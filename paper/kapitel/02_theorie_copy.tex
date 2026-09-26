@@ -56,15 +56,11 @@ in Abschnitt~\ref{subsec:kleine-objekte}.
 \section{YOLO26}
 \label{sec:yolo26}
 
-\subsection{Einordnung}
-
-Die YOLO-Familie (\enquote{You Only Look Once}) wurde als einstufiger Echtzeit-Objektdetektor eingeführt \parencite{redmon2016}; Abschnitt~\ref{sec:vorarbeiten} ordnet ihre Entwicklung in die übrigen Verfahrensfamilien ein. Ihre heutigen Detektionsköpfe sind ankerfrei und entkoppelt; diesen Aufbau brachte YOLOX in die Familie \parencite{ge2021yolox}, Ultralytics übernahm ihn ab YOLOv8 \parencite{terven2023}. Was beide Begriffe bedeuten, erläutert Abschnitt~\ref{sec:neck}. YOLO26 wurde im September 2025 vorgestellt und kombiniert mehrere Änderungen gegenüber früheren YOLO-Architekturen, darunter ein Dual-Head-Design für NMS-freie Inferenz, der Wegfall der Distribution Focal Loss, ProgLoss in Verbindung mit Small-Target-Aware Label Assignment (STAL) sowie der MuSGD-Optimierer \parencite{jocher2026yolo26,sapkota2025}.
+\absatz{Einordnung.} Die YOLO-Familie (\enquote{You Only Look Once}) wurde als einstufiger Echtzeit-Objektdetektor eingeführt \parencite{redmon2016}; Abschnitt~\ref{sec:vorarbeiten} ordnet ihre Entwicklung in die übrigen Verfahrensfamilien ein. Ihre heutigen Detektionsköpfe sind ankerfrei und entkoppelt; diesen Aufbau brachte YOLOX in die Familie \parencite{ge2021yolox}, Ultralytics übernahm ihn ab YOLOv8 \parencite{terven2023}. Was beide Begriffe bedeuten, folgt weiter unten beim Aufbau des Kopfes. YOLO26 wurde im September 2025 vorgestellt und kombiniert mehrere Änderungen gegenüber früheren YOLO-Architekturen, darunter ein Dual-Head-Design für NMS-freie Inferenz, der Wegfall der Distribution Focal Loss, ProgLoss in Verbindung mit Small-Target-Aware Label Assignment (STAL) sowie der MuSGD-Optimierer \parencite{jocher2026yolo26,sapkota2025}.
 
 Für die vorliegende Arbeit sind insbesondere die Änderungen relevant, die mit der Erkennung kleiner Objekte und der Verarbeitung dicht gepackter Instanzen zusammenhängen. STAL adressiert die Zuweisung von Trainingspositionen bei kleinen Objekten, während die NMS-freie Inferenz die nachgelagerte Unterdrückung überlappender Vorhersagen vermeidet \parencite{jocher2026yolo26,sapkota2025}.
 
-\subsection{Backbone, Neck, Head und die Merkmalspyramide}
-\label{sec:neck}
-YOLO26 lässt sich konzeptionell in die drei Bestandteile Backbone, Neck und Head gliedern. Das Backbone extrahiert hierarchische Merkmale und reduziert dabei schrittweise die räumliche Auflösung. Bei einer Eingabe von \(1024\times1024\) Pixeln entstehen durch Stride-2-Operationen beispielsweise Merkmalsebenen mit räumlichen Auflösungen von \(512\times512\), \(256\times256\), \(128\times128\), \(64\times64\) und \(32\times32\) Pixeln. Mit zunehmender Tiefe sinkt damit die räumliche Auflösung, während die Merkmalsdimension zunimmt.
+\absatz{Aufbau.}\label{sec:neck} YOLO26 lässt sich konzeptionell in die drei Bestandteile Backbone, Neck und Head gliedern. Das Backbone extrahiert hierarchische Merkmale und reduziert dabei schrittweise die räumliche Auflösung. Bei einer Eingabe von \(1024\times1024\) Pixeln entstehen durch Stride-2-Operationen beispielsweise Merkmalsebenen mit räumlichen Auflösungen von \(512\times512\), \(256\times256\), \(128\times128\), \(64\times64\) und \(32\times32\) Pixeln. Mit zunehmender Tiefe sinkt damit die räumliche Auflösung, während die Merkmalsdimension zunimmt.
 
 Der Neck führt Merkmale verschiedener Auflösungsstufen wieder zusammen. Hierzu werden Prinzipien von Feature Pyramid Networks (FPN) und Path Aggregation Networks (PAN) eingesetzt \parencite{lin2017fpn}. Semantisch reichhaltige Merkmale tiefer Ebenen werden auf höhere räumliche Auflösungen gebracht und mit früheren, ortsgenaueren Merkmalen kombiniert. Umgekehrt können Informationen aus feineren Ebenen wieder in tiefere Ebenen einfließen.
 
@@ -167,7 +163,7 @@ Abschnitt~\ref{subsec:kleine-objekte} als Kern des Auflösungsproblems.}
 \end{figure}
 
 
-\subsection{Der P2-Detektionskopf}
+\section{Der P2-Detektionskopf}
 \label{sec:p2kopf}
 
 Alle in dieser Arbeit trainierten Modelle verwenden die Konfiguration

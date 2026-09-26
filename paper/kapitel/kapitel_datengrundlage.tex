@@ -24,10 +24,7 @@ Quellmaterial. Dieser Abschnitt dokumentiert sie. Sämtliche Zahlenwerte sind mi
 \code{src/analyze\_data.py} an den Quelldateien gemessen und in
 \code{docs/datensichtung.json} abgelegt.
 
-\subsection{Annotationsdefinition}
-\label{sec:annotation}
-
-Vor jeder Messung steht die Frage, was ein Objekt ist. Aus der Sichtung der
+\absatz{Annotationsdefinition.}\label{sec:annotation} Vor jeder Messung steht die Frage, was ein Objekt ist. Aus der Sichtung der
 beiden handannotierten Realbilder ergibt sich eine Definition, die die gesamte
 Pipeline prägt:
 
@@ -47,10 +44,7 @@ Teile. Erzeugte der Generator amodale Boxen, während die Realbilder modal
 annotiert sind, entstünde ein systematischer Größenversatz -- ein Verstoß gegen
 Anforderung~A5.
 
-\subsection{Quellmaterial}
-\label{sec:quellmaterial}
-
-\absatz{Objektausschnitte.} Verfügbar sind neun aus Realaufnahmen
+\absatz{Objektausschnitte.}\label{sec:quellmaterial} Verfügbar sind neun aus Realaufnahmen
 ausgeschnittene Rohrprofile der Größe $28\times30$ bis $43\times38$ Pixel. Sechs
 zeigen eine dunkle Bohrung (offenes Rohr), drei eine helle (Sonnenlicht fällt in
 die Röhre oder das Ende ist gestaucht); beide Formen kommen in den Realbildern
@@ -81,10 +75,7 @@ Falschpositiv droht. Eine Schwäche des Materials bleibt: Alle vier Clean Plates
 Stapelart bei bedecktem bis diffusem Licht; harter Sonnenschein, Nässe und
 Schnee fehlen.
 
-\subsection{Bewertungsdaten und ihre Statistik}
-\label{sec:valtest}
-
-Zur Bewertung stehen zwei vollständig handannotierte Realaufnahmen zur
+\absatz{Bewertungsdaten.}\label{sec:valtest} Zur Bewertung stehen zwei vollständig handannotierte Realaufnahmen zur
 Verfügung: \code{val} ($2459\times1174$, 98 Objekte) für die Modellauswahl und
 \code{test} ($1600\times900$, 89 Objekte) ausschließlich für die Endbewertung.
 Beide Annotationen wurden nach der ersten Auswertungsrunde noch einmal
@@ -145,10 +136,7 @@ Objekte (Median 17,0 gegen 26,8\px), lockerere Packung (NN-Median 1,26 gegen
 Split ist damit gerade derjenige, den Training und Modellauswahl nie berühren --
 was bei der Lektüre der Ergebnisse zu berücksichtigen ist.
 
-\subsection{Befunde und die daraus abgeleiteten Parameter}
-\label{sec:messungmapping}
-
-Tabelle~\ref{tab:befunde} fasst zusammen, welcher Befund welchen
+\absatz{Befunde.}\label{sec:messungmapping} Tabelle~\ref{tab:befunde} fasst zusammen, welcher Befund welchen
 Pipelineparameter festlegt. Sie ist die Belegbrücke zu
 Kapitel~\ref{kap:pipeline} und macht zugleich sichtbar, welche Parameter
 \emph{nicht} durch eine Messung gedeckt sind. Die Spalte \emph{Art} bezieht sich

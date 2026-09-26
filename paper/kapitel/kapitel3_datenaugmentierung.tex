@@ -138,9 +138,7 @@ Okkluder in die Szene eingefügt. Dadurch können gleichzeitig die Geometrie, di
 sichtbaren Objektbereiche und die Interaktion zwischen Vorder- und Hintergrund
 kontrolliert werden.
 
-\subsection*{Klassische Augmentierung und synthetische Datengenerierung}
-
-Bei klassischer Datenaugmentierung bildet ein reales Trainingsbild den
+\absatz{Augmentierung und Synthese.} Bei klassischer Datenaugmentierung bildet ein reales Trainingsbild den
 Ausgangspunkt. Transformationen erzeugen daraus weitere Varianten:
 \[
   x_i \;\rightarrow\; t(x_i).
@@ -208,9 +206,7 @@ Angaben bestimmt -- wie häufig sie wirkt und wie stark. Diese Doppelung
 verlangt Anforderung~A6; Tabelle~\ref{tab:parameter} führt sie spaltenweise
 auf.
 
-\subsection*{Nicht gewählte Wege}
-
-Vier naheliegende Alternativen werden nicht verfolgt. Die ersten beiden
+\absatz{Nicht gewählte Wege.} Vier naheliegende Alternativen werden nicht verfolgt. Die ersten beiden
 betreffen die Frage, \emph{wie} die Transformationsverteilung bestimmt wird, und
 scheitern am selben Umstand: Beide setzen eine Menge realer Daten voraus, die
 hier nicht existiert. Die beiden übrigen setzen an der Objektgröße an und werden
@@ -271,10 +267,7 @@ Erstens müssen geometrische Transformationen möglichst exakt auf die
 Beschriftungen übertragen werden. Zweitens muss die erzeugte Objektgröße mit der
 räumlichen Auflösung des verwendeten Detektors vereinbar sein.
 
-\subsection{Achsparallele Bounding Boxes und Rotation}
-\label{subsec:aabb-rotation}
-
-Die Zielobjekte werden mit achsparallelen Bounding Boxes beschrieben. Diese
+\absatz{Achsparallele Boxen und Rotation.}\label{subsec:aabb-rotation} Die Zielobjekte werden mit achsparallelen Bounding Boxes beschrieben. Diese
 Darstellung ist für die verwendete Detektionsaufgabe zweckmäßig, führt jedoch bei
 geometrischen Transformationen zu einer zusätzlichen Approximation.
 
@@ -319,9 +312,7 @@ Aus diesem Grund werden geometrische Variationen, die im Generator label-exakt
 umgesetzt werden können, bevorzugt dort erzeugt und nicht zusätzlich als
 bildweite Trainingszeit-Transformation angewendet.
 
-\subsection{Kleine Objekte, Auflösung und Labelzuweisung}
-\label{subsec:kleine-objekte}
-
+\absatz{Kleine Objekte, Auflösung und Labelzuweisung.}\label{subsec:kleine-objekte}
 Die Größe eines Objekts im Eingabebild bestimmt gemeinsam mit der Schrittweite
 des Detektors, wie viele räumliche Positionen auf einer Merkmalsebene zur
 Repräsentation des Objekts zur Verfügung stehen.
@@ -439,10 +430,7 @@ relevante Größenverteilung hinreichend abdecken. Dies betrifft sowohl die
 Generierung der Objekte als auch die Wahl der Bildauflösung und der
 Skalierungsparameter.
 
-\subsection{Mehrbildverfahren und Mosaic}
-\label{subsec:mosaic}
-
-Verfahren wie Mosaic kombinieren mehrere Trainingsbilder zu einer gemeinsamen
+\absatz{Mehrbildverfahren und Mosaic.}\label{subsec:mosaic} Verfahren wie Mosaic kombinieren mehrere Trainingsbilder zu einer gemeinsamen
 Eingabe. Dadurch können unterschiedliche Szenen gleichzeitig in einem
 Trainingsbeispiel repräsentiert werden und die Varianz der Bildkomposition
 erhöht werden.
@@ -555,9 +543,7 @@ gelesen. Alle dort berichteten Werte sind Mittelwerte auf endlichen Testmengen
 und damit Schätzer der jeweiligen Risiken; die Stichprobenunsicherheit wird
 separat über Konfidenzintervalle ausgewiesen.
 
-\subsection*{Domain Randomization}
-
-Eine Möglichkeit, den Sim-to-Real-Gap zu reduzieren, besteht darin, die
+\absatz{Domain Randomization.} Eine Möglichkeit, den Sim-to-Real-Gap zu reduzieren, besteht darin, die
 synthetische Domäne absichtlich über die erwartete reale Variation hinaus zu
 erweitern. Bei Domain Randomization werden Parameter des Generators zufällig
 variiert, sodass das Modell nicht auf eine einzige, eng definierte
@@ -586,9 +572,7 @@ bestimmte Eigenschaft in sämtlichen synthetischen Bildern auftritt, bleibt sie
 trotz zufälliger Variation anderer Parameter eine mögliche Abkürzung für das
 Modell.
 
-\subsection*{Shortcut Learning}
-
-Ein Modell kann für eine Aufgabe relevante Vorhersagen über Merkmale treffen,
+\absatz{Shortcut Learning.} Ein Modell kann für eine Aufgabe relevante Vorhersagen über Merkmale treffen,
 die zwar im Trainingsdatensatz korreliert, aber nicht kausal oder stabil mit der
 Zielklasse verbunden sind. Dieses Verhalten wird als Shortcut Learning
 bezeichnet \parencite{geirhos2020}.
@@ -613,9 +597,7 @@ synthetischen Daten hängt nicht nur davon ab, wie viele verschiedene Bilder
 erzeugt werden, sondern auch davon, welche konstanten visuellen Signaturen der
 Generator selbst einführt.
 
-\subsection*{Potenzielle synthetische Signaturen}
-
-Für die verwendete Pipeline werden sechs potenzielle Quellen systematischer
+\absatz{Synthetische Signaturen.} Für die verwendete Pipeline werden sechs potenzielle Quellen systematischer
 Unterschiede zwischen synthetischen und realen Bildern betrachtet. Dass sich
 eingefügte Bildbereiche anhand statistischer und lokaler Spuren überhaupt von
 ihrer Umgebung unterscheiden lassen, ist Gegenstand der Bildforensik
@@ -656,9 +638,7 @@ möglichen Domain-Gap-Ursachen dar. Sie definiert vielmehr die sechs Signaturen,
 die für die in dieser Arbeit entwickelte Pipeline als besonders relevant
 betrachtet und experimentell untersucht werden.
 
-\subsection*{Verdeckung als Domäneneigenschaft}
-
-Bei den untersuchten Rohrprofilen ist Verdeckung ein normaler Bestandteil der
+\absatz{Verdeckung als Domäneneigenschaft.} Bei den untersuchten Rohrprofilen ist Verdeckung ein normaler Bestandteil der
 Zielszene. Ein Rohrende kann teilweise durch davorliegende Profile, das Gitter
 oder andere Bildelemente verdeckt werden.
 

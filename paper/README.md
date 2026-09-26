@@ -31,7 +31,7 @@ Eine Zahl, für die noch kein Lauf vorliegt, erscheint im PDF als **??**.
 
 ### Herkunft der Zahlenwerte
 
-Anhangabschnitt **A.6** (Tabelle A.4) nennt für jede Klasse von Zahlenwerten die
+Anhangabschnitt **A.4** (Tabelle A.4) nennt für jede Klasse von Zahlenwerten die
 Quelle und das Programm, das sie erzeugt — von der Objektstatistik über die
 Pipelineparameter und die Modellkennzahlen bis zu den Metriken. Als Prüfhilfe
 beim Schreiben:
