@@ -24,7 +24,8 @@
 \label{sec:metriken}
 
 Eine Detektion gilt als Treffer, wenn ihre Box eine Ground-Truth-Box mit einer
-\emph{Intersection over Union} von mindestens $t$ überdeckt; jede Ground-
+\emph{Intersection over Union} nach Gleichung~\eqref{eq:ioudef} von mindestens
+$t$ überdeckt; jede Ground-
 Truth-Box kann höchstens einmal getroffen werden. Daraus folgen
 \emph{Precision} $P$, \emph{Recall} $R$ und deren harmonisches Mittel $F_1$;
 berichtet wird stets das beste $F_1$ über alle Konfidenzschwellen samt der

@@ -99,9 +99,11 @@ gewichtete Summe der beiden Hauptmetriken,
   \qquad w_{50} + w_{\text{all}} = 1 ,
   \label{eq:fitness}
 \end{equation}
-und verwendet dafür $w_{50} = 0{,}1$ und $w_{\text{all}} = 0{,}9$; diese
-Gewichtung ist deren unveränderte Voreinstellung
-\parencite{ultralyticsdocs}. Festzuhalten bleibt dabei: Diese Validierung
+und setzt dafür in der verwendeten Version~8.4.117 unverändert $w_{50} = 0$ und
+$w_{\text{all}} = 1$, wählt also allein nach \mAPall{} (\code{Metric.fitness} in
+\code{ultralytics/utils/metrics.py}). Ältere Versionen gewichteten mit
+$w_{50} = 0{,}1$ und $w_{\text{all}} = 0{,}9$; für alle Läufe dieser Arbeit
+führen beide Gewichtungen auf dieselbe beste Epoche. Festzuhalten bleibt dabei: Diese Validierung
 läuft bei der \emph{Trainings}auflösung \code{imgsz}=1024, während alle
 berichteten Zahlen bei nativem Maßstab gemessen werden (2459 bzw.\ 1600\px,
 vom Netz auf ein Vielfaches von 32 aufgefüllt). Auswahl- und Bewertungsauflösung
@@ -114,9 +116,9 @@ und sie gilt für alle Läufe gleich.
 Generators. Damit durchlaufen die synthetischen Bilder \emph{keine} Skalierung
 beim Einlesen, und die Objekte erreichen das Netz mit exakt der Pixelgröße, für
 die die Pipeline ausgelegt ist (Anforderung~A2). Bei 640\px{} wären sie nach
-Gleichung~\eqref{eq:deff} nur noch 7--27\px{} groß und fielen damit über den
-größten Teil ihrer Spanne unter die kritische Größe der P3-Ebene, die ohne
-P2-Kopf die feinste wäre.
+Gleichung~\eqref{eq:deff} nur noch 7,5--27,5\px{} groß, und das untere Fünftel
+dieser Spanne läge unter der kritischen Größe von 11,3\px{} der P3-Ebene, die
+ohne P2-Kopf die feinste wäre.
 
 \absatz{Optimierung.} AdamW \parencite{loshchilov2019} mit
 $\text{lr}_0 = 10^{-3}$ und Kosinusabfall auf 1\,\% davon

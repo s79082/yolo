@@ -284,7 +284,12 @@ def cmd_sweep():
 
 
 def _best_epoch(name):
-    """Epoche des besten Checkpoints aus results.csv (Ultralytics-Fitness)."""
+    """Epoche des besten Checkpoints aus results.csv (Ultralytics-Fitness).
+
+    Ultralytics 8.4.117 gewichtet [P, R, mAP50, mAP50-95] mit [0, 0, 0, 1]
+    (Metric.fitness in ultralytics/utils/metrics.py); der beste Checkpoint
+    ist also der mit dem hoechsten mAP50-95 auf val.
+    """
     p = os.path.join(RUNS, name, "results.csv")
     if not os.path.exists(p):
         return None
@@ -292,11 +297,10 @@ def _best_epoch(name):
     rows = list(csv.DictReader(open(p)))
     if not rows:
         return None
-    key50 = next((k for k in rows[0] if "mAP50(B)" in k and "95" not in k), None)
     key95 = next((k for k in rows[0] if "mAP50-95(B)" in k), None)
-    if not key50 or not key95:
+    if not key95:
         return None
-    fit = [0.1 * float(r[key50]) + 0.9 * float(r[key95]) for r in rows]
+    fit = [float(r[key95]) for r in rows]
     i = int(np.argmax(fit))
     return dict(epoche=int(float(rows[i]["epoch"])), n_epochen=len(rows),
                 fitness=round(fit[i], 5))

@@ -208,7 +208,7 @@ Identität und Wirkung,
 mit dem Anwendungsanteil $\pi_k$ und der Parameterverteilung $q_k$ über den
 zulässigen Bereich. Eine Transformation ist folglich erst durch \emph{zwei}
 Angaben bestimmt -- wie häufig sie wirkt und wie stark. Diese Doppelung
-verlangt Anforderung~A6; Tabelle~\ref{tab:parameter} führt sie spaltenweise
+verlangt Anforderung~A5; Tabelle~\ref{tab:parameter} führt sie spaltenweise
 auf.
 
 \absatz{Nicht gewählte Wege.} Vier naheliegende Alternativen werden nicht verfolgt. Die ersten beiden
@@ -286,12 +286,27 @@ des rotierten Quadrats beträgt
   \label{eq:dbox}
 \end{equation}
 
+Wie gut zwei Boxen $B_1$ und $B_2$ übereinstimmen, misst die \emph{Intersection
+over Union}, der Quotient aus Schnitt- und Vereinigungsfläche
+\parencite{everingham2010}:
+\begin{equation}
+  \IoU(B_1, B_2)
+  =
+  \frac{|B_1 \cap B_2|}{|B_1 \cup B_2|}
+  =
+  \frac{|B_1 \cap B_2|}{|B_1| + |B_2| - |B_1 \cap B_2|} ,
+  \label{eq:ioudef}
+\end{equation}
+wobei $|\cdot|$ die Fläche bezeichnet; die zweite Form gilt, weil die
+Schnittfläche in $|B_1| + |B_2|$ doppelt gezählt ist. Der Wert liegt zwischen 0
+für disjunkte und 1 für deckungsgleiche Boxen.
+
 Wird die \emph{ursprüngliche} Box anschließend als Label der rotierten Instanz
 verwendet, so ist das achsparallele Quadrat vollständig in der Hülle enthalten:
 Schnittfläche ist $A=d^2$, Vereinigungsfläche $A_{\mathrm{box}} = d^2
 (|\cos\theta|+|\sin\theta|)^2$. Mit
-$(|\cos\theta|+|\sin\theta|)^{2} = 1 + |\sin 2\theta|$ folgt daraus die für alle
-$\theta$ exakte Darstellung
+$(|\cos\theta|+|\sin\theta|)^{2} = 1 + |\sin 2\theta|$ folgt daraus nach
+Gleichung~\eqref{eq:ioudef} die für alle $\theta$ exakte Darstellung
 \begin{equation}
   \IoU(\theta) = \frac{1}{1+|\sin 2\theta|},
   \label{eq:iou}
@@ -343,8 +358,9 @@ Eine genauere geometrische Betrachtung kann für ein kreisförmiges Objekt
 durchgeführt werden. Beide Größen sind dabei im Koordinatensystem der
 Netzeingabe zu lesen -- der Stride $S$ ist dort definiert, die Objektgröße muss
 also nach Gleichung~\eqref{eq:deff} umgerechnet sein. Unter der idealisierten
-Annahme eines regelmäßigen quadratischen Gitters beträgt die erwartete Zahl $Z$
-der Gitterzentren innerhalb eines Kreises der effektiven Größe
+Annahme eines regelmäßigen quadratischen Gitters und einer zufälligen,
+gleichverteilten Lage des Objekts relativ zu diesem Gitter beträgt die erwartete
+Zahl $Z$ der Gitterzentren innerhalb eines Kreises der effektiven Größe
 $d_{\mathrm{eff}}$
 \begin{equation}
   \mathbb{E}[Z]
@@ -354,6 +370,10 @@ $d_{\mathrm{eff}}$
   \frac{\pi d_{\mathrm{eff}}^{2}}{4S^{2}}.
   \label{eq:gridcount}
 \end{equation}
+Der Zähler ist die Kreisfläche, der Nenner die Fläche einer Gitterzelle. Weil
+jede Zelle genau ein Gitterzentrum enthält, trifft der Kreis über alle Lagen
+gemittelt so viele Zentren, wie Zellflächen in seine Fläche passen; bei einer
+bestimmten Lage können es mehr oder weniger sein.
 
 Damit steigt die erwartete Zahl räumlicher Positionen quadratisch mit der
 Objektgröße und fällt quadratisch mit der Schrittweite. Eine Halbierung der
@@ -396,7 +416,8 @@ Von der Gitterabtastung zu unterscheiden ist ein zweiter, unabhängiger Effekt
 der Objektgröße: die Empfindlichkeit der Bewertungsmetrik selbst. Wird eine
 quadratische Box der Kantenlänge $d$ um $\delta$ Pixel entlang einer Achse
 verschoben, so beträgt die Schnittfläche $(d-\delta)\,d$ und die Vereinigungsfläche
-$2d^{2}-(d-\delta)\,d$. Für die Überlappung folgt
+$2d^{2}-(d-\delta)\,d$. Für die Überlappung folgt nach
+Gleichung~\eqref{eq:ioudef}
 \begin{equation}
   \IoU
   =

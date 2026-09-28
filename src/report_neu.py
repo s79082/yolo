@@ -947,10 +947,11 @@ def zahlen():
     if os.path.exists(_rp):
         _rows = list(_csv.DictReader(open(_rp)))
         M["refEpochen"] = str(len(_rows))
-        _k50 = next((k for k in _rows[0] if "mAP50(B)" in k and "95" not in k), None)
+        # Fitness wie in Ultralytics 8.4.117: allein mAP50-95 (siehe
+        # _best_epoch in experiment_neu.py)
         _k95 = next((k for k in _rows[0] if "mAP50-95(B)" in k), None)
-        if _k50 and _k95:
-            _fit = [0.1 * float(r[_k50]) + 0.9 * float(r[_k95]) for r in _rows]
+        if _k95:
+            _fit = [float(r[_k95]) for r in _rows]
             M["refBestEpoche"] = str(int(float(_rows[int(np.argmax(_fit))]["epoch"])))
 
     gr = _load("ablationB_groesse.json")

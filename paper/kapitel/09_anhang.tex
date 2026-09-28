@@ -114,13 +114,13 @@ ihre Erwartung je Bild ist daher
 mit der Clusterzahl $K$, ihrer Verteilung $p_k$ und dem Anteil
 $p_{\text{neg}}$ der Negativbilder. Besetzt mit den Sollwerten aus
 \code{src/generate.py} -- $p_{\text{Mulde}} = 0{,}55$ je Cluster,
-$p_1/p_2/p_3 = 0{,}45/0{,}35/0{,}20$ und $p_{\text{neg}} = 0{,}097$ -- ergibt
+$p_1/p_2/p_3 = 0{,}45/0{,}35/0{,}20$ und $p_{\text{neg}} = 0{,}10$ -- ergibt
 sich $\mathbb{E}[K] = 0{,}45 \cdot 1 + 0{,}35 \cdot 2 + 0{,}20 \cdot 3 = 1{,}75$
-und damit $0{,}55 \cdot 1{,}75 \cdot 0{,}903 = 0{,}869$, was den oben
+und damit $0{,}55 \cdot 1{,}75 \cdot 0{,}90 = 0{,}866$, was den oben
 \emph{gezählten} Wert 0,8738 erklärt. \code{img\_has\_bars} ist dagegen ein
 echter Anteil und folgt derselben Gleichung ohne den Clusterterm: Der Sollwert
 $p_{\text{Stangen}} = 0{,}65$ reduziert sich durch die Negativbilder auf
-$0{,}65 \cdot 0{,}903 = 0{,}587$ und trifft den gezählten Wert 0,5835.
+$0{,}65 \cdot 0{,}90 = 0{,}585$ und trifft den gezählten Wert 0,5835.
 
 \absatz{Vollständiger Sweep der Inferenzauflösung.}\label{sec:anhangsweep}
 Tabelle~\ref{tab:imgszvoll} ergänzt den Auszug aus

@@ -180,8 +180,9 @@ Abschnitt~\ref{subsec:kleine-objekte}), eine Halbierung der Schrittweite
 vervierfacht sie also. Bei einem Objekt von 12,0\px{} -- dem 5\,\%-Quantil des
 erzeugten Datensatzes, das bei der Trainingsauflösung unskaliert in das Netz
 eingeht -- sind das 1,8 Positionen auf P3 gegenüber 7,1 auf P2;
-im ungünstigsten Fall enthält ein solches Objekt auf P3 gar keine
-Gitterposition.
+im ungünstigsten Fall enthält ein solches Objekt auf P3 nur eine einzige
+Gitterposition. Ganz ohne Gitterposition kann ein Objekt auf P3 nach
+Gleichung~\eqref{eq:gridmiss} erst unterhalb von 11,3\px{} bleiben.
 
 Erkauft wird das nicht mit Modellgröße: \code{yolo26s-p2} hat mit
 9\,663\,464 Parametern sogar 2,9\,\% weniger als die Basiskonfiguration, und der
