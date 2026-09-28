@@ -5,39 +5,25 @@
 
 An gestapelten mobilen Bauzaunfeldern sind die Stirnflächen der Rahmenrohre zu
 detektieren: kleine, nahezu identische Kreisringe in dichter Packung und
-wechselseitiger Verdeckung. Annotierte Datensätze liegen nicht vor, und die
-Handannotation vieler Kleinobjekte je Bild ist aufwendig. Die Arbeit umgeht
-diese Abhängigkeit: Trainiert wird \emph{ausschließlich} auf synthetischen
-Bildern aus wenigen freigestellten Objektausschnitten und
-Hintergrundaufnahmen, validiert und getestet auf realen Aufnahmen.
+wechselseitiger Verdeckung. Da annotierte Trainingsdaten fehlen, wird
+\emph{ausschließlich} auf synthetischen Bildern trainiert, erzeugt aus wenigen
+Objektausschnitten und Hintergrundaufnahmen. Im Mittelpunkt steht damit die
+\textbf{Synthese-Pipeline}: Jeder ihrer Parameter ist durch eine Messung an den
+Realdaten, eine physikalische Randbedingung oder die Literatur begründet oder
+als Annahme ausgewiesen. Auf einem realen Testbild, das weder Training noch
+Modellauswahl berührt, erreicht der Detektor ein \mAPfifty{} von
+\textbf{\zrefTestMap}.
 
-Der methodische Schwerpunkt verlagert sich damit von der Netzarchitektur auf
-die \textbf{Augmentierungs- und Synthese-Pipeline}, die die Trainingsverteilung
-vollständig erzeugt. Aus den Grundlagen der Datenaugmentierung leitet die
-Arbeit eine Begründungspflicht ab: Jeder Parameter stützt sich auf eine Messung
-an den Realdaten, eine physikalische Randbedingung oder ein Literaturargument,
-andernfalls wird er als Annahme ausgewiesen. Auf dem realen Testbild, das
-weder in Training noch Modellauswahl eingeht, erreicht der so trainierte
-Detektor ein \mAPfifty{} von \textbf{\zrefTestMap}.
-
-Zwei kontrollierte Ablationen prüfen die Pipeline. Die erste tauscht die aus
-Realaufnahmen geschnittene Okkluder-Bibliothek gegen prozedural erzeugte
-Verdecker; der Versuch ist gepaart, allein die Verdeckerpixel variieren. Ein an
-der Bibliothek kalibriertes Modell erreicht dieselbe Leistung, ein naiv
-gezeichneter grauer Balken senkt \mAPfifty{} auf dem Testbild dagegen um
-\zablBTestGap\PP{} -- fast vollständig über den Rückruf der kleinsten Objekte.
-Maßgeblich ist also nicht die Herkunft der Verdeckerpixel, sondern ob ihre
-Statistik zur Umgebung passt. Die zweite Ablation schaltet die Einbettung ab,
-also den Angleich der eingefügten Objekte an ihre Umgebung in Kante, Farbe,
-Schärfe, Rauschen und Kompression. Das kostet so viel wie kein anderer
-gemessener Eingriff in die Trainingsdaten ($\zablCTestGap$\PP{} \mAPfifty{}
-auf dem Testbild). Auf synthetischen Validierungsbildern derselben Machart ist
-davon dagegen kaum etwas zu sehen: Eine synthetische Kennzahl hätte den Schaden
-nicht angezeigt.
-
-Den größten Einzeleffekt hat keine Augmentierungsentscheidung, sondern die
-Inferenzauflösung, die festlegt, wie groß die Objekte beim Netz ankommen. Ein
-systematischer Größenversatz zwischen Generatorlabel und Handannotation erklärt
-zudem großenteils die niedrigen Werte bei strengeren IoU-Schwellen: Bei
-programmatisch erzeugten Labels wird die Labelkonvention selbst zur messbaren
-Größe.
+Zwei kontrollierte Ablationen zeigen, worauf es bei der Synthese ankommt.
+Prozedurale Verdecker ersetzen die aus Realaufnahmen geschnittenen ohne
+messbaren Verlust, wenn ihre Statistik an diesen kalibriert ist; ein naiv
+gezeichneter grauer Balken senkt dagegen den Rückruf, vor allem bei den
+kleinsten Objekten. Ohne Einbettung, also ohne Angleich der eingefügten Objekte
+an ihre Umgebung, ist der Verlust größer als bei jedem anderen gemessenen
+Eingriff in die Trainingsdaten -- auf synthetischen Validierungsbildern ist
+davon kaum etwas zu sehen. Den größten Einzeleffekt hat keine
+Augmentierungsentscheidung, sondern die Inferenzauflösung, die festlegt, wie
+groß die Objekte beim Netz ankommen. Ein systematischer Größenversatz zwischen
+erzeugten und handannotierten Boxen erklärt zudem großenteils die niedrigen
+Werte bei strengeren IoU-Schwellen: Bei programmatisch erzeugten Labels wird
+die Labelkonvention selbst zur messbaren Größe.
