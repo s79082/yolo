@@ -535,12 +535,15 @@ Zwei Eigenschaften sind für das Folgende wesentlich. Der Divergenzterm ist
 ausschließlich über den \emph{Randverteilungen der Eingaben} definiert -- und
 bei synthetischen Trainingsdaten ist $\Dom{S}^{X}$ nicht vorgegeben, sondern
 durch den Generator \emph{konstruiert}; $p(t)$ ist genau der Freiheitsgrad, über
-den dieser Term beeinflusst wird. $\lambda$ dagegen hängt von der
+den dieser Term beeinflusst wird. Merkmale, die der Generator in die Bilder
+einführt und die in der Realität fehlen (Tabelle~\ref{tab:signaturen}),
+verändern $\Dom{S}^{X}$ und gehören deshalb zum Divergenzterm; ihre
+Gegenmaßnahmen sind Teil von $p(t)$. $\lambda$ dagegen hängt von der
 Hypothesenklasse ab, ist ohne beschriftete Zieldaten nicht schätzbar, und
 Unterschiede zwischen den Beschriftungsfunktionen $f_S \neq f_T$ wirken sich
-\emph{ausschließlich} dort aus. Merkmale, die der Generator einführt und die in
-der Realität fehlen, erhöhen deshalb $\lambda$, ohne im Divergenzterm sichtbar
-zu werden. Da Gleichung~\eqref{eq:bendavid} zudem binäre Klassifikation
+\emph{ausschließlich} dort aus, in dieser Arbeit etwa die abweichende
+Boxkonvention von Generator und Handannotation (Abschnitt~\ref{sec:boxversatz}).
+Da Gleichung~\eqref{eq:bendavid} zudem binäre Klassifikation
 voraussetzt, diese Arbeit aber eine Detektionsaufgabe über IoU-basierte Metriken
 bewertet, wird sie \emph{nicht} als formale Garantie in Anspruch genommen,
 sondern als begrifflicher Ordnungsrahmen für die folgenden
@@ -567,10 +570,14 @@ Beschriftungsfunktion. Der umgekehrte Schluss ist nicht zulässig: Ein kleiner
 Gap erlaubt keinen Rückschluss auf eine geringe Divergenz, da die Schranke
 beliebig locker sein kann und sich die beiden Terme gegenseitig kompensieren
 können. $\Delta_{\mathrm{SR}}$ ist folglich kein Maß der Verteilungsdivergenz,
-sondern gerichtete Evidenz für Domänenungleichheit. Ein sehr niedriger
-synthetischer Fehler bei gleichzeitig großem Gap ist dabei genau die Signatur
-eines erhöhten $\lambda$ und wird in Kapitel~\ref{kap:auswertung} entsprechend
-gelesen. Alle dort berichteten Werte sind Mittelwerte auf endlichen Testmengen
+sondern gerichtete Evidenz für Domänenungleichheit. Auch ein sehr niedriger
+synthetischer Fehler bei großem Gap zeigt nur, dass die Summe aus Divergenzterm
+und $\lambda$ groß ist, aber nicht, welcher der beiden Terme dafür verantwortlich
+ist. In Kapitel~\ref{kap:auswertung} lassen sich beide an ihrer Wirkung trennen:
+Die abweichende Boxkonvention ($\lambda$) verschiebt vor allem die strengen
+IoU-Schwellen (Abschnitt~\ref{sec:boxversatz}), die fehlende Einbettung
+(Divergenzterm) kostet schon bei \mAPfifty{} Rückruf
+(Abschnitt~\ref{sec:ablationC}). Alle dort berichteten Werte sind Mittelwerte auf endlichen Testmengen
 und damit Schätzer der jeweiligen Risiken; die Stichprobenunsicherheit wird
 separat über Konfidenzintervalle ausgewiesen.
 
@@ -613,9 +620,13 @@ technische Eigenschaften des Generators systematisch wiederkehren können.
 Beispielsweise können harte Objektkanten, identische Schattenmuster oder
 charakteristische Farbübergänge in allen synthetischen Bildern auftreten. Ein
 Modell kann solche Merkmale nutzen, obwohl sie in realen Bildern nicht vorhanden
-sind. In der Terminologie von Gleichung~\eqref{eq:bendavid} entspricht dies einer
-Erhöhung von $\lambda$: Die im synthetischen Bild optimale Hypothese ist dann
-gerade nicht diejenige, die auch auf $\Dom{T}$ niedrige Fehler erzielt.
+sind. In der Terminologie von Gleichung~\eqref{eq:bendavid} ist das ein Beitrag
+zum Divergenzterm, nicht zu $\lambda$: Eine Hypothese, die auf die harte
+Objektkante reagiert, und eine, die die Stirnfläche selbst erkennt, stimmen auf
+synthetischen Bildern überein und widersprechen sich auf realen, und genau
+solche Paare machen $d_{\HdH}$ groß. $\lambda$ bleibt klein, weil die zweite in
+beiden Domänen richtig liegt; die Schranke sagt nur nicht, welche der beiden das
+Training auswählt.
 
 Dabei muss zwischen zufälliger Variation und systematischem Bias unterschieden
 werden. Zufällige Variation kann die Vielfalt der beobachteten Beispiele
