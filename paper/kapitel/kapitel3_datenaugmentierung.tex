@@ -49,8 +49,10 @@ $\Dom{S}^{X}$ bezeichnen Wahrscheinlichkeitsverteilungen.
 \label{sec:aug-formalisierung}
 
 Sei $D=\{(x_i,y_i)\}_{i=1}^{n}$ ein Trainingsdatensatz mit Eingabebildern $x_i$
-und Beschriftungen $y_i$ , bei der Objektdetektion eine Menge von Boxen mit
-Klasseninformation. Sei weiterhin $T$ eine Menge zulässiger Transformationen,
+und Beschriftungen $y_i$, bei der Objektdetektion eine Menge von Boxen mit
+Klasseninformation. Ein Modell $f$ bildet ein Bild auf eine Vorhersage ab, und
+eine Verlustfunktion $L$ misst, wie weit eine Vorhersage von der Beschriftung
+abweicht. Sei weiterhin $T$ eine Menge zulässiger Transformationen,
 $p(t)$ eine Wahrscheinlichkeitsverteilung über diese Menge und $\tau_t$ die zu
 $t \in T$ gehörende Transformation der Beschriftung. Das durch Augmentierung
 entstehende empirische Risiko lautet dann
@@ -73,8 +75,9 @@ kontinuierlich ist, wird der Erwartungswert praktisch über endlich viele
 Ziehungen aus $p(t)$ geschätzt; die Zahl physisch gespeicherter Bilder ist
 deshalb nicht identisch mit der Zahl der im Training gesehenen Varianten.
 
-Von den vier Größen in Gleichung~\eqref{eq:risk-aug} ist für diese Arbeit vor
-allem $p(t)$ maßgeblich. Sie bestimmt, wie häufig und wie stark die einzelnen
+Von den vier Größen in Gleichung~\eqref{eq:risk-aug} -- Modell $f$,
+Verlust $L$, Transformationsverteilung $p(t)$ und Labeltransformation
+$\tau_t$ -- ist für diese Arbeit vor allem $p(t)$ maßgeblich. Sie bestimmt, wie häufig und wie stark die einzelnen
 Transformationen wirken, und ist damit keine Implementierungsentscheidung,
 sondern eine \emph{Modellierung der erwarteten Variation der Zieldomäne}. Bei
 überwiegend synthetischen Trainingsdaten verschiebt sich ihre Bedeutung noch
@@ -158,8 +161,8 @@ Größen $t^{\mathrm{S}}$ -- Hintergrund, Maßstab, Ausschnitt, globale
 Bildeffekte --, daraus die Zahl $K$ der Objektcluster. Für jeden Cluster $k$
 folgt ein eigener Vektor $c_k$ mit Basisgröße, Gitterabständen, eingeschlossenem
 Winkel und Clusterzentrum, daraus die Zahl $m_k$ seiner Instanzen. Erst auf der
-dritten Stufe erhält jede Instanz ihren eigenen Parametervektor $t^{(j)}$. Die
-Verteilung faktorisiert entsprechend als
+dritten Stufe erhält jede Instanz $j$ des Clusters $k$ ihren eigenen
+Parametervektor $t^{(k,j)}$. Die Verteilung faktorisiert entsprechend als
 \begin{equation}
   p(t)
   =
@@ -169,7 +172,7 @@ Verteilung faktorisiert entsprechend als
   \Bigl[\,
     p\bigl(c_k \mid t^{\mathrm{S}}\bigr)\,
     p\bigl(m_k \mid c_k\bigr)
-    \prod_{j=1}^{m_k} p\bigl(t^{(j)} \mid c_k\bigr)
+    \prod_{j=1}^{m_k} p\bigl(t^{(k,j)} \mid c_k\bigr)
   \,\Bigr].
   \label{eq:faktorisierung}
 \end{equation}
@@ -193,20 +196,22 @@ von $t^{\mathrm{S}}$ ab.
 
 Da zudem $K$ und alle $m_k$ selbst gezogen werden, besitzt $t$ keine feste
 Dimension: Der Träger von $p$ ist eine Vereinigung von Räumen unterschiedlicher
-Dimension, nicht eine Teilmenge eines festen $\mathbb{R}^{k}$.
+Dimension und nicht Teil eines Raums fester Dimension.
 
-Jede einzelne optionale Transformation $k$ ist ihrerseits eine Mischung aus
+Jede einzelne optionale Transformation $\nu$ ist ihrerseits eine Mischung aus
 Identität und Wirkung,
 \begin{equation}
-  p(t_k)
+  p(t_\nu)
   =
-  (1-\pi_k)\,\delta_{\mathrm{id}}
+  (1-\pi_\nu)\,\delta_{\mathrm{id}}
   \;+\;
-  \pi_k\, q_k ,
+  \pi_\nu\, q_\nu ,
   \label{eq:mischung}
 \end{equation}
-mit dem Anwendungsanteil $\pi_k$ und der Parameterverteilung $q_k$ über den
-zulässigen Bereich. Eine Transformation ist folglich erst durch \emph{zwei}
+mit dem Anwendungsanteil $\pi_\nu$, der Parameterverteilung $q_\nu$ über den
+zulässigen Bereich und der Verteilung $\delta_{\mathrm{id}}$, die mit Sicherheit
+die Identität liefert, das Bild also unverändert lässt. Eine Transformation ist
+folglich erst durch \emph{zwei}
 Angaben bestimmt -- wie häufig sie wirkt und wie stark. Diese Doppelung
 verlangt Anforderung~A5; Tabelle~\ref{tab:parameter} führt sie spaltenweise
 auf.
