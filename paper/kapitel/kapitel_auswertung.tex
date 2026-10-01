@@ -129,6 +129,20 @@ Drei- bis Vierfache, während die synthetische Leistung praktisch unverändert
 bleibt. Erst dieser Kontrast macht aus dem kleinen Abstand des
 Referenzmodells eine Aussage.
 
+Einen zweiten, statistischen Maßstab liefert die Stichprobenunsicherheit aus
+Abschnitt~\ref{sec:bootstrap}, und an ihm unterscheiden sich die beiden Splits.
+Der Wert \zrefSvalMap{} auf \code{sval} liegt über dem 95\,\%-Intervall von
+\code{val}, $[\zbootValLo;\,\zbootValHi]$, aber innerhalb des Intervalls von
+\code{test}, $[\zbootTestLo;\,\zbootTestHi]$. Nur auf \code{val} geht der
+Abstand damit über die Stichprobenunsicherheit hinaus; im Sinne von
+Abschnitt~\ref{sec:sim2real} belegt er dort einen Unterschied der Domänen, ohne
+zu zeigen, ob dieser in der Eingabeverteilung oder in der Beschriftungsfunktion
+liegt. Auf \code{test} ist der Abstand von null nicht zu unterscheiden, was nach
+demselben Abschnitt aber nicht heißt, dass die Domänen übereinstimmen.
+Vernachlässigt ist dabei die Unsicherheit von \code{sval} selbst; gemessen ist
+sie nicht, bei 400 Bildern dürfte sie aber deutlich kleiner sein als die eines
+einzelnen Realbilds.
+
 \section{Die Inferenzauflösung}
 \label{sec:imgsz}
 
