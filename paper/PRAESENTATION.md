@@ -211,7 +211,7 @@ schrumpfen lässt, erzeugt Labels ohne auflösbares Objekt.**
 Der Nutzen hängt daran, wie ähnlich die erzeugte Verteilung D_S der
 Zielverteilung D_T ist. Ben-David gibt dafür die Schranke
 
-    ε_T(h) ≤ ε_S(h) + d_HΔH(D_S, D_T) + λ
+    ε_T(h) ≤ ε_S(h) + ½·d_HΔH(D_S, D_T) + λ
 
 Sie listet die Angriffspunkte des Pipelineentwurfs vollständig auf: **(i)** ε_S
 klein halten — korrekt gelabelte synthetische Daten, deshalb wird die
@@ -520,10 +520,10 @@ Test-Time-Augmentation steigt mAP@0,5 auf test auf 0,963.
 0,982 gegen 0,886 und 0,956, also **9,6 bzw. 2,6 Prozentpunkte** mAP@0,5.
 
 Dazu steht die Ben-David-Schranke (Gl. 3.6/3.7) mit Werten besetzt im Text:
-ε_S = 0,018, ε_T = 0,044, daraus `d + λ ≥ 0,026`. Der Größenversatz trägt dazu
+ε_S = 0,018, ε_T = 0,044, daraus `½·d + λ ≥ 0,026`. Der Größenversatz trägt dazu
 nichts bei — ein Angleichen der Boxgröße verbessert mAP@0,5 nicht, sondern senkt
 es leicht; bei Zuordnungsschwelle 0,5 ist die Konventionsdifferenz wirkungslos.
-Die Gegenprobe (Netz lernt Artefakte) ergäbe `d + λ ≥ 0,94`, den **36-fachen**
+Die Gegenprobe (Netz lernt Artefakte) ergäbe `½·d + λ ≥ 0,94`, den **36-fachen**
 Wert. **Das ist die stärkste
 Folie des Blocks** — sie macht aus „klein genug / groß genug" eine Rechnung.
 
