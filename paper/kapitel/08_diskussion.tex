@@ -75,122 +75,95 @@ Trainingsverteilung.
 
 Kontrolliert \emph{abliert} sind davon \textbf{zwei}: die Herkunft der
 Okkluder (Ablation~B) und das Bündel der Einbettungsmaßnahmen (Ablation~C).
-Gemessen an 44 Werten ist auch das wenig, und es wird hier nicht beschönigt --
-die Begründungssystematik trägt den Entwurf, der experimentelle Nachweis trägt
-zwei Punkte daraus. Die beiden sind allerdings nicht beliebig gewählt: Der
-eine ist die aufwendigste Einzelentscheidung der Pipeline, der andere ihr
-Leitprinzip.
+Gemessen an 44 Werten ist das wenig. Die Begründungen tragen den Entwurf,
+experimentell belegt sind daraus zwei Punkte. Diese beiden sind allerdings
+nicht beliebig gewählt: Der eine ist die aufwendigste Einzelentscheidung der
+Pipeline, der andere ihr Leitprinzip.
 
-\absatz{Warum gerade diese beiden.} An der Okklusionsstufe sind zwei Fragen zu
-stellen -- \emph{wie viel} verdeckt wird und \emph{woraus} die Verdecker
-bestehen. Die erste ist keine echte Entwurfsfreiheit: In den Realbildern liegen
-ausnahmslos Rohre vor den Stirnflächen, die Verdeckung ist also physikalische
-Randbedingung und nicht Dosierung. Die zweite dagegen ist frei entschieden, sie
-ist die aufwendigste Einzelentscheidung der Pipeline -- eine eigene
-Verarbeitungsstufe mit Struktur-Tensor und Achsdetektion --, und sie war
-ausschließlich durch ein Argument gedeckt. Hinzu kommt ein methodischer Vorzug,
-den kaum eine Datensatz-Ablation hat: Weil sich nur die Pixelwerte innerhalb der
-Verdeckermasken unterscheiden, sind Labelzahl, Objektpositionen und
-Verdeckungsgrade \emph{byte-identisch}. Es gibt keine zweite Variable, auf die
-ein Ergebnisunterschied zurückgeführt werden könnte.
+\absatz{Warum gerade diese beiden.} An der Okklusionsstufe stellen sich zwei
+Fragen: \emph{wie viel} verdeckt wird und \emph{woraus} die Verdecker bestehen.
+Die erste geben die Realbilder vor, denn dort liegen ausnahmslos Rohre vor den
+Stirnflächen. Die zweite war frei entschieden, am aufwendigsten umgesetzt und
+nur durch ein Argument gedeckt. Weil sich die Arme nur in den Pixelwerten
+innerhalb der Verdeckermasken unterscheiden, ist Ablation~B außerdem gepaart,
+was kaum eine Datensatz-Ablation bietet. Ablation~C prüft dagegen das
+Leitprinzip selbst, also die sechs Maßnahmen, mit denen die Pipeline das
+Einfügen gegen die Signaturen S1--S6 absichert. Sie machen den größten Teil des
+Entwurfsaufwands aus, waren bis dahin nur durch den kleinen Sim-to-Real-Abstand
+gestützt und lassen sich mit einem einzigen Schalter gemeinsam abschalten.
+Dafür ist dieser Versuch nicht gepaart (Abschnitt~\ref{sec:ablationC}).
 
-Ablation~C prüft dagegen nicht eine Stufe, sondern das Leitprinzip selbst:
-jene sechs Maßnahmen, mit denen die Pipeline das Einfügen gegen die Signaturen
-S1--S6 absichert. Sie sind der eigentliche Aufwand des Entwurfs, sie waren
-ausschließlich über den kleinen Sim-to-Real-Abstand gestützt -- also über ein
-Indiz --, und sie lassen sich mit einem einzigen Schalter gemeinsam
-abschalten. Erkauft ist das mit einer schwächeren Versuchsanordnung: Anders
-als bei~B sind die beiden Datensätze nicht gepaart
-(Abschnitt~\ref{sec:ablationC}).
+\absatz{Was Ablation~B ergeben hat.} Die Behauptung hinter der
+photographischen Bibliothek ist \emph{in der Sache} bestätigt und \emph{in
+ihrer starken Form} widerlegt. Ein naiv gezeichneter Verdecker kostet auf dem
+Testbild \zablBTestGap\PP{} \mAPfifty, und der Verlust entfällt fast vollständig
+auf das kleinste Drittel der Objekte, wo der Rückruf von \zBZeroTestRecKlein{}
+auf \zBTwoTestRecKlein{} fällt. Die Textur- und Rauschstatistik des Verdeckers
+ist also eine relevante Größe und kein Detail. Ein an fünf Kennwerten
+kalibriertes Zylindermodell erreicht aber auf \code{test} dieselbe Leistung wie
+die photographische Bibliothek, und die aufwendigste Vorstufe der Pipeline
+lässt sich durch rund vierzig Zeilen prozeduralen Code ersetzen. Übertragbar
+ist daraus die Aussage: \emph{Nicht die Herkunft der Pixel entscheidet, sondern
+ob ihre Statistik zur Umgebung passt.} Photographisches Material ist ein
+naheliegender Weg dorthin, aber kein notwendiger.
 
-\absatz{Was Ablation~B ergeben hat.} Sie fällt anders aus, als die Pipeline
-es unterstellt hatte: Die Behauptung ist
-\emph{in der Sache} bestätigt und \emph{in ihrer starken Form} widerlegt.
+Überraschend ist ein Detail, weil es der Erwartung aus
+Abschnitt~\ref{sec:sim2real} widerspricht: Der naive Verdecker erzeugt
+\emph{keine} zusätzlichen Falschpositiven, es bricht allein der Rückruf ein.
+Das Netz hat also nicht die Abkürzung \enquote{Objekt neben Balken} gelernt.
+In seinen Trainingsdaten kam der Übergang eines \emph{texturierten} Zylinders
+über eine Stirnfläche nicht vor, und an genau diesen Stellen scheitert es im
+Testbild. Für die Verdecker beschreibt die Signaturenliste S1--S6 damit nicht
+das richtige Fehlermuster. Es handelt sich um eine gewöhnliche Domänenlücke,
+die allerdings nicht das Objekt betrifft, sondern das Material davor.
 
-Der Unterschied zwischen einem naiv gezeichneten und einem sorgfältig
-modellierten Verdecker beträgt auf dem unberührten Testbild \zablBTestGap\PP{}
-\mAPfifty{} und \zablBTestGapFf\PP{} $F_1$; er entfällt
-fast vollständig auf das kleinste Drittel der Objekte, wo der Rückruf von
-\zBZeroTestRecKlein{} auf \zBTwoTestRecKlein{} fällt. Damit ist die zentrale
-Behauptung von \code{src/occluders.py} erstmals belegt: Die Textur- und
-Rauschstatistik des Verdeckers ist eine relevante Größe, kein Detail.
-
-Zugleich ist ihre starke Form widerlegt. Das an fünf Kennwerten kalibrierte
-Zylindermodell erreicht auf \code{test} dieselbe Leistung wie die
-photographische Bibliothek; die aufwendigste Vorstufe der Pipeline (Struktur-
-Tensor, Achsdetektion, Bindung an vier Clean Plates) lässt sich durch rund
-vierzig Zeilen prozeduralen Code ersetzen. Für den Entwurf synthetischer
-Pipelines ist das die übertragbare Aussage: \emph{Nicht die Herkunft der Pixel
-entscheidet, sondern ob ihre Statistik zur Umgebung passt.} Photographisches
-Material ist ein naheliegender Weg dorthin, aber kein notwendiger -- und wo es
-fehlt, ist ein kalibriertes Modell die gleichwertige Alternative.
-
-Ein Detail verdient dabei besondere Beachtung, weil es der Erwartung
-widerspricht, die Abschnitt~\ref{sec:sim2real} aufgebaut hatte: Der naive Verdecker erzeugt
-\emph{keine} Falschpositiven. Die Precision bleibt bei \zBTwoTestPrec{} (gegen
-\zBZeroTestPrec{} bei B0), es bricht allein der Rückruf ein. Das Netz hat also
-nicht die Abkürzung \enquote{Objekt neben Balken} gelernt; in seinen Trainingsdaten kam der Übergang
-eines \emph{texturierten} Zylinders über eine Stirnfläche nicht vor, und im
-Testbild scheitert es an eben diesen Stellen. Die Signaturenliste S1--S6
-beschreibt damit für Okkluder nicht das richtige Versagensmuster: Es ist keine
-Abkürzung, sondern eine gewöhnliche Domänenlücke -- allerdings eine, die nicht das
-Objekt betrifft, sondern das davorliegende Material.
-
-\absatz{Was Ablation~C ergeben hat.} Hier bestätigt sich die Erwartung, und
-zwar deutlich. Ohne die Einbettungsmaßnahmen verliert dasselbe Modell auf dem
-unberührten Testbild $\zablCTestGap$\PP{} \mAPfifty{} und
-$\zablCTestGapFf$\PP{} $F_1$, auf \code{val} $\zablCValGap$ bzw.\
-$\zablCValGapFf$\PP{} -- der größte Effekt, den diese Arbeit über einen
+\absatz{Was Ablation~C ergeben hat.} Hier bestätigt sich die Erwartung
+deutlich. Ohne die Einbettungsmaßnahmen ändert sich \mAPfifty{} desselben
+Modells auf dem Testbild um $\zablCTestGap$\PP{} und auf \code{val} um
+$\zablCValGap$\PP. Das ist der größte Effekt, den diese Arbeit für einen
 Eingriff in die Trainingsdaten gemessen hat, und der einzige, der auf beiden
-Splits in dieselbe Richtung und in vergleichbarer Größe ausfällt.
-
-Entscheidend ist dabei nicht die Höhe, sondern das Muster. Auf seinem eigenen
-synthetischen Split ist der naive Arm vom Kontrollarm nicht zu unterscheiden
-($\zablCSvalGap$\PP); er hat seine Trainingsdaten ebenso gut gelernt. Nur
-überträgt sich das Gelernte nicht -- der Sim-to-Real-Abstand wächst von
-\zgapCZeroTest{} auf \zgapCOneTest\PP. Das ist die Signatur, die
-Abschnitt~\ref{sec:sim2real} beschreibt, und sie tritt genau dort auf, wo die
-Gegenmaßnahmen fehlen. Ob das Netz dabei die Einklebespur als Abkürzung nutzt
-oder schlicht ein zu enges Erscheinungsmodell gelernt hat, lässt der Versuch
-offen -- das Fehlermuster ist mit beidem verträglich
-(Abschnitt~\ref{sec:ablationC}). Für die Praxis folgt
-daraus die unbequemste Einsicht dieser Arbeit: \emph{Eine synthetische
-Kennzahl hätte den Schaden nicht angezeigt.} Wer eine Copy-Paste-Pipeline
-ausschließlich an ihren eigenen Daten misst, sieht einen Verlust von elf
-Prozentpunkten auf der Zieldomäne nicht.
+Splits in dieselbe Richtung zeigt und ähnlich groß ist. Entscheidend ist aber
+das Muster: Auf seinem eigenen synthetischen Split ist der naive Arm vom
+Kontrollarm nicht zu unterscheiden ($\zablCSvalGap$\PP), während der
+Sim-to-Real-Abstand von \zgapCZeroTest{} auf \zgapCOneTest\PP{} wächst. Ob das
+Netz dabei die Einklebespur als Abkürzung nutzt oder schlicht ein zu enges
+Erscheinungsmodell gelernt hat, lässt der Versuch offen
+(Abschnitt~\ref{sec:ablationC}). Für die Praxis folgt daraus die unbequemste
+Einsicht dieser Arbeit: \emph{Eine synthetische Kennzahl hätte den Schaden
+nicht angezeigt.} Wer eine Copy-Paste-Pipeline nur an ihren eigenen Daten misst,
+übersieht einen Verlust von elf Prozentpunkten auf der Zieldomäne.
 
 \absatz{Bilanz der Effektgrößen.} Der größte gemessene Einzeleffekt ist
-\emph{keine} Augmentierungsentscheidung, sondern die Inferenzauflösung:
-\zswValGain\PP{} \mAPfifty{} zwischen \code{imgsz}~640 und \zswValBestAt{} --
-eine Größenordnung mehr als alles, was in den Trainingsdaten zu gewinnen war.
-Darunter folgt mit Abstand das Bündel der Einbettungsmaßnahmen
-($\zablCTestGap$\PP), dann die Herkunft der Okkluder ($-\zablBTestGap$\PP),
-beides als Verlust gegenüber dem jeweiligen Kontrollarm gelesen;
-alle übrigen geprüften Größen bewegen sich im Bereich weniger
-Prozentpunkte und damit an der Grenze der Entscheidbarkeit. Das relativiert
-den Aufwand der Pipeline nicht, denn ohne sie gäbe es überhaupt keinen
-Trainingsdatensatz; es ordnet aber die Prioritäten: Bei der Entwicklung einer
-solchen Anwendung ist zuerst die Auflösungsfrage zu klären, dann die saubere
-Einbettung; die Feinheiten der einzelnen Stufen folgen danach.
+\emph{keine} Augmentierungsentscheidung, sondern die Inferenzauflösung: Zwischen
+\code{imgsz}~640 und \zswValBestAt{} liegen \zswValGain\PP{} \mAPfifty, mehr als
+das Fünffache des stärksten Eingriffs in die Trainingsdaten. Danach folgen mit
+Abstand das Bündel der Einbettungsmaßnahmen ($\zablCTestGap$\PP) und die
+Herkunft der Okkluder ($-\zablBTestGap$\PP), jeweils als Verlust gegenüber dem
+Kontrollarm gelesen. Alle übrigen geprüften Größen bewegen sich im Bereich
+weniger Prozentpunkte und damit an der Grenze dessen, was sich hier entscheiden
+lässt. Das stellt den Aufwand der Pipeline nicht infrage, denn ohne sie gäbe es
+überhaupt keinen Trainingsdatensatz. Es ordnet aber die Prioritäten: Bei einer
+solchen Anwendung ist zuerst die Auflösung zu klären, dann die saubere
+Einbettung, und erst danach lohnen sich die Feinheiten der einzelnen Stufen.
 
-\absatz{Eine Größe verbindet fünf Entscheidungen.} Rückblickend trägt eine
-einzige Kenngröße den größten Teil der Arbeit: die effektive Objektgröße
-$d_{\text{eff}} = d \cdot M/N$ aus Gleichung~\eqref{eq:deff}, gelesen relativ zur
-Schrittweite $S$ der feinsten Detektionsebene. Aus diesem Verhältnis folgt
+\absatz{Eine Größe verbindet fünf Entscheidungen.} Rückblickend steht eine
+einzige Kenngröße hinter dem größten Teil der Arbeit: die effektive Objektgröße
+$d_{\text{eff}} = d \cdot M/N$ aus Gleichung~\eqref{eq:deff}, bezogen auf den
+Stride $S$ der feinsten Detektionsebene. Aus diesem Verhältnis folgen
 \emph{erstens} die Kalibrierung des Generators auf 12--44\px, weil die
-Realobjekte 6--36\px{} groß sind (Abschnitt~\ref{sec:valtest});
+Realobjekte 6--36\px{} groß sind (Abschnitt~\ref{sec:valtest}),
 \emph{zweitens} die Trainingsauflösung 1024, weil sie der Leinwandgröße
 entspricht und die kalibrierte Verteilung damit unskaliert beim Netz ankommt
-(Abschnitt~\ref{sec:trainingsaufbau}); \emph{drittens} die Wahl des P2-Kopfes,
+(Abschnitt~\ref{sec:trainingsaufbau}), \emph{drittens} die Wahl des P2-Kopfes,
 weil er $S$ von 8 auf 4 senkt und die kritische Größe $S\sqrt{2}$ damit unter
-alle auftretenden Objektgrößen schiebt (Abschnitt~\ref{sec:p2kopf});
-\emph{viertens} die Inferenzauflösung (Abschnitt~\ref{sec:imgsz}); und
-\emph{fünftens} die Erklärung des größten gemessenen Einzeleffekts der Arbeit --
-des Einbruchs auf \mAPfifty{} \zswValNiedrig{} bei \code{imgsz}~640, den
-Abschnitt~\ref{subsec:kleine-objekte} vorhergesagt hatte, bevor er gemessen wurde.
-Diese Kette ist das methodisch belastbarste Ergebnis: eine gemessene Größe, aus
-der fünf unabhängige Entscheidungen folgen, und eine Vorhersage, die eingetroffen
-ist.
+alle auftretenden Objektgrößen schiebt (Abschnitt~\ref{sec:p2kopf}),
+\emph{viertens} die Inferenzauflösung (Abschnitt~\ref{sec:imgsz}) und
+\emph{fünftens} die Erklärung des größten gemessenen Einzeleffekts, des
+Einbruchs auf \mAPfifty{} \zswValNiedrig{} bei \code{imgsz}~640, den
+Abschnitt~\ref{subsec:kleine-objekte} vorhergesagt hatte, bevor er gemessen
+wurde. Diese Kette ist das methodisch belastbarste Ergebnis der Arbeit: Aus
+einer einzigen Größe folgen fünf Entscheidungen, und eine daraus abgeleitete
+Vorhersage ist eingetroffen.
 
 \section{Grenzen und nächste Schritte}
 \label{sec:grenzen}
@@ -269,8 +242,8 @@ dieser Einschränkung standzuhalten, die Aussage \enquote{B1 ist so gut wie B0}
 ist es nicht -- sie bleibt eine Nicht-Ablehnung. \emph{Drittens} ist
 Ablation~C \emph{nicht gepaart}: Die übersprungenen Stufen verschieben den
 Zufallsstrom des Generators, sodass C0 und C1 zwei Realisierungen derselben
-Layoutverteilung sind und nicht dieselbe Szene. Behebbar wäre das, indem der
-Generator die Stufenparameter unbedingt zieht und nur ihre Anwendung von
+Layoutverteilung sind und nicht dieselbe Szene. Beheben ließe sich das, indem
+der Generator die Stufenparameter immer zieht und nur ihre Anwendung von
 $\pi_\nu$ abhängig macht (Gleichung~\eqref{eq:mischung}). \emph{Viertens} ist
 jede der beiden Ablationen ein
 \emph{Eingriff in eine Richtung}: Sie zeigt die Folgen einer Verschlechterung,
@@ -306,7 +279,7 @@ nach erwartetem Nutzen geordnet:
   der Aufwand tatsächlich hingehört. Zielgröße wäre der Sim-to-Real-Abstand,
   der sich in Ablation~C als die empfindlichere Größe erwiesen hat. Zuvor
   sollte der Generator so umgestellt sein, dass er seine Stufenparameter
-  unbedingt zieht; dann sind auch diese Arme gepaart. Dazu gehört ferner der
+  immer zieht; dann sind auch diese Arme gepaart. Dazu gehört ferner der
   Verdeckungs\emph{grad}, dessen Arme im Repositorium bereits trainiert
   vorliegen (\code{runs/A0\_keine\_okklusion}, \code{A1\_baseline},
   \code{A2\_starke\_okklusion}), aber nicht Teil dieser Auswertung sind.
@@ -330,9 +303,11 @@ Methodisch tragen vier Einsichten:
 \begin{enumerate}[itemsep=3pt]
   \item \textbf{Bei rein synthetischen Trainingsdaten ist die Pipeline die
   Hypothese.} Jede Entscheidung über eine Transformation ist eine Aussage
-  darüber, welche Invarianzen in der Zieldomäne gelten. Die Begründungspflicht (Messung, physikalische Randbedingung oder ausgewiesene Annahme) ist deshalb keine Formalität, sondern das eigentliche Handwerk. Sie hat zudem einen
-  Nebeneffekt, den diese Arbeit nutzt: Wer jede Begründung ausschreibt, macht
-  sichtbar, welche davon noch nie geprüft wurde.
+  darüber, welche Invarianzen in der Zieldomäne gelten. Die Begründungspflicht
+  (Messung, physikalische Randbedingung, Literatur oder ausgewiesene Annahme)
+  ist deshalb keine Formalität, sondern das eigentliche Handwerk. Sie hat
+  zudem einen Nebeneffekt, den diese Arbeit nutzt: Wer jede Begründung
+  ausschreibt, macht sichtbar, welche davon noch nie geprüft wurde.
   \item \textbf{Nicht die Herkunft der eingefügten Pixel entscheidet, sondern
   ihre Statistik -- und das gilt auch für alles, was vor dem Objekt liegt.} Der
   aufwendigste Baustein der Pipeline, eine aus Realaufnahmen extrahierte
@@ -345,19 +320,19 @@ Methodisch tragen vier Einsichten:
   Objekt stellt, auch an die Verdecker stellen.
   \item \textbf{Sorgfalt beim Einfügen ist kein Feinschliff, und keine
   synthetische Kennzahl zeigt an, wenn sie fehlt.} Werden die Maßnahmen gegen
-  die Signaturen S1--S5 abgeschaltet, kostet das $\zablCTestGap$\PP{}
-  \mAPfifty{} auf dem Testbild -- auf dem \emph{eigenen} synthetischen Split
-  desselben Arms aber nur $\zablCSvalGap$\PP. Der Schaden entsteht
+  die Signaturen S1--S5 abgeschaltet, ändert sich \mAPfifty{} auf dem
+  Testbild um $\zablCTestGap$\PP, auf dem \emph{eigenen} synthetischen Split
+  desselben Arms aber nur um $\zablCSvalGap$\PP. Der Schaden entsteht
   ausschließlich in der Übertragung und ist an den synthetischen Daten
   unsichtbar. Wer eine Copy-Paste-Pipeline an ihren eigenen Bildern misst,
   misst die falsche Größe; nötig ist ein beschrifteter realer Split, und sei
   es ein einziges Bild.
   \item \textbf{Auflösung dominiert, und die Labelkonvention ist Teil des
   Messinstruments.} Zwischen \code{imgsz}~640 und dem Optimum liegen
-  \zswValGain\PP{} \mAPfifty, eine Größenordnung mehr als der stärkste
-  Eingriff in die Trainingsdaten. Und ein systematischer Größenversatz von rund zwei Pixeln zwischen
-  Generatorlabel und Handannotation verschiebt \mAPseven{} auf dem Testbild von
-  \zsensTestMapSOrig{} auf \zsensTestMapSNeu, ohne dass sich am Modell etwas
-  ändert. Wer Lokalisierungsmetriken bei 20\px-Objekten berichtet, muss beide
+  \zswValGain\PP{} \mAPfifty, mehr als das Fünffache des stärksten Eingriffs
+  in die Trainingsdaten. Ein systematischer Größenversatz von rund zwei Pixeln
+  zwischen Generatorlabel und Handannotation verschiebt außerdem \mAPseven{}
+  auf dem Testbild von \zsensTestMapSOrig{} auf \zsensTestMapSNeu, ohne dass
+  sich am Modell etwas ändert. Wer Lokalisierungsmetriken bei 20\px-Objekten berichtet, muss beide
   Größen zuerst kennen.
 \end{enumerate}
