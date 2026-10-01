@@ -36,13 +36,13 @@ Seitenansicht, Gitterknoten und dunkle Löcher im Maschendraht sind
 \textbf{sichtbaren} Teil (modale Box), nicht den geschätzten vollständigen Kreis.
 \end{quote}
 
-Beide Festlegungen sind folgenreich: Die erste bestimmt, welche Strukturen als
-harte Negative benötigt werden, die zweite, wie die Boxen im Generator berechnet
-werden. Die Unterscheidung modal / amodal ist in der Literatur etabliert
-\parencite{li2016amodal,zhu2017amodal}; amodale Boxen umschließen auch verdeckte
-Teile. Erzeugte der Generator amodale Boxen, während die Realbilder modal
-annotiert sind, entstünde ein systematischer Größenversatz -- ein Verstoß gegen
-Anforderung~A5.
+Beide Festlegungen haben Folgen. Die erste bestimmt, welche Strukturen als harte
+Negative gebraucht werden, die zweite, wie der Generator die Boxen berechnet.
+Die Unterscheidung zwischen modalen und amodalen Boxen ist in der Literatur
+etabliert \parencite{li2016amodal,zhu2017amodal}; amodale Boxen umschließen
+auch die verdeckten Teile eines Objekts. Würde der Generator amodale Boxen
+erzeugen, während die Realbilder modal annotiert sind, entstünde ein
+systematischer Größenversatz, und Anforderung~A1 wäre verletzt.
 
 \absatz{Objektausschnitte.}\label{sec:quellmaterial} Verfügbar sind neun aus Realaufnahmen
 ausgeschnittene Rohrprofile der Größe $28\times30$ bis $43\times38$ Pixel. Sechs
@@ -56,24 +56,23 @@ aber durchgängig 255 -- es handelt sich um rechteckige Ausschnitte, bei denen
 13--35\,\% der Fläche nicht zum Objekt gehören.
 
 \absatz{Hintergründe.} Von den sieben Hintergrundaufnahmen sind vier
-\emph{Clean Plates}: Wände aus Rohrschäften derselben Objektart \emph{ohne}
-Stirnflächen, mit den gemessenen Rohrdurchmessern 16/18/21/20\px{}. Sie liefern
-gleichzeitig photometrisch passenden Kontext, das Rohmaterial der
-Okkluder-Bibliothek und echte Negativbeispiele und werden deshalb bevorzugt
-gezogen: In 80\,\% der Bilder stammt der Hintergrund aus dieser Gruppe, was je
-Clean Plate 20\,\% und je Fremdszene 6,7\,\% ergibt -- ein dreifaches Gewicht je
-Bild. In der Terminologie von Gleichung~\eqref{eq:bendavid} verkleinern sie
-denjenigen Anteil des Divergenzterms, der auf den Hintergrund zurückgeht: Dieser
-ist nicht \emph{ähnlich} der Zieldomäne, er stammt aus ihr. Die Komposition
-selbst bleibt davon unberührt und ist weiterhin eine Divergenzquelle
+\emph{Clean Plates}: Aufnahmen von Wänden aus Rohrschäften derselben Objektart,
+aber \emph{ohne} Stirnflächen, mit gemessenen Rohrdurchmessern von 16, 18, 21
+und 20\px. Sie liefern zugleich photometrisch passenden Kontext, das
+Rohmaterial für die Okkluder-Bibliothek und echte Negativbeispiele. Deshalb
+werden sie bevorzugt gezogen: In 80\,\% der Bilder stammt der Hintergrund aus
+dieser Gruppe, also 20\,\% je Clean Plate gegenüber 6,7\,\% je Fremdszene. Für
+die Schranke aus Gleichung~\eqref{eq:bendavid} heißt das: Beim Hintergrund
+ähneln diese Trainingsbilder der Zieldomäne nicht nur, sie stammen aus ihr.
+Unterschiede entstehen dann vor allem beim Einfügen der Objekte
 (Signaturen~S1--S6).
 
-Die drei Fremdszenen (Kieswerk, Betonplatten, Betondeck mit Maschendrahtzaun)
-sind primär als hartes Negativmaterial wertvoll -- der Maschendraht ist genau
-die Struktur, die nach der Annotationsdefinition kein Objekt ist und dennoch als
-Falschpositiv droht. Eine Schwäche des Materials bleibt: Alle vier Clean Plates zeigen dieselbe
-Stapelart bei bedecktem bis diffusem Licht; harter Sonnenschein, Nässe und
-Schnee fehlen.
+Die drei Fremdszenen (Kieswerk, Betonplatten, Betondeck mit
+Maschendrahtzaun) dienen vor allem als schwierige Negativbeispiele. Der
+Maschendraht ist genau die Struktur, die laut Annotationsdefinition kein Objekt
+ist, aber leicht für eines gehalten wird. Eine Schwäche des Materials bleibt:
+Alle vier Clean Plates zeigen dieselbe Stapelart bei bedecktem bis diffusem
+Licht, harter Sonnenschein, Nässe und Schnee fehlen.
 
 \absatz{Bewertungsdaten.}\label{sec:valtest} Zur Bewertung stehen zwei vollständig handannotierte Realaufnahmen zur
 Verfügung: \code{val} ($2459\times1174$, 98 Objekte) für die Modellauswahl und
@@ -110,39 +109,37 @@ Nachbarrichtung & näherungsweise isotrop, Häufung $90$--$150^\circ$ & näherun
 \end{tabular}
 \end{table}
 
-Mit Durchmessern von 6--36\px{} liegen die Objekte überwiegend unterhalb der
-COCO-Grenze für Kleinobjekte von $32^2$\px{} Fläche \parencite{lin2014coco};
-lediglich das obere Ende von \code{val} überschreitet sie. Nach
-Gleichung~\eqref{eq:deff} schrumpfen die Mediane beider Splits bei
-\code{imgsz}=640 auf etwa 7\px, die Hauptmasse zwischen p05 und p90 auf
-5--11\px. Damit liegt praktisch die gesamte Objektmasse in der Größenordnung des
-P3-Strides von 8\px{} oder darunter, und der in
-Gleichung~\eqref{eq:gridmiss} beschriebene Fall wird für den Großteil der
-Instanzen geometrisch möglich. Die Inferenzauflösung wird deshalb in
-Abschnitt~\ref{sec:imgsz} systematisch untersucht.
+Mit Durchmessern von 6--36\px{} liegen die Objekte fast alle unter der
+COCO-Grenze für kleine Objekte von $32^2$\px{} Fläche \parencite{lin2014coco};
+nur das obere Ende von \code{val} liegt darüber. Bei \code{imgsz}=640 schrumpfen
+die Mediane beider Splits nach Gleichung~\eqref{eq:deff} auf etwa 7\px, der
+Bereich zwischen p05 und p90 auf 5--11\px. Fast alle Objekte wären dann
+ungefähr so groß wie der P3-Stride von 8\px{} oder kleiner, und bei den meisten
+könnte der Fall aus Gleichung~\eqref{eq:gridmiss} eintreten, dass kein
+Gitterzentrum der P3-Ebene im Objekt liegt. Deshalb wird die Inferenzauflösung
+in Abschnitt~\ref{sec:imgsz} systematisch untersucht.
 
-Zwei Zahlen der Tabelle sind für die weiteren Kapitel besonders wichtig.
+Zwei Befunde aus der Tabelle sind für die weiteren Kapitel besonders wichtig.
 Erstens sind vier der 89 Objekte in \code{test} schon im \emph{nativen} Maßstab
-kleiner als 12\px, zwei davon kleiner als die kritische Größe $S\sqrt{2}$ aus
-Gleichung~\eqref{eq:gridmiss}, die für den P3-Stride $S=8$ der Werkzeugkette
-\parencite{ultralyticsdocs} bei 11,3\px{} liegt. Für
-diese Objekte existieren nach der idealisierten Betrachtung in
-Abschnitt~\ref{subsec:kleine-objekte} Gitterlagen, in denen kein Zentrum der
-P3-Ebene innerhalb des Objekts liegt. Das ist keine Detektionsgrenze, aber ein
-konkreter Anlass für die Modellwahl in Abschnitt~\ref{sec:p2kopf}. Zweitens sind
-die beiden Bilder \emph{nicht} austauschbar: \code{test} enthält kleinere
-Objekte (Median 17,0 gegen 26,8\px), lockerere Packung (NN-Median 1,26 gegen
-1,11\,\Oe) und mehr angeschnittene Boxen (6,7 gegen 2,0\,\%). Der schwierigere
-Split ist damit gerade derjenige, den Training und Modellauswahl nie berühren --
-was bei der Lektüre der Ergebnisse zu berücksichtigen ist.
+kleiner als 12\px. Zwei davon liegen sogar unter der kritischen Größe
+$S\sqrt{2}$ aus Gleichung~\eqref{eq:gridmiss}, die für den P3-Stride $S=8$ der
+Werkzeugkette \parencite{ultralyticsdocs} 11,3\px{} beträgt. Bei diesen
+Objekten gibt es also Lagen, in denen kein Zentrum der P3-Ebene im Objekt
+liegt. Eine Detektionsgrenze ist das nicht, aber ein konkreter Grund für die
+Modellwahl in Abschnitt~\ref{sec:p2kopf}. Zweitens sind die beiden Bilder
+\emph{nicht} austauschbar. \code{test} enthält kleinere Objekte (Median 17,0
+gegen 26,8\px), eine lockerere Packung (NN-Median 1,26 gegen 1,11\,\Oe) und
+mehr angeschnittene Boxen (6,7 gegen 2,0\,\%). Der schwierigere Split ist also
+gerade der, den Training und Modellauswahl nie berühren. Das ist beim Lesen der
+Ergebnisse zu berücksichtigen.
 
-\absatz{Befunde.}\label{sec:messungmapping} Tabelle~\ref{tab:befunde} fasst zusammen, welcher Befund welchen
-Pipelineparameter festlegt. Sie ist die Belegbrücke zu
-Kapitel~\ref{kap:pipeline} und macht zugleich sichtbar, welche Parameter
-\emph{nicht} durch eine Messung gedeckt sind. Die Spalte \emph{Art} bezieht sich
-dabei auf die Begründung des \emph{abgeleiteten Parameters}, nicht auf die des
-Befunds; eine Doppelangabe wie \emph{M/A} bedeutet, dass der Befund gemessen,
-der konkrete Zahlenwert des Parameters aber gewählt ist.
+\absatz{Befunde.}\label{sec:messungmapping} Tabelle~\ref{tab:befunde} fasst
+zusammen, welcher Befund welchen Pipelineparameter festlegt. Sie verbindet die
+Messungen mit den Parametern der folgenden Abschnitte und zeigt zugleich,
+welche Parameter \emph{nicht} durch eine Messung gedeckt sind. Die Spalte
+\emph{Art} bezieht sich auf die Begründung des abgeleiteten Parameters, nicht
+auf die des Befunds. Eine Doppelangabe wie \emph{M/A} bedeutet, dass der Befund
+gemessen, der konkrete Zahlenwert des Parameters aber gewählt ist.
 
 \begin{table}[htbp]
 \centering
