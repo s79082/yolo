@@ -25,14 +25,15 @@
 
 Eine Detektion gilt als Treffer, wenn ihre Box eine Ground-Truth-Box mit einer
 \emph{Intersection over Union} nach Gleichung~\eqref{eq:ioudef} von mindestens
-$t$ überdeckt; jede Ground-
-Truth-Box kann höchstens einmal getroffen werden. Daraus folgen
+$t_{\IoU}$ überdeckt; jede Ground-Truth-Box kann höchstens einmal getroffen
+werden. Daraus folgen
 \emph{Precision} $P$, \emph{Recall} $R$ und deren harmonisches Mittel $F_1$;
 berichtet wird stets das beste $F_1$ über alle Konfidenzschwellen samt der
 zugehörigen Schwelle $c^*$, also der Betriebspunkt, der in einer Anwendung zu
 wählen wäre. \emph{mAP} ist die Fläche unter der Precision-Recall-Kurve
-\parencite{everingham2010}; \mAPfifty{} verwendet $t = 0{,}5$, \mAPseven{} $t
-= 0{,}75$ und \mAPall{} den Mittelwert über $t = 0{,}50; \dots; 0{,}95$ nach
+\parencite{everingham2010}; \mAPfifty{} verwendet $t_{\IoU} = 0{,}5$,
+\mAPseven{} $t_{\IoU} = 0{,}75$ und \mAPall{} den Mittelwert über
+$t_{\IoU} = 0{,}50; \dots; 0{,}95$ nach
 COCO-Konvention \parencite{lin2014coco}. Leitgröße dieser Arbeit ist
 \mAPfifty{}: Bei Objektdurchmessern um 20\px{} misst \mAPall{} zu einem
 erheblichen Teil die Pixelauflösung und die Labelkonvention und nicht die

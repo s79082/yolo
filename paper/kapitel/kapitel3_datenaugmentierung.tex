@@ -1,16 +1,17 @@
 % ======================================================================
 %  Kapitel 3 - Datenaugmentierung und synthetische Datengenerierung
 %
-%  Diese Datei ist eigenstaendig kompilierbar (pdflatex, 2x fuer Referenzen).
-%  Zur Einbindung in eine bestehende Arbeit: Praeambel bis \begin{document}
-%  entfernen und nur den Kapitelinhalt uebernehmen. Die Zeile
-%  \numberwithin{equation}{chapter} und \setcounter{chapter}{2} sorgen
-%  dafuer, dass die Gleichungsnummern (3.1)-(3.15) erhalten bleiben.
+%  Zur Einbindung in eine bestehende Arbeit nur den Kapitelinhalt
+%  uebernehmen; die Makros (\Dom, \Hcls, \HdH, \IoU, \px, \absatz,
+%  \mAPfifty) stammen aus der Praeambel der Arbeit.
 %
-%  Literaturangaben stehen bewusst als Klartext im Fliesstext, damit die
-%  Datei ohne .bib-Datei kompiliert. Zum Umstellen auf biblatex/natbib:
-%  die Klammerausdruecke durch \citep{...} ersetzen. BibTeX-Eintraege der
-%  neu hinzugefuegten Quellen stehen als Kommentar am Dateiende.
+%  Die Gleichungsnummern (3.1)-(3.13) sind gegenueber der vorherigen
+%  Fassung unveraendert. Neu hinzugekommen ist (3.14) in Abschnitt 3.4;
+%  die Definition der HdH-Divergenz steht als unnummerierte Gleichung,
+%  damit sich keine Nummer verschiebt.
+%
+%  Zitiert wird mit biblatex (\parencite, \textcite); alle Quellen stehen
+%  in literatur.bib.
 % ======================================================================
 
 %\documentclass[11pt,a4paper]{report}
@@ -438,7 +439,12 @@ Abschnitt~\ref{sec:boxversatz} zwischen Generatorlabel und Handannotation
 gemessen wird -- liefert Gleichung~\eqref{eq:ioushift} bei einem $20$\px{}
 großen Objekt $\IoU = 0{,}82$, bei einem $200$\px{} großen dagegen $0{,}98$:
 Derselbe Fehler in Pixeln bewirkt beim kleinen Objekt eine rund neunfach
-größere Einbuße. Da die üblichen
+größere Einbuße. Gleichung~\eqref{eq:ioushift} beschreibt eine Verschiebung;
+der gemessene Versatz ist dagegen ein Größen-, kein Positionsfehler. Für eine
+zentrierte Box, deren Kantenlänge um $\delta$ kleiner ist, gilt
+$\IoU = (1-\delta/d)^{2}$, beim $20$\px{} großen Objekt also $0{,}81$. In
+erster Ordnung stimmen beide Ausdrücke überein, $\IoU \approx 1 - 2\delta/d$,
+sodass die Aussage für beide Fehlerarten gilt. Da die üblichen
 Bewertungsschwellen bei $\IoU \geq 0{,}5$ ansetzen und mAP@0,5:0,95 über
 Schwellen bis $0{,}95$ mittelt, schlagen wenige Pixel Lokalisierungsfehler bei
 kleinen Objekten unmittelbar auf die berichtete Güte durch.
@@ -524,9 +530,21 @@ gleichmäßig für alle $h\in\Hcls$:
   \label{eq:bendavid}
 \end{equation}
 mit dem Quellfehler $\epsilon_S$, dem Zielfehler $\epsilon_T$, der
-$\HdH$-Divergenz der beiden Eingabe-Randverteilungen und
-$\lambda = \min_{h^{*}\in\Hcls}\bigl[\epsilon_S(h^{*}) + \epsilon_T(h^{*})\bigr]$.
-Sie macht drei Einflussgrößen sichtbar: wie gut das Modell die synthetische
+$\HdH$-Divergenz der beiden Eingabe-Randverteilungen
+\[
+  d_{\HdH}\bigl(\Dom{S}^{X},\,\Dom{T}^{X}\bigr)
+  =
+  2 \sup_{h,h'\in\Hcls}
+  \Bigl|
+    \Pr_{x\sim\Dom{S}^{X}}\bigl[h(x)\neq h'(x)\bigr]
+    -
+    \Pr_{x\sim\Dom{T}^{X}}\bigl[h(x)\neq h'(x)\bigr]
+  \Bigr|
+\]
+und dem idealen gemeinsamen Fehler
+$\lambda = \min_{h'\in\Hcls}\bigl[\epsilon_S(h') + \epsilon_T(h')\bigr]$, den die
+beste gemeinsame Hypothese $h^{*}$ erreicht.
+Die Schranke macht drei Einflussgrößen sichtbar: wie gut das Modell die synthetische
 Domäne lernt, wie stark sich die Eingabeverteilungen beider Domänen
 unterscheiden, und ob in $\Hcls$ überhaupt eine Hypothese existiert, die beide
 gleichzeitig gut beschreibt.
@@ -543,17 +561,57 @@ Hypothesenklasse ab, ist ohne beschriftete Zieldaten nicht schätzbar, und
 Unterschiede zwischen den Beschriftungsfunktionen $f_S \neq f_T$ wirken sich
 \emph{ausschließlich} dort aus, in dieser Arbeit etwa die abweichende
 Boxkonvention von Generator und Handannotation (Abschnitt~\ref{sec:boxversatz}).
-Da Gleichung~\eqref{eq:bendavid} zudem binäre Klassifikation
-voraussetzt, diese Arbeit aber eine Detektionsaufgabe über IoU-basierte Metriken
-bewertet, wird sie \emph{nicht} als formale Garantie in Anspruch genommen,
-sondern als begrifflicher Ordnungsrahmen für die folgenden
-Entwurfsentscheidungen.
 
-\absatz{Sim-to-Real-Performance-Gap.} Ausgewertet wird stattdessen die auf
+\absatz{Übertragung auf die Detektion.} Gleichung~\eqref{eq:bendavid} setzt
+binäre Klassifikation unter dem $0/1$-Verlust voraus. Ihre Struktur überträgt
+sich auf Verluste, die symmetrisch sind und die Dreiecksungleichung erfüllen:
+An die Stelle von $\tfrac{1}{2}\,d_{\HdH}$ tritt dann die
+Discrepancy-Distanz, die für den $0/1$-Verlust mit ihr zusammenfällt, und
+$\lambda$ wird mit demselben Verlust gebildet
+\parencite{mansour2009discrepancy}. Die Größe $1-\IoU$ erfüllt diese
+Bedingungen: Sie ist als Jaccard-Distanz auf Boxen positiver Fläche eine Metrik
+\parencite{kosub2019jaccard} und liegt in $[0,1]$. Für ein
+Lokalisierungsproblem mit genau einem Objekt je Bild gilt damit eine Schranke
+derselben Form, deren Terme mit dem Verlust $1-\IoU$ gebildet sind. Für die
+Bewertung dieser Arbeit trägt die Übertragung dennoch nicht:
+mAP ist kein Erwartungswert eines Verlusts pro Bild, sondern wird über die nach
+Konfidenz geordneten Detektionen des gesamten Datensatzes gebildet, und auch die
+Zuordnung einer variablen Zahl von Vorhersagen zu Ground-Truth-Boxen liegt
+außerhalb des Rahmens. Gleichung~\eqref{eq:bendavid} wird deshalb \emph{nicht}
+als formale Garantie in Anspruch genommen, sondern als begrifflicher
+Ordnungsrahmen für die folgenden Entwurfsentscheidungen.
+
+Eine Folgerung trägt dieser Rahmen dennoch: $\lambda$ ist keine Eigenschaft der
+Domänen allein, sondern hängt auch von der Bewertung ab. Eine Box gelte als
+richtig, sobald ihre IoU zur Referenz mindestens $t_{\IoU}$ beträgt.
+Unterscheiden sich $f_S$ und $f_T$ um den in Abschnitt~\ref{sec:boxversatz}
+gemessenen Größenversatz von rund zwei Pixeln, so erreicht ein Modell, das $f_S$
+exakt reproduziert, an einem $20$\px{} großen Objekt gegenüber $f_T$ nur
+$\IoU \approx 0{,}81$ (Abschnitt~\ref{subsec:kleine-objekte}). Für $\lambda$
+zählt aber die beste gemeinsame Hypothese $h^{*}$, und sie kann eine Box
+mittlerer Größe vorhersagen, rund $19$ statt $18$ oder $20$\px, die zu beiden
+Beschriftungen $\IoU \approx 0{,}90$ erreicht. Derselbe Versatz erhöht
+$\lambda$ also nur unter strengen Schwellen, hier erst oberhalb von
+$t_{\IoU} \approx 0{,}9$: Bei $t_{\IoU} = 0{,}5$ ist er folgenlos, bei
+$t_{\IoU} = 0{,}95$ dagegen nicht. Diese Abhängigkeit gilt formal, denn
+$\lambda$ ist für jede Bewertung definiert. Nicht gesichert ist unter einer
+Schwellenbewertung dagegen die Schranke selbst, weil die Dreiecksungleichung
+nicht erfüllt ist. Im Beispiel wird sie für Schwellen zwischen etwa $0{,}81$ und
+$0{,}90$ sogar verletzt: Bei gleicher Eingabeverteilung und einem Modell $h$,
+das $f_S$ reproduziert, sind $\epsilon_S(h)$, der Divergenzterm und $\lambda$
+null, $\epsilon_T(h)$ aber nicht.
+
+\absatz{Sim-to-Real-Abstand.} Ausgewertet wird stattdessen die auf
 beschrifteten Realdaten gemessene Differenz
 $\Delta_{\mathrm{SR}} = \epsilon_T(h) - \epsilon_S(h)$. Beschriftete reale Daten
 sind dafür ausdrücklich nur in der Evaluation erforderlich, nicht im Training.
-Aus Gleichung~\eqref{eq:bendavid} folgt unmittelbar
+In Kapitel~\ref{kap:auswertung} wird $\epsilon_S$ auf einem eigenen
+synthetischen Split geschätzt, der weder im Training noch bei der Modellauswahl
+verwendet wird (\code{sval}, Abschnitt~\ref{sec:simtoreal}). Beide Fehler werden
+dort als $\epsilon = 1 - \text{\mAPfifty}$ operationalisiert;
+$\Delta_{\mathrm{SR}}$ gibt also an, um wie viel \mAPfifty{} auf einem realen
+Split unter dem Wert auf \code{sval} liegt. Aus Gleichung~\eqref{eq:bendavid}
+folgt unmittelbar
 \begin{equation}
   \Delta_{\mathrm{SR}}
   \;\leq\;
@@ -562,32 +620,37 @@ Aus Gleichung~\eqref{eq:bendavid} folgt unmittelbar
   + \lambda .
   \label{eq:gap-bound}
 \end{equation}
+Für den in \mAPfifty{} gemessenen Abstand ist die Ungleichung aus dem oben
+genannten Grund nicht bewiesen, sondern dient nur als Ordnungsrahmen.
 
 Diese Beziehung ist \emph{einseitig}, und die Richtung entscheidet über die
-Interpretation. Ein gemessener Gap belegt, dass synthetische und reale Domäne
-nicht übereinstimmen -- sei es in der Eingabeverteilung oder in der
+Interpretation. Stimmen beide Domänen in Eingabeverteilung und
+Beschriftungsfunktion überein, sind beide Risiken identisch. Ein Abstand, der
+über die Stichprobenunsicherheit hinausgeht, belegt daher, dass synthetische und
+reale Domäne nicht übereinstimmen -- sei es in der Eingabeverteilung oder in der
 Beschriftungsfunktion. Der umgekehrte Schluss ist nicht zulässig: Ein kleiner
-Gap erlaubt keinen Rückschluss auf eine geringe Divergenz, da die Schranke
+Abstand erlaubt keinen Rückschluss auf eine geringe Divergenz, da die Schranke
 beliebig locker sein kann und sich die beiden Terme gegenseitig kompensieren
 können. $\Delta_{\mathrm{SR}}$ ist folglich kein Maß der Verteilungsdivergenz,
 sondern gerichtete Evidenz für Domänenungleichheit. Auch ein sehr niedriger
-synthetischer Fehler bei großem Gap zeigt nur, dass die Summe aus Divergenzterm
+synthetischer Fehler bei großem Abstand zeigt nur, dass die Summe aus Divergenzterm
 und $\lambda$ groß ist, aber nicht, welcher der beiden Terme dafür verantwortlich
-ist. In Kapitel~\ref{kap:auswertung} lassen sich beide an ihrer Wirkung trennen:
-Die abweichende Boxkonvention ($\lambda$) verschiebt vor allem die strengen
-IoU-Schwellen (Abschnitt~\ref{sec:boxversatz}), die fehlende Einbettung
-(Divergenzterm) kostet schon bei \mAPfifty{} Rückruf
-(Abschnitt~\ref{sec:ablationC}). Alle dort berichteten Werte sind Mittelwerte auf endlichen Testmengen
-und damit Schätzer der jeweiligen Risiken; die Stichprobenunsicherheit wird
-separat über Konfidenzintervalle ausgewiesen.
+ist. In Kapitel~\ref{kap:auswertung} lassen sich beide ihrer Wirkung nach
+plausibel zuordnen, ohne dass einer von ihnen gemessen würde: Die abweichende
+Boxkonvention ($\lambda$) verschiebt vor allem die strengen IoU-Schwellen
+(Abschnitt~\ref{sec:boxversatz}), die fehlende Einbettung (Divergenzterm) kostet
+schon bei \mAPfifty{} Rückruf (Abschnitt~\ref{sec:ablationC}). Alle dort
+berichteten Werte werden auf endlichen Testmengen berechnet und sind damit
+selbst Schätzungen; ihre Stichprobenunsicherheit weist
+Abschnitt~\ref{sec:bootstrap} über Konfidenzintervalle aus.
 
-\absatz{Domain Randomization.} Eine Möglichkeit, den Sim-to-Real-Gap zu reduzieren, besteht darin, die
-synthetische Domäne absichtlich über die erwartete reale Variation hinaus zu
-erweitern. Bei Domain Randomization werden Parameter des Generators zufällig
-variiert, sodass das Modell nicht auf eine einzige, eng definierte
-Erscheinungsform angewiesen ist \parencite{tobin2017}. Eine strukturierte
-Variante beschränkt die Randomisierung dabei auf physikalisch plausible
-Parameterbereiche \parencite{prakash2019} -- die Richtung, der auch
+\absatz{Domain Randomization.} Eine verbreitete Strategie gegen einen großen
+Sim-to-Real-Abstand besteht darin, die synthetische Domäne absichtlich über die
+erwartete reale Variation hinaus zu erweitern. Bei Domain Randomization werden
+Parameter des Generators zufällig variiert, sodass das Modell nicht auf eine
+einzige, eng definierte Erscheinungsform angewiesen ist \parencite{tobin2017}.
+Eine strukturierte Variante beschränkt die Randomisierung dabei auf physikalisch
+plausible Parameterbereiche \parencite{prakash2019} -- die Richtung, der auch
 Anforderung~A3 folgt.
 
 Randomisiert werden in dieser Arbeit Objektposition und -orientierung,
@@ -595,14 +658,43 @@ Objektgröße, Hintergrund, Helligkeit und Kontrast, Rauschen, Unschärfe,
 Kompression und Verdeckung; Tabelle~\ref{tab:parameter} im Anhang führt jeden
 dieser Parameter mit Bereich und gemessenem Ist-Anteil auf.
 
-Im Rahmen von Gleichung~\eqref{eq:bendavid} lässt sich Domain Randomization als
-Verbreiterung von $\Dom{S}^{X}$ deuten, die den Divergenzterm verkleinert. Mit dieser
-Verbreiterung ist jedoch ein Zielkonflikt verbunden: Eine deutlich breitere
-Quelldomäne verlangt von $\Hcls$, auf einem größeren Bereich des Eingaberaums
-gleichzeitig niedrige Fehler zu erzielen, und kann damit sowohl $\epsilon_S(h)$ als auch $\lambda$ erhöhen.
-Die drei Terme sind folglich nicht unabhängig voneinander optimierbar, was die
-Notwendigkeit einer experimentellen Bestimmung der Randomisierungsstärke
-begründet.
+Im Rahmen von Gleichung~\eqref{eq:bendavid} ist diese Strategie differenzierter
+zu deuten, als es die Vorstellung einer bloßen Verbreiterung nahelegt. Die
+$\HdH$-Divergenz misst Unterschiede der Wahrscheinlichkeitsmasse, nicht die
+Abdeckung des Trägers. Für jeden Bereich $A = \{x : h(x) \neq h'(x)\}$, auf dem
+zwei Hypothesen aus $\Hcls$ uneinig sind, folgt unmittelbar aus der Definition
+von $d_{\HdH}$
+\begin{equation}
+  d_{\HdH}\bigl(\Dom{S}^{X},\,\Dom{T}^{X}\bigr)
+  \;\geq\;
+  2\bigl(P_T(A) - P_S(A)\bigr),
+  \label{eq:massenschranke}
+\end{equation}
+mit $P_S(A) = \Pr_{x\sim\Dom{S}^{X}}[x \in A]$ und $P_T(A)$ entsprechend.
+Lässt sich der Bereich, in dem reale Bilder liegen, durch ein solches $A$
+hinreichend genau erfassen, ist $P_T(A) \approx 1$, und jede Masse, die der
+Generator außerhalb davon verteilt, fehlt innerhalb davon: Der Divergenzterm
+$\tfrac{1}{2}\,d_{\HdH}$ beträgt dann mindestens etwa $1 - P_S(A)$, die Masse
+außerhalb. Randomisierung kann diese Untergrenze nur senken, soweit sie Masse
+dorthin verschiebt, wo die reale Domäne tatsächlich liegt; über deren Variation
+hinaus fortgesetzt, hebt sie die Untergrenze wieder an. Ihr Nutzen ist vor allem
+eine Absicherung: Da $\Dom{T}^{X}$ nur unvollständig bekannt ist (worauf auch
+Anforderung~A6 beruht), verhindert eine plausible Verbreiterung, dass die
+Quelldomäne den realen Bereich verfehlt -- um den Preis, dass der Term nicht
+beliebig klein werden kann. Diese Lesart stützt
+die strukturierte Variante und das Prinzip aus
+Abschnitt~\ref{sec:aug-formalisierung}. Beispiele, die bewusst außerhalb des
+realen Bereichs liegen, lassen sich mit der Schranke folglich nicht begründen;
+ihr möglicher Nutzen liegt darin, welche Hypothese das Training auswählt, und
+darüber macht die Schranke keine Aussage (siehe den Absatz zum Shortcut
+Learning).
+
+Hinzu kommt ein zweiter Zielkonflikt: Eine deutlich breitere Quelldomäne
+verlangt von $\Hcls$, auf einem größeren Bereich des Eingaberaums gleichzeitig
+niedrige Fehler zu erzielen, und kann damit sowohl $\epsilon_S(h)$ als auch
+$\lambda$ erhöhen. Die drei Terme sind folglich nicht unabhängig voneinander
+optimierbar, was die Notwendigkeit einer experimentellen Bestimmung der
+Randomisierungsstärke begründet.
 
 Domain Randomization löst darüber hinaus nicht automatisch das Problem
 systematischer Unterschiede zwischen synthetischen und realen Bildern. Wenn eine
@@ -759,30 +851,9 @@ führen, wird in Kapitel~\ref{kap:auswertung} empirisch untersucht.
 %\end{document}
 
 % ======================================================================
-%  BibTeX-Eintraege der in dieser Fassung neu bzw. praeziser zitierten
-%  Quellen. Bei Umstellung auf \citep{...} in die .bib-Datei uebernehmen.
+%  Optional, falls spaeter Alignment-Verfahren (z.B. DANN) diskutiert
+%  werden; dieser Eintrag steht noch nicht in literatur.bib.
 % ======================================================================
-%
-% @article{bendavid2010theory,
-%   author  = {Ben-David, Shai and Blitzer, John and Crammer, Koby and
-%              Kulesza, Alex and Pereira, Fernando and Vaughan, Jennifer Wortman},
-%   title   = {A theory of learning from different domains},
-%   journal = {Machine Learning},
-%   volume  = {79},
-%   number  = {1--2},
-%   pages   = {151--175},
-%   year    = {2010},
-%   doi     = {10.1007/s10994-009-5152-4}
-% }
-%
-% @inproceedings{mansour2009discrepancy,
-%   author    = {Mansour, Yishay and Mohri, Mehryar and Rostamizadeh, Afshin},
-%   title     = {Domain adaptation: Learning bounds and algorithms},
-%   booktitle = {Proceedings of the 22nd Conference on Learning Theory (COLT)},
-%   year      = {2009}
-% }
-%
-% Optional, falls spaeter Alignment-Verfahren (z.B. DANN) diskutiert werden:
 %
 % @inproceedings{zhao2019invariant,
 %   author    = {Zhao, Han and Combes, Remi Tachet des and Zhang, Kun and
