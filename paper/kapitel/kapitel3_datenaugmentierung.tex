@@ -1,17 +1,12 @@
 % ======================================================================
 %  Kapitel 3 - Datenaugmentierung und synthetische Datengenerierung
 %
-%  Zur Einbindung in eine bestehende Arbeit nur den Kapitelinhalt
-%  uebernehmen; die Makros (\Dom, \Hcls, \HdH, \IoU, \px, \absatz,
-%  \mAPfifty) stammen aus der Praeambel der Arbeit.
+%  Die Makros (\Dom, \Hcls, \HdH, \IoU, \px, \absatz, \mAPfifty, \mAPall)
+%  stammen aus der Praeambel der Arbeit. Zitiert wird mit biblatex
+%  (\parencite, \textcite); alle Quellen stehen in literatur.bib.
 %
-%  Die Gleichungsnummern (3.1)-(3.13) sind gegenueber der vorherigen
-%  Fassung unveraendert. Neu hinzugekommen ist (3.14) in Abschnitt 3.4;
-%  die Definition der HdH-Divergenz steht als unnummerierte Gleichung,
-%  damit sich keine Nummer verschiebt.
-%
-%  Zitiert wird mit biblatex (\parencite, \textcite); alle Quellen stehen
-%  in literatur.bib.
+%  Gleichungen werden im Text nur ueber \eqref angesprochen; ihre Nummern
+%  duerfen sich beim Umbau des Kapitels deshalb verschieben.
 % ======================================================================
 
 %\documentclass[11pt,a4paper]{report}
@@ -23,40 +18,37 @@
 \chapter{Datenaugmentierung und synthetische Datengenerierung}
 \label{kap:augtheorie}
 
-Datenaugmentierung bezeichnet die Erzeugung zusätzlicher Trainingsbeispiele aus
-vorhandenen Daten durch Transformationen, die die für die Lernaufgabe relevante
-Beschriftung erhalten \parencite{shorten2019}. Ziel ist es, die
-Verteilung der im Training beobachteten Beispiele zu erweitern und das Modell
-gegenüber Variationen robust zu machen, die bei der späteren Anwendung
-auftreten können.
+Unter Datenaugmentierung versteht man, aus vorhandenen Trainingsbeispielen
+durch Transformationen weitere Beispiele zu erzeugen, deren Beschriftung gültig
+bleibt \parencite{shorten2019}. Das Modell sieht dadurch mehr Variation, als die
+Originaldaten enthalten, und wird robuster gegenüber Veränderungen, die auch im
+späteren Einsatz vorkommen.
 
-Im vorliegenden Anwendungsfall wird dieser Begriff weiter gefasst. Die
-Trainingsdaten werden nicht lediglich durch Transformationen real aufgenommener
-Bilder vergrößert. Stattdessen werden die Trainingsbilder überwiegend
-synthetisch aus wenigen realen Ausgangsobjekten und Hintergründen erzeugt --
-ein Vorgehen, das für die Detektion bereits in Innenraumszenen erprobt wurde
-\parencite{georgakis2017}. Die
-zentrale Frage ist daher nicht nur, welche Transformationen auf vorhandene
-Bilder angewendet werden sollen, sondern welche Verteilung synthetischer Szenen
-erzeugt werden muss, damit sie die für die Inferenz relevante Domäne
-hinreichend abbildet.
+In dieser Arbeit wird der Begriff weiter gefasst. Statt vorhandene Realbilder
+abzuwandeln, werden die Trainingsbilder fast vollständig synthetisch aus wenigen
+realen Objekten und Hintergründen zusammengesetzt. Für die Detektion wurde ein
+solches Vorgehen bereits an Innenraumszenen erprobt \parencite{georgakis2017}.
+Damit stellt sich nicht nur die Frage, welche Transformationen auf ein Bild
+angewendet werden. Wichtiger ist, welche Verteilung synthetischer Szenen erzeugt
+werden muss, damit sie die realen Einsatzbilder ausreichend gut abbildet.
 
-Für die Notation gilt in diesem Kapitel durchgehend: lateinische Großbuchstaben
-wie $D$ bezeichnen endliche Datensätze, kalligraphische Symbole wie
-$\Dom{S}^{X}$ bezeichnen Wahrscheinlichkeitsverteilungen.
+Zur Notation: Lateinische Großbuchstaben wie $D$ stehen in diesem Kapitel für
+endliche Datensätze, kalligraphische Symbole wie $\Dom{S}^{X}$ für
+Wahrscheinlichkeitsverteilungen.
 
 % ----------------------------------------------------------------------
 \section{Begriff, Formalisierung und Wirkmechanismen}
 \label{sec:aug-formalisierung}
 
-Sei $D=\{(x_i,y_i)\}_{i=1}^{n}$ ein Trainingsdatensatz mit Eingabebildern $x_i$
-und Beschriftungen $y_i$, bei der Objektdetektion eine Menge von Boxen mit
-Klasseninformation. Ein Modell $f$ bildet ein Bild auf eine Vorhersage ab, und
-eine Verlustfunktion $L$ misst, wie weit eine Vorhersage von der Beschriftung
-abweicht. Sei weiterhin $T$ eine Menge zulässiger Transformationen,
-$p(t)$ eine Wahrscheinlichkeitsverteilung über diese Menge und $\tau_t$ die zu
-$t \in T$ gehörende Transformation der Beschriftung. Das durch Augmentierung
-entstehende empirische Risiko lautet dann
+Gegeben sei ein Trainingsdatensatz $D=\{(x_i,y_i)\}_{i=1}^{n}$ aus Bildern $x_i$
+und Beschriftungen $y_i$; bei der Objektdetektion ist $y_i$ eine Menge von Boxen
+mit Klassenangabe. Ein Modell $f$ bildet ein Bild auf eine Vorhersage ab, und
+eine Verlustfunktion $L$ misst, wie weit die Vorhersage von der Beschriftung
+abweicht. Augmentiert wird mit Transformationen $t$ aus einer Menge $T$, die
+nach einer Verteilung $p(t)$ gezogen werden. Zu jedem $t$ gehört eine passende
+Transformation $\tau_t$ der Beschriftung; wird zum Beispiel das Bild verschoben,
+verschiebt $\tau_t$ die Boxen mit. Das empirische Risiko mit Augmentierung
+lautet dann
 \begin{equation}
   \hat R_{\mathrm{aug}}(f)
   =
@@ -68,102 +60,90 @@ entstehende empirische Risiko lautet dann
   \label{eq:risk-aug}
 \end{equation}
 
-Der Unterschied zum gewöhnlichen empirischen Risiko liegt allein im
-Erwartungswert über $t$: Bewertet wird nicht jedes Trainingsbeispiel in seiner
-ursprünglichen Form, sondern eine Verteilung von Varianten -- die Sichtweise der
-Vicinal Risk Minimization \parencite{chapelle2001}. Da $T$ im Allgemeinen
-kontinuierlich ist, wird der Erwartungswert praktisch über endlich viele
-Ziehungen aus $p(t)$ geschätzt; die Zahl physisch gespeicherter Bilder ist
-deshalb nicht identisch mit der Zahl der im Training gesehenen Varianten.
+Gegenüber dem gewöhnlichen empirischen Risiko kommt nur der Erwartungswert über
+$t$ hinzu. Das Modell wird also nicht an jedem Beispiel allein gemessen, sondern
+an vielen Varianten davon. Diese Sichtweise heißt Vicinal Risk Minimization
+\parencite{chapelle2001}. In der Praxis wird der Erwartungswert über endlich
+viele Ziehungen aus $p(t)$ angenähert, die während des Trainings immer neu
+erfolgen. Das Netz sieht deshalb deutlich mehr verschiedene Varianten, als
+Bilder gespeichert sind.
 
-Von den vier Größen in Gleichung~\eqref{eq:risk-aug} -- Modell $f$,
-Verlust $L$, Transformationsverteilung $p(t)$ und Labeltransformation
-$\tau_t$ -- ist für diese Arbeit vor allem $p(t)$ maßgeblich. Sie bestimmt, wie häufig und wie stark die einzelnen
-Transformationen wirken, und ist damit keine Implementierungsentscheidung,
-sondern eine \emph{Modellierung der erwarteten Variation der Zieldomäne}. Bei
-überwiegend synthetischen Trainingsdaten verschiebt sich ihre Bedeutung noch
-weiter: Dann beschreibt $p(t)$ nicht mehr nur die Variation um vorhandene
-Beispiele herum, sondern einen wesentlichen Teil der beobachteten
-Datenverteilung selbst. Die Labeltransformation $\tau_t$ ist dabei die stille
-Fehlerquelle -- eine Helligkeitsänderung lässt die Box unverändert, eine
-Rotation dagegen verlangt, dass die achsparallele Box aus der transformierten
-Objektgeometrie neu bestimmt wird. Ist der Einfluss auf die Beschriftung nicht
-exakt bekannt, entsteht zusätzliches Labelrauschen, und bei kleinen Objekten
-betrifft bereits eine geringe geometrische Abweichung einen vergleichsweise
-großen Anteil der Objektfläche.
+Für diese Arbeit sind zwei der Größen in Gleichung~\eqref{eq:risk-aug}
+besonders wichtig. Die Verteilung $p(t)$ legt fest, wie oft und wie stark jede
+Transformation wirkt. Sie beschreibt damit, welche Variation im Einsatz erwartet
+wird, und ist eine Modellannahme über die Zieldomäne. Bei fast vollständig
+synthetischen Trainingsdaten gilt das umso mehr, denn dann erzeugt $p(t)$ nicht
+nur Varianten vorhandener Bilder, sondern bestimmt einen großen Teil der
+Trainingsverteilung selbst. Die zweite wichtige Größe ist die
+Labeltransformation $\tau_t$, weil sich dort leicht unbemerkte Fehler
+einschleichen. Eine Helligkeitsänderung lässt die Box unverändert. Nach einer
+Rotation muss die Box dagegen aus der gedrehten Objektform neu bestimmt werden.
+Gelingt das nur näherungsweise, entsteht Labelrauschen, und bei kleinen
+Objekten betrifft schon eine kleine Abweichung einen spürbaren Teil der
+Objektfläche.
 
-\absatz{Invarianz, nicht Vielfalt.} Augmentierung zeigt dem Modell Variationen,
-unter denen die Zielentscheidung invariant bleiben soll, wirkt über zufällige
-photometrische Störungen als Regularisierung gegen die Festlegung auf einzelne
-exakt reproduzierbare Bildmerkmale \parencite{bishop1995} und erweitert den
-belegten Bereich des Eingaberaums. Die zusätzlichen Beispiele sind jedoch keine
-unabhängigen Beobachtungen der Objektklasse: Ihre Information stammt weiterhin
-aus den ursprünglichen Daten und den Annahmen des Generators. Daraus folgt das
-Prinzip, das die gesamte Pipeline trägt:
+\absatz{Invarianz statt bloßer Vielfalt.} Augmentierung zeigt dem Modell
+Veränderungen, gegenüber denen seine Entscheidung gleich bleiben soll. Zufällige
+photometrische Störungen wirken außerdem als Regularisierung, weil sich das
+Modell nicht auf einzelne, exakt wiederkehrende Bildmerkmale verlassen kann
+\parencite{bishop1995}. Neue Information über die Objektklasse entsteht dabei
+aber nicht, denn jedes zusätzliche Beispiel geht auf die Originaldaten und die
+Annahmen des Generators zurück. Für die gesamte Pipeline gilt deshalb das
+folgende Prinzip:
 
 \begin{quote}
-  Eine Transformation sollte nur in dem Maß als labelerhaltend behandelt werden,
-  in dem die entsprechende Variation auch in der Zieldomäne auftreten kann.
+  Eine Transformation darf nur so weit als labelerhaltend gelten, wie die
+  entsprechende Veränderung auch in der Zieldomäne vorkommen kann.
 \end{quote}
 
-Wird sie darüber hinaus angewendet, entfernt sie diskriminative Information,
-statt Robustheit zu erzeugen. Für die Rohrstirnflächen ist beispielsweise eine
-große Variation der Orientierung plausibel, eine vollständige
-Rotationsinvarianz für andere Detektionsaufgaben dagegen nicht.
+Geht eine Transformation darüber hinaus, nimmt sie dem Modell Information, die
+es zur Unterscheidung braucht. Eine Rohrstirnfläche ist zum Beispiel nahezu
+rotationssymmetrisch, eine Drehung um beliebige Winkel ist hier also
+unbedenklich. Bei der Erkennung von Ziffern wäre dieselbe Transformation falsch,
+weil aus einer gedrehten 6 eine 9 wird.
 
+% ----------------------------------------------------------------------
 \section{Verfahrensüberblick}
 \label{sec:aug-verfahren}
 
-Datenaugmentierung umfasst eine große Anzahl unterschiedlicher Verfahren. Für
-die vorliegende Arbeit sind insbesondere geometrische Transformationen,
-photometrische Transformationen, Verdeckungsstrategien und kompositionelle
-Verfahren relevant; Tabelle~\ref{tab:taxonomie} im Anhang ordnet die
-Verfahrensklassen ihrem Einsatz im vorliegenden Fall zu.
+Für diese Arbeit sind vier Gruppen von Augmentierungsverfahren wichtig:
+geometrische und photometrische Transformationen, künstliche Verdeckung und das
+Zusammensetzen neuer Bilder aus Einzelteilen. Tabelle~\ref{tab:taxonomie} im
+Anhang zeigt, welche davon hier eingesetzt werden.
 
-Geometrische Transformationen verändern die Lage oder Form von Objekten. Dazu
-zählen insbesondere Translation, Skalierung, Spiegelung, Rotation, Scherung und
-Perspektivtransformation. Photometrische Transformationen verändern dagegen die
-Bildintensitäten, ohne die Objektgeometrie grundsätzlich zu verändern. Beispiele
-sind Helligkeits- und Kontraständerungen, Farbverschiebungen, Rauschen,
-Unschärfe und Kompression.
+Geometrische Transformationen verändern Lage oder Form eines Objekts, etwa durch
+Verschiebung, Skalierung, Spiegelung, Rotation, Scherung oder Perspektive.
+Photometrische Transformationen verändern dagegen nur die Pixelwerte, zum
+Beispiel Helligkeit, Kontrast und Farbe, oder sie fügen Rauschen, Unschärfe und
+Kompressionsartefakte hinzu.
 
-Eine weitere Klasse bilden Verfahren zur künstlichen Verdeckung von
-Bildbereichen. Cutout \parencite{devries2017cutout}, Random Erasing
+Verfahren wie Cutout \parencite{devries2017cutout}, Random Erasing
 \parencite{zhong2020erasing} und Hide-and-Seek \parencite{singh2017hideseek}
-erzeugen beispielsweise teilweise verdeckte Eingaben, um das Modell gegenüber fehlender Bildinformation
-robuster zu machen. Für die vorliegende Anwendung ist jedoch entscheidend, dass
-Verdeckung kein rein künstliches Störphänomen ist. Die Zielobjekte werden in der
-realen Szene tatsächlich teilweise durch andere Profile, Gitterstrukturen und
-Schatten verdeckt.
+verdecken zufällig gewählte Bildbereiche, damit das Modell auch mit
+unvollständiger Information zurechtkommt. In den Stapelaufnahmen ist Verdeckung
+aber keine künstliche Störung, denn die Stirnflächen werden dort tatsächlich von
+Rohren, Gitterstäben und Schatten verdeckt. Die Pipeline löscht deshalb keine
+zufälligen Rechtecke, sondern fügt plausible Verdecker in die Szene ein. So
+lassen sich Form und Lage der Verdeckung, der sichtbare Teil jedes Objekts und
+das Zusammenspiel von Vorder- und Hintergrund gezielt steuern.
 
-Daher wird Verdeckung nicht primär durch zufälliges Löschen rechteckiger
-Bildbereiche modelliert. Stattdessen werden physikalisch plausible Objekte als
-Okkluder in die Szene eingefügt. Dadurch können gleichzeitig die Geometrie, die
-sichtbaren Objektbereiche und die Interaktion zwischen Vorder- und Hintergrund
-kontrolliert werden.
+\absatz{Augmentierung und Synthese.} Bei der klassischen Augmentierung ist jedes
+Trainingsbild ein reales Foto $x_i$, aus dem Transformationen weitere Varianten
+$t(x_i)$ erzeugen. Alles, was das Modell über reale Bilder lernt, steckt also im
+Originalbild. In dieser Arbeit wird jede Szene dagegen aus Einzelteilen
+zusammengesetzt. Die Vielfalt der Trainingsdaten kommt dann nicht mehr aus
+vielen realen Ausgangsbildern, sondern aus der Verteilung $p(t)$ selbst. Wie
+diese Verteilung aufgebaut ist, wird deshalb im Folgenden genauer betrachtet.
 
-\absatz{Augmentierung und Synthese.} Bei klassischer Datenaugmentierung bildet ein reales Trainingsbild den
-Ausgangspunkt. Transformationen erzeugen daraus weitere Varianten:
-\[
-  x_i \;\rightarrow\; t(x_i).
-\]
-Die Information über die reale Bilddomäne stammt somit weiterhin aus dem
-ursprünglichen Bild.
-
-Bei der in dieser Arbeit verwendeten synthetischen Datengenerierung wird die
-Szene dagegen aus mehreren Komponenten zusammengesetzt. Dadurch wird aus der
-Augmentierung im engeren Sinne eine Form der prozeduralen Datengenerierung: Die
-Vielfalt der Trainingsdaten entsteht nicht mehr aus einer großen Menge realer
-Ausgangsbilder, sondern aus der Verteilung $p(t)$ selbst. Deren Struktur ist
-damit Gegenstand der Modellierung und verdient eine genauere Betrachtung.
-
-Ein Durchlauf zieht die Parameter in drei Stufen. Zuerst die szenenweiten
-Größen $t^{\mathrm{S}}$ -- Hintergrund, Maßstab, Ausschnitt, globale
-Bildeffekte --, daraus die Zahl $K$ der Objektcluster. Für jeden Cluster $k$
-folgt ein eigener Vektor $c_k$ mit Basisgröße, Gitterabständen, eingeschlossenem
-Winkel und Clusterzentrum, daraus die Zahl $m_k$ seiner Instanzen. Erst auf der
-dritten Stufe erhält jede Instanz $j$ des Clusters $k$ ihren eigenen
-Parametervektor $t^{(k,j)}$. Die Verteilung faktorisiert entsprechend als
+Ein synthetisches Bild entsteht in drei aufeinander aufbauenden Stufen. Zuerst
+werden die Größen gezogen, die für die ganze Szene gelten: Hintergrund,
+Maßstab, Bildausschnitt und globale Bildeffekte, zusammengefasst in
+$t^{\mathrm{S}}$. Davon hängt die Zahl $K$ der Objektgruppen ab, im Folgenden
+Cluster genannt. Jeder Cluster $k$ erhält dann eigene Parameter $c_k$, nämlich
+Basisgröße, Gitterabstände, Gitterwinkel und Mittelpunkt, und daraus die Zahl
+$m_k$ seiner Objekte. Erst auf der dritten Stufe bekommt jedes Objekt $j$ des
+Clusters $k$ seine eigenen Parameter $t^{(k,j)}$. Die Gesamtverteilung zerfällt
+entsprechend in
 \begin{equation}
   p(t)
   =
@@ -178,123 +158,98 @@ Parametervektor $t^{(k,j)}$. Die Verteilung faktorisiert entsprechend als
   \label{eq:faktorisierung}
 \end{equation}
 
-Die Instanzparameter sind damit \emph{bedingt} unabhängig gegeben den Cluster,
-nicht unabhängig. Diese Unterscheidung ist keine Formalie, sondern die formale
-Fassung von Anforderung~A3: Objektgröße und Hintergrundmaßstab müssen gekoppelt
-sein, weil Stirnflächen und Rohrschäfte derselben Aufnahme annähernd im selben
-Maßstab abgebildet werden; und innerhalb eines Clusters streut jede Instanz nur
-um eine gemeinsame Basisgröße, weil gestapelte Profile derselben Lage in der
-Regel gleich groß sind. Über $t^{\mathrm{S}}$ und $c_k$ gemittelt sind die
-Instanzgrößen daher korreliert -- ein Generator, der sie unabhängig zöge,
-erzeugte Größenkombinationen, die in realen Aufnahmen kaum vorkommen. Wie groß
-eine Stirnfläche im Verhältnis zu den Rohrschäften des Hintergrunds ist, bleibt
-dabei eine Annahme: Gleichung~\eqref{eq:zoom} setzt beide Durchmesser
-vereinfachend gleich, die seitlichen Rahmenrohre, deren Stirnflächen detektiert
-werden, müssen aber nicht denselben Durchmesser haben wie die Rohre, deren
-Schäfte im Hintergrund zu sehen sind. Vereinzelt platzierte Profile, die
-keinem Cluster angehören, bilden den Sonderfall $m_k = 1$ und hängen unmittelbar
-von $t^{\mathrm{S}}$ ab.
+Die Objektparameter sind damit nur \emph{bedingt} unabhängig: Ist der Cluster
+festgelegt, werden seine Objekte unabhängig voneinander gezogen, über alle
+Cluster und Szenen betrachtet hängen ihre Größen aber zusammen. Genau diese
+Abhängigkeit verlangt Anforderung~A3. Stirnflächen und Rohrschäfte derselben
+Aufnahme erscheinen ungefähr im selben Maßstab, deshalb ist die Objektgröße an
+den Hintergrundmaßstab gekoppelt. Außerdem sind gestapelte Profile derselben
+Lage meist gleich groß, sodass jedes Objekt nur wenig um die Basisgröße seines
+Clusters streut. Würde der Generator alle Größen unabhängig ziehen, entstünden
+Kombinationen, die in echten Aufnahmen kaum vorkommen, etwa ein sehr großes
+Profil direkt neben einem sehr kleinen.
 
-Da zudem $K$ und alle $m_k$ selbst gezogen werden, besitzt $t$ keine feste
-Dimension: Der Träger von $p$ ist eine Vereinigung von Räumen unterschiedlicher
-Dimension und nicht Teil eines Raums fester Dimension.
-
-Jede einzelne optionale Transformation $\nu$ ist ihrerseits eine Mischung aus
-Identität und Wirkung,
+Jede optionale Transformation $\nu$ wird nur in einem Teil der Fälle
+angewendet. Ihre Verteilung ist deshalb eine Mischung:
 \begin{equation}
   p(t_\nu)
   =
   (1-\pi_\nu)\,\delta_{\mathrm{id}}
   \;+\;
-  \pi_\nu\, q_\nu ,
+  \pi_\nu\, q_\nu .
   \label{eq:mischung}
 \end{equation}
-mit dem Anwendungsanteil $\pi_\nu$, der Parameterverteilung $q_\nu$ über den
-zulässigen Bereich und der Verteilung $\delta_{\mathrm{id}}$, die mit Sicherheit
-die Identität liefert, das Bild also unverändert lässt. Eine Transformation ist
-folglich erst durch \emph{zwei}
-Angaben bestimmt -- wie häufig sie wirkt und wie stark. Diese Doppelung
-verlangt Anforderung~A5; Tabelle~\ref{tab:parameter} führt sie spaltenweise
-auf.
+Mit Wahrscheinlichkeit $1-\pi_\nu$ bleibt das Bild unverändert
+($\delta_{\mathrm{id}}$ steht für die Identität). Mit Wahrscheinlichkeit
+$\pi_\nu$ wird die Transformation angewendet, und ihre Stärke wird aus der
+Verteilung $q_\nu$ über den zulässigen Bereich gezogen. Eine Transformation ist
+also erst durch zwei Angaben vollständig beschrieben: wie oft sie wirkt und wie
+stark. Anforderung~A5 verlangt beide, und Tabelle~\ref{tab:parameter} nennt sie
+für jede Transformation.
 
-\absatz{Nicht gewählte Wege.} Vier naheliegende Alternativen werden nicht verfolgt. Die ersten beiden
-betreffen die Frage, \emph{wie} die Transformationsverteilung bestimmt wird, und
-scheitern am selben Umstand: Beide setzen eine Menge realer Daten voraus, die
-hier nicht existiert. Die beiden übrigen setzen an der Objektgröße an und werden
-aus jeweils eigenen Gründen nicht benötigt.
+\absatz{Nicht gewählte Alternativen.} Vier naheliegende Alternativen werden in
+dieser Arbeit nicht verfolgt. Die ersten beiden scheitern daran, dass sie viele
+reale Daten voraussetzen. Eine automatische Suche nach Augmentierungsparametern
+wie AutoAugment \parencite{cubuk2019} oder RandAugment \parencite{cubuk2020}
+optimiert die Parameter auf eine Validierungsleistung. Mit einem einzigen
+realen Validierungsbild hieße das, die Pipeline an dieses eine Bild anzupassen.
+Generative Modelle, etwa Diffusionsmodelle \parencite{trabucco2024}, brauchen
+eine ausreichend große und repräsentative Menge realer Beispiele, um die
+Objektverteilung zu lernen; neun Ausgangsobjekte reichen dafür nicht. Ein
+explizit parametrisierter Generator hat außerdem zwei Vorteile, auf die es hier
+ankommt: Geometrie und Photometrie lassen sich getrennt steuern, und die Labels
+folgen exakt aus der bekannten Szenengeometrie.
 
-Eine \emph{automatisierte Policy-Suche} wie AutoAugment \parencite{cubuk2019}
-oder RandAugment \parencite{cubuk2020} optimiert Augmentierungsparameter gegen
-eine Validierungsleistung -- hier hieße das, die Pipeline auf wenige
-Einzelbilder anzupassen.
-
-Eine \emph{generative Modellierung} der Objekte, etwa durch Diffusionsmodelle \parencite{trabucco2024},
-benötigte eine hinreichend große und repräsentative Menge realer Beispiele, um
-die Zielverteilung überhaupt zu erfassen. Bei neun Ausgangsobjekten ist das
-nicht gegeben. Der explizit parametrisierte Generator bietet stattdessen die
-hier benötigten Eigenschaften: unabhängige Kontrolle über Geometrie und Photometrie sowie
-Labels, die direkt aus der bekannten Szenengeometrie folgen. Die Entscheidung
-ist damit keine Aussage über die Leistungsfähigkeit generativer Modelle, sondern
-folgt aus den Anforderungen an Kontrolle, Labelgenauigkeit und
-Nachvollziehbarkeit.
-
-Eine \emph{Kachelung des Eingabebildes}, wie sie Slicing Aided Hyper Inference
-\parencite{akyon2022sahi} umsetzt, zerlegt das Bild in überlappende Ausschnitte
-und wertet jeden einzeln aus. Kleine Objekte werden dadurch relativ zum
-Netzeingang größer -- die Kachelung wirkt also auf dieselbe Größe
-$d_{\mathrm{eff}}/S$ wie eine höhere Inferenzauflösung, nur über einen anderen
-Weg. Dieser Weg ist für die vorliegende Aufgabe der ungünstigere: Die Objekte
-stehen in dichten Clustern, sodass Schnittkanten regelmäßig durch
-zusammenhängende Gruppen liefen, und das Zusammenführen der Teilergebnisse
-verlangt eine Entscheidung über mehrfach detektierte Objekte an den
-Kachelgrenzen -- also genau den Unterdrückungsschritt, auf den der verwendete
-Ende-zu-Ende-Kopf verzichtet. Die Auflösung selbst zu erhöhen ist der
-unmittelbarere Eingriff und wird in Kapitel~\ref{kap:auswertung} als solcher
-vermessen.
-
-Eine \emph{gezielte Überabtastung kleiner Objekte} \parencite{kisantal2019}
-schließlich antwortet darauf, dass die Größenverteilung eines \emph{gegebenen}
-Datensatzes nicht veränderbar ist. Diese Einschränkung besteht hier nicht: Die Größenverteilung ist ein Parameter des Generators und wird nach
-Anforderung~A2 unmittelbar auf den Zielbereich kalibriert.
+Die beiden anderen Alternativen setzen an der Objektgröße an. Bei der Kachelung,
+etwa mit Slicing Aided Hyper Inference \parencite{akyon2022sahi}, wird das Bild
+in überlappende Ausschnitte zerlegt, die einzeln ausgewertet werden. Kleine
+Objekte erscheinen dadurch im Netz größer, ähnlich wie bei einer höheren
+Inferenzauflösung. Bei dichten Clustern laufen die Schnittkanten aber
+zwangsläufig durch zusammenhängende Objektgruppen, und beim Zusammenführen
+müssen doppelt erkannte Objekte an den Kachelgrenzen wieder aussortiert werden.
+Das ist genau der Unterdrückungsschritt, den der verwendete NMS-freie Kopf
+vermeidet. Die Auflösung direkt zu erhöhen ist einfacher und wird in
+Kapitel~\ref{kap:auswertung} untersucht. Eine gezielte Überabtastung kleiner
+Objekte \parencite{kisantal2019} schließlich gleicht aus, dass sich die
+Größenverteilung eines vorhandenen Datensatzes nicht ändern lässt. Hier ist die
+Größenverteilung dagegen ein Parameter des Generators und wird nach
+Anforderung~A2 direkt auf den Zielbereich eingestellt.
 
 % ----------------------------------------------------------------------
 \section{Besonderheiten bei der Objektdetektion}
 \label{sec:aug-detektion}
 
-Datenaugmentierung für Objektdetektion unterscheidet sich von der Augmentierung
-bei Klassifikationsaufgaben insbesondere dadurch, dass eine Transformation nicht
-nur das Bild, sondern auch die räumlichen Beschriftungen verändern muss.
+Bei der Klassifikation ändert eine labelerhaltende Transformation die
+Beschriftung nicht, es gilt also $\tau_t(y)=y$. Bei der Detektion ist das
+anders, weil die Beschriftung Ortsangaben enthält: Wird ein Objekt um
+$(\Delta x,\Delta y)$ verschoben, muss auch seine Box um $(\Delta x,\Delta y)$
+verschoben werden. Für diese Arbeit folgen daraus zwei Anforderungen.
+Geometrische Transformationen müssen möglichst exakt auf die Boxen übertragen
+werden, und die erzeugten Objekte müssen zur räumlichen Auflösung des Detektors
+passen.
 
-Bei der Klassifikation kann für viele labelerhaltende Transformationen
-\[
-  \tau_t(y)=y
-\]
-angenommen werden. Bei der Detektion gilt dies im Allgemeinen nicht. Wird ein
-Objekt beispielsweise um $(\Delta x,\Delta y)$ verschoben, müssen auch die
-Boxkoordinaten entsprechend verschoben werden.
-
-Für die vorliegende Aufgabe entstehen daraus zwei besondere Anforderungen.
-Erstens müssen geometrische Transformationen möglichst exakt auf die
-Beschriftungen übertragen werden. Zweitens muss die erzeugte Objektgröße mit der
-räumlichen Auflösung des verwendeten Detektors vereinbar sein.
-
-\absatz{Achsparallele Boxen und Rotation.}\label{subsec:aabb-rotation} Die Zielobjekte werden mit achsparallelen Bounding Boxes beschrieben. Diese
-Darstellung ist für die verwendete Detektionsaufgabe zweckmäßig, führt jedoch bei
-geometrischen Transformationen zu einer zusätzlichen Approximation.
-
-Betrachtet werde zunächst ein Quadrat mit Seitenlänge $d$, das um einen Winkel
-$\theta$ rotiert wird. Die Seitenlänge der kleinsten achsparallelen Bounding Box
-des rotierten Quadrats beträgt
+\absatz{Achsparallele Boxen und Rotation.}\label{subsec:aabb-rotation} Die
+Objekte werden mit achsparallelen Boxen beschrieben. Bei Rotationen entsteht
+dadurch ein Fehler, wenn die neue Box nicht aus der Objektform, sondern nur aus
+der alten Box berechnet wird. Das ist bei einer bildweiten Rotation im Training
+der Fall, denn dort sind nur die Boxen bekannt, nicht die Form der Objekte. Die
+vier Ecken der Box werden deshalb mitgedreht, und um das Ergebnis wird wieder
+ein achsparalleles Rechteck gelegt. Für eine quadratische Box der Seitenlänge
+$d$ und den Drehwinkel $\theta$ hat dieses Rechteck die Seitenlänge
 \begin{equation}
   d_{\mathrm{box}}
   =
   d\bigl(|\cos\theta|+|\sin\theta|\bigr).
   \label{eq:dbox}
 \end{equation}
+Bei einem kreisförmigen Objekt wie einer Stirnfläche ist das besonders
+ungünstig. Der Kreis ändert sich durch die Drehung nicht, seine richtige Box
+bleibt also das Quadrat mit Seitenlänge $d$. Die berechnete Box ist dagegen um
+den Faktor $|\cos\theta|+|\sin\theta|$ zu groß.
 
-Wie gut zwei Boxen $B_1$ und $B_2$ übereinstimmen, misst die \emph{Intersection
-over Union}, der Quotient aus Schnitt- und Vereinigungsfläche
-\parencite{everingham2010}:
+Wie stark diese Abweichung ins Gewicht fällt, zeigt die in
+Abschnitt~\ref{sec:vorarbeiten} eingeführte Intersection over Union. Für zwei
+Boxen $B_1$ und $B_2$ ist sie definiert als \parencite{everingham2010}
 \begin{equation}
   \IoU(B_1, B_2)
   =
@@ -303,71 +258,48 @@ over Union}, der Quotient aus Schnitt- und Vereinigungsfläche
   \frac{|B_1 \cap B_2|}{|B_1| + |B_2| - |B_1 \cap B_2|} ,
   \label{eq:ioudef}
 \end{equation}
-wobei $|\cdot|$ die Fläche bezeichnet; die zweite Form gilt, weil die
-Schnittfläche in $|B_1| + |B_2|$ doppelt gezählt ist. Der Wert liegt zwischen 0
-für disjunkte und 1 für deckungsgleiche Boxen.
-
-Wird die \emph{ursprüngliche} Box anschließend als Label der rotierten Instanz
-verwendet, so ist das achsparallele Quadrat vollständig in der Hülle enthalten:
-Schnittfläche ist $A=d^2$, Vereinigungsfläche $A_{\mathrm{box}} = d^2
-(|\cos\theta|+|\sin\theta|)^2$. Mit
-$(|\cos\theta|+|\sin\theta|)^{2} = 1 + |\sin 2\theta|$ folgt daraus nach
-Gleichung~\eqref{eq:ioudef} die für alle $\theta$ exakte Darstellung
+wobei $|\cdot|$ die Fläche bezeichnet. Die zweite Form gilt, weil die
+Schnittfläche in $|B_1| + |B_2|$ doppelt enthalten ist. Die IoU ist 0 für Boxen
+ohne Überlappung und 1 für deckungsgleiche Boxen. Im Rotationsbeispiel liegt die
+richtige Box vollständig in der aufgeweiteten. Die Schnittfläche ist also
+$d^2$, die Vereinigungsfläche $d_{\mathrm{box}}^2$, und mit
+$(|\cos\theta|+|\sin\theta|)^{2} = 1 + |\sin 2\theta|$ folgt
 \begin{equation}
-  \IoU(\theta) = \frac{1}{1+|\sin 2\theta|},
+  \IoU(\theta) = \frac{1}{1+|\sin 2\theta|}.
   \label{eq:iou}
 \end{equation}
-also $\IoU(2^{\circ})\approx 0{,}935$, $\IoU(10^{\circ})\approx 0{,}745$ und
-$\IoU(45^{\circ}) = 0{,}5$.
+Schon bei $2^{\circ}$ sinkt die IoU auf 0,935, bei $10^{\circ}$ auf 0,745 und
+bei $45^{\circ}$ auf 0,5. Ein Modell, das mit solchen Labels trainiert wird,
+lernt systematisch zu große Boxen.
 
-
-Die Rechnung stellt einen idealisierten geometrischen Fall dar. Bei kreisförmigen
-Rohrstirnflächen ist die tatsächliche Objektgeometrie rotationssymmetrisch und
-verändert sich durch eine reine Rotation nicht. Entscheidend ist vielmehr, ob die
-verwendete Labeltransformation die Box aus der tatsächlich transformierten
-Objektgeometrie neu bestimmt oder lediglich die ursprüngliche achsparallele Box
-geometrisch transformiert und anschließend wieder achsparallel umschließt.
-
-Für die vorliegende synthetische Datengenerierung kann diese Unterscheidung
-genutzt werden. Werden einzelne Rohrprofile vor der Komposition rotiert, kann
-ihre Bounding Box anschließend direkt aus der bekannten Objektmaske bestimmt
-werden. Eine geometrische Ungenauigkeit durch die Transformation einer bereits
-vorhandenen Box lässt sich dadurch vermeiden.
-
-Aus diesem Grund werden geometrische Variationen, die im Generator label-exakt
-umgesetzt werden können, bevorzugt dort erzeugt und nicht zusätzlich als
-bildweite Trainingszeit-Transformation angewendet.
+Im Generator tritt dieses Problem nicht auf. Dort wird jedes Rohrprofil vor dem
+Einfügen gedreht, und seine Box wird anschließend direkt aus der gedrehten
+Objektmaske bestimmt. Geometrische Veränderungen, die sich im Generator exakt
+umsetzen lassen, werden deshalb dort erzeugt und nicht zusätzlich als
+bildweite Augmentierung im Training.
 
 \absatz{Kleine Objekte, Auflösung und Labelzuweisung.}\label{subsec:kleine-objekte}
-Die Größe eines Objekts im Eingabebild bestimmt gemeinsam mit der Schrittweite
-des Detektors, wie viele räumliche Positionen auf einer Merkmalsebene zur
-Repräsentation des Objekts zur Verfügung stehen.
-
-Sei $d$ der Durchmesser eines Objekts im Originalbild, $N$ die Kantenlänge des
-Originalbildes und $M$ die Kantenlänge der Netzeingabe. Unter der Annahme einer
-isotropen Skalierung beträgt die effektive Objektgröße
+Wie viele Positionen einer Merkmalsebene auf ein Objekt fallen, hängt davon ab,
+wie groß das Objekt im Netzeingang ist und wie weit die Gitterpositionen
+auseinanderliegen. Vor dem Netz wird das Bild auf die Eingabegröße skaliert.
+Hat das Originalbild die Kantenlänge $N$ und die Netzeingabe die Kantenlänge
+$M$, so kommt ein Objekt mit Durchmesser $d$ bei gleicher Skalierung beider
+Achsen mit der \emph{effektiven Größe}
 \begin{equation}
-  d_{\mathrm{eff}} = d\,\frac{M}{N}.
+  d_{\mathrm{eff}} = d\,\frac{M}{N}
   \label{eq:deff}
 \end{equation}
+im Netz an. Auf einer Merkmalsebene mit Stride $S$ liegen benachbarte
+Gitterpositionen $S$ Pixel auseinander. Das Verhältnis $d_{\mathrm{eff}}/S$ gibt
+deshalb an, wie viele Gitterpositionen ungefähr auf den Durchmesser des Objekts
+fallen. Beide Größen beziehen sich dabei auf die Netzeingabe.
 
-Für eine Merkmalsebene mit Stride $S$ beträgt der Abstand benachbarter
-Gitterpositionen $S$. Damit ist das Verhältnis
-\begin{equation}
-  \frac{d_{\mathrm{eff}}}{S}
-  \label{eq:ratio}
-\end{equation}
-ein unmittelbares Maß dafür, wie fein das Objekt durch diese Ebene räumlich
-abgetastet wird.
-
-Eine genauere geometrische Betrachtung kann für ein kreisförmiges Objekt
-durchgeführt werden. Beide Größen sind dabei im Koordinatensystem der
-Netzeingabe zu lesen -- der Stride $S$ ist dort definiert, die Objektgröße muss
-also nach Gleichung~\eqref{eq:deff} umgerechnet sein. Unter der idealisierten
-Annahme eines regelmäßigen quadratischen Gitters und einer zufälligen,
-gleichverteilten Lage des Objekts relativ zu diesem Gitter beträgt die erwartete
-Zahl $Z$ der Gitterzentren innerhalb eines Kreises der effektiven Größe
-$d_{\mathrm{eff}}$
+Für ein kreisförmiges Objekt lässt sich genauer angeben, wie viele
+Gitterzentren in ihm liegen. Dazu wird ein regelmäßiges quadratisches Gitter
+angenommen, gegenüber dem das Objekt an einer zufälligen Stelle liegt. Jede
+Gitterzelle hat die Fläche $S^2$ und enthält genau ein Zentrum. Im Mittel über
+alle Lagen trifft der Kreis deshalb so viele Zentren, wie Zellflächen in seine
+Fläche passen. Für die Zahl $Z$ der Zentren im Objekt gilt also
 \begin{equation}
   \mathbb{E}[Z]
   =
@@ -376,54 +308,34 @@ $d_{\mathrm{eff}}$
   \frac{\pi d_{\mathrm{eff}}^{2}}{4S^{2}}.
   \label{eq:gridcount}
 \end{equation}
-Der Zähler ist die Kreisfläche, der Nenner die Fläche einer Gitterzelle. Weil
-jede Zelle genau ein Gitterzentrum enthält, trifft der Kreis über alle Lagen
-gemittelt so viele Zentren, wie Zellflächen in seine Fläche passen; bei einer
-bestimmten Lage können es mehr oder weniger sein.
+Bei einer bestimmten Lage können es mehr oder weniger sein. Im Mittel wächst
+$Z$ quadratisch mit der Objektgröße und fällt quadratisch mit dem Stride. Wird
+der Stride von 8 auf 4 halbiert, liegen also viermal so viele Gitterpositionen
+im Objekt. Darin liegt der Nutzen der zusätzlichen P2-Ebene mit $S=4$, die in
+der Werkzeugkette ausdrücklich für kleine Objekte vorgesehen ist
+\parencite{ultralyticsdocs} (Abschnitt~\ref{sec:p2kopf}).
 
-Damit steigt die erwartete Zahl räumlicher Positionen quadratisch mit der
-Objektgröße und fällt quadratisch mit der Schrittweite. Eine Halbierung der
-Schrittweite von $S=8$ auf $S=4$ erhöht die erwartete Zahl von Gitterpositionen
-daher um den Faktor vier.
-
-Dies erklärt die Bedeutung einer zusätzlichen P2-Ebene für die vorliegende
-Aufgabe. Die P2-Ebene besitzt mit $S=4$ eine doppelt so hohe räumliche Auflösung
-wie P3 mit $S=8$. Nach der Dokumentation der Werkzeugkette ist P2 explizit als
-Small-Object-Detection-Head vorgesehen \parencite{ultralyticsdocs}; YOLO26
-kombiniert diese architektonische Möglichkeit zusätzlich mit STAL, das die
-positive Label-Abdeckung kleiner Objekte verbessern soll
-\parencite{jocher2026yolo26}.
-
-Die Geometrie des Gitters zeigt außerdem, dass die Existenz einer positiven
-Position nicht allein von der Objektgröße abhängt, sondern auch von der
-relativen Lage des Objekts zum Gitter. Ein Objekt kann daher selbst dann
-ungünstig repräsentiert sein, wenn seine Ausdehnung in der Größenordnung des
-Strides liegt.
-
-Für ein kreisförmiges Objekt der effektiven Größe $d_{\mathrm{eff}}$ kann der
-Abstand seines Mittelpunkts zum nächstgelegenen Gitterzentrum maximal
-$S/\sqrt{2}$ betragen. Ein Gitterzentrum liegt genau dann innerhalb des Kreises,
-wenn dieser Abstand kleiner als $d_{\mathrm{eff}}/2$ ist. Damit kann es in einer
-idealisierten Betrachtung bereits dann vorkommen, dass kein Gitterzentrum
-innerhalb des Objekts liegt, wenn
+Ob ein Objekt überhaupt ein Gitterzentrum enthält, hängt außerdem von seiner
+Lage ab. Am ungünstigsten ist es, wenn der Objektmittelpunkt genau in der Mitte
+zwischen vier Gitterzentren liegt. Sein Abstand zu jedem von ihnen beträgt dann
+$S/\sqrt{2}$, also die halbe Diagonale einer Zelle. Ist der Radius
+$d_{\mathrm{eff}}/2$ kleiner als dieser Abstand, liegt in dieser Lage kein
+einziges Zentrum im Objekt. Das kann also vorkommen, sobald
 \begin{equation}
   d_{\mathrm{eff}} < S\sqrt{2}.
   \label{eq:gridmiss}
 \end{equation}
+Diese kritische Größe ist keine harte Detektionsgrenze. Sie gibt nur an, ab
+wann eine Gitterposition im Objekt fehlen kann. Ob ein reales Modell ein solches
+Objekt tatsächlich übersieht, hängt zusätzlich davon ab, wie es Merkmale
+berechnet und Trainingspositionen zuweist; die Zuweisung bei sehr kleinen
+Objekten ist ein eigenes Forschungsthema \parencite{zhang2020atss,xu2022rfla}.
 
-Diese Beziehung stellt keine allgemeine Detektionsgrenze dar. Sie beschreibt
-lediglich die geometrische Möglichkeit einer fehlenden Gitterposition unter den
-genannten Annahmen. Ob ein reales YOLO-Modell ein solches Objekt tatsächlich
-nicht detektieren kann, hängt zusätzlich von Feature-Extraktion, Label
-Assignment, Regression und Inferenz ab; die Zuweisung bei sehr kleinen Objekten
-ist Gegenstand eigener Arbeiten \parencite{zhang2020atss,xu2022rfla}.
-
-Von der Gitterabtastung zu unterscheiden ist ein zweiter, unabhängiger Effekt
-der Objektgröße: die Empfindlichkeit der Bewertungsmetrik selbst. Wird eine
-quadratische Box der Kantenlänge $d$ um $\delta$ Pixel entlang einer Achse
-verschoben, so beträgt die Schnittfläche $(d-\delta)\,d$ und die Vereinigungsfläche
-$2d^{2}-(d-\delta)\,d$. Für die Überlappung folgt nach
-Gleichung~\eqref{eq:ioudef}
+Unabhängig vom Gitter macht eine geringe Objektgröße auch die Bewertung
+empfindlicher. Wird eine quadratische Box der Kantenlänge $d$ um $\delta$ Pixel
+entlang einer Achse verschoben, beträgt die Schnittfläche $(d-\delta)\,d$ und
+die Vereinigungsfläche $2d^{2}-(d-\delta)\,d$. Nach
+Gleichung~\eqref{eq:ioudef} folgt
 \begin{equation}
   \IoU
   =
@@ -432,92 +344,60 @@ Gleichung~\eqref{eq:ioudef}
   \frac{1-\delta/d}{1+\delta/d}.
   \label{eq:ioushift}
 \end{equation}
+Entscheidend ist also der relative Fehler $\delta/d$, nicht der absolute. Ein
+Versatz von 2\px{} entspricht etwa dem Unterschied zwischen Generatorlabel und
+Handannotation, der in Abschnitt~\ref{sec:boxversatz} gemessen wird. Er senkt
+die IoU bei einem 20\px{} großen Objekt auf 0,82, bei einem 200\px{} großen nur
+auf 0,98. Derselbe Pixelfehler kostet beim kleinen Objekt also etwa neunmal so
+viel IoU. Für einen Größenfehler gilt Ähnliches: Ist die Box zentriert, aber um
+$\delta$ zu klein, gilt $\IoU = (1-\delta/d)^{2}$, bei 20\px{} also 0,81. Für
+kleine $\delta/d$ sind beide Ausdrücke ungefähr gleich $1 - 2\delta/d$. Weil
+\mAPall{} über Schwellen bis 0,95 mittelt, schlagen deshalb schon wenige Pixel
+Lokalisierungsfehler bei kleinen Objekten deutlich auf die Kennzahl durch.
 
-Maßgeblich ist damit nicht der absolute Boxfehler, sondern das Verhältnis
-$\delta/d$. Für $\delta = 2$\px{} -- die Größenordnung des Versatzes, der in
-Abschnitt~\ref{sec:boxversatz} zwischen Generatorlabel und Handannotation
-gemessen wird -- liefert Gleichung~\eqref{eq:ioushift} bei einem $20$\px{}
-großen Objekt $\IoU = 0{,}82$, bei einem $200$\px{} großen dagegen $0{,}98$:
-Derselbe Fehler in Pixeln bewirkt beim kleinen Objekt eine rund neunfach
-größere Einbuße. Gleichung~\eqref{eq:ioushift} beschreibt eine Verschiebung;
-der gemessene Versatz ist dagegen ein Größen-, kein Positionsfehler. Für eine
-zentrierte Box, deren Kantenlänge um $\delta$ kleiner ist, gilt
-$\IoU = (1-\delta/d)^{2}$, beim $20$\px{} großen Objekt also $0{,}81$. In
-erster Ordnung stimmen beide Ausdrücke überein, $\IoU \approx 1 - 2\delta/d$,
-sodass die Aussage für beide Fehlerarten gilt. Da die üblichen
-Bewertungsschwellen bei $\IoU \geq 0{,}5$ ansetzen und mAP@0,5:0,95 über
-Schwellen bis $0{,}95$ mittelt, schlagen wenige Pixel Lokalisierungsfehler bei
-kleinen Objekten unmittelbar auf die berichtete Güte durch.
+Für die Trainingsdaten bedeutet das zweierlei. Erstens müssen die Labels sehr
+genau sein, denn bei Objekten von wenigen Dutzend Pixeln ist ein Labelfehler von
+ein bis zwei Pixeln bereits eine relevante Fehlerquelle (Anforderung~A1).
+Zweitens darf der Generator nicht systematisch Objekte erzeugen, die für die
+Eingabeauflösung und den feinsten Stride des Detektors zu klein sind. Die
+Größenverteilung im Training sollte die im Einsatz erwartete Verteilung
+abdecken. Das betrifft die Objektgrößen im Generator ebenso wie die
+Bildauflösung und die Skalierung im Training (Anforderung~A2).
 
-Für die Erzeugung von Trainingsdaten ist das der schärfere der beiden Befunde.
-Die Gitterabtastung betrifft die Frage, ob ein Objekt überhaupt eine positive
-Position erhält; die Metrikempfindlichkeit betrifft jede einzelne Box, die
-erzeugt wird. Bei Objektgrößen im Bereich weniger Dutzend Pixel ist eine
-Labelungenauigkeit von ein bis zwei Pixeln deshalb nicht vernachlässigbar,
-sondern eine relevante Fehlerquelle; darauf stützt sich die Anforderung an die
-Labelgenauigkeit (Abschnitt~\ref{sec:anforderungen}).
-
-Für die vorliegende Untersuchung folgt daraus eine praktische Konsequenz: Die
-Trainingsdaten dürfen nicht systematisch Objektgrößen erzeugen, die im Verhältnis
-zur gewählten Eingabeauflösung und zum feinsten Detektions-Stride nur
-unzureichend repräsentiert werden.
-
-Die Größenverteilung der Trainingsobjekte sollte daher die für die Inferenz
-relevante Größenverteilung hinreichend abdecken. Dies betrifft sowohl die
-Generierung der Objekte als auch die Wahl der Bildauflösung und der
-Skalierungsparameter.
-
-\absatz{Mehrbildverfahren und Mosaic.}\label{subsec:mosaic} Verfahren wie Mosaic kombinieren mehrere Trainingsbilder zu einer gemeinsamen
-Eingabe. Dadurch können unterschiedliche Szenen gleichzeitig in einem
-Trainingsbeispiel repräsentiert werden und die Varianz der Bildkomposition
-erhöht werden.
-
-Für die vorliegende Anwendung ist Mosaic jedoch ambivalent. Einerseits kann das
-Verfahren unterschiedliche Hintergründe, Objektpositionen und Objektanordnungen
-kombinieren. Andererseits verändert die Zusammensetzung mehrerer Bilder die
-effektive Objektgröße. Ein Objekt, das vor der Mosaic-Komposition eine bestimmte
-Pixelgröße besitzt, kann durch die anschließende Skalierung deutlich kleiner
-werden.
-
-Damit besteht insbesondere bei kleinen Zielobjekten ein Zielkonflikt:
-\[
-  \text{mehr Szenenvielfalt}
-  \quad\longleftrightarrow\quad
-  \text{geringere effektive Objektgröße}.
-\]
-
-Diese Wechselwirkung ist für die vorliegende Untersuchung relevant, da bereits
-die ursprüngliche Aufgabe durch sehr kleine Rohrprofile gekennzeichnet ist.
-Mosaic wird daher nicht isoliert als grundsätzlich vorteilhaft oder nachteilig
-betrachtet, sondern im Zusammenhang mit der resultierenden
-Objektgrößenverteilung.
+\absatz{Mehrbildverfahren und Mosaic.}\label{subsec:mosaic} Mosaic setzt
+mehrere Trainingsbilder zu einer Eingabe zusammen \parencite{bochkovskiy2020},
+sodass ein Trainingsbeispiel mehrere Hintergründe und Objektanordnungen zugleich
+enthält. Durch die anschließende Skalierung können die Objekte dabei aber
+deutlich kleiner werden. Bei Stirnflächen, die ohnehin nur wenige Pixel groß
+sind, steht mehr Szenenvielfalt also gegen eine geringere effektive
+Objektgröße. Ob Mosaic nützt, lässt sich deshalb nur zusammen mit der
+Größenverteilung beurteilen, die am Ende beim Netz ankommt
+(Abschnitt~\ref{sec:trainparam}).
 
 
 % ----------------------------------------------------------------------
 \section{Rein synthetische Trainingsdaten und Sim-to-Real}
 \label{sec:sim2real}
 
-Wenn nahezu der gesamte Trainingsdatensatz synthetisch erzeugt wird, verschiebt
-sich die zentrale Fragestellung von der klassischen Datenaugmentation zur
-Modellierung einer Trainingsdatenverteilung.
+Wird fast der gesamte Trainingsdatensatz synthetisch erzeugt, lernt das Modell
+auf einer anderen Verteilung als der, auf der es später arbeiten soll. Dieser
+Abschnitt beschreibt den Unterschied zwischen beiden Verteilungen formal und
+leitet daraus ab, worauf der Generator achten muss.
 
-Eine Domäne wird im Folgenden als Paar aus einer Verteilung über dem Eingaberaum
-und einer Beschriftungsfunktion verstanden. Sei entsprechend
-$\langle \Dom{S}^{X}, f_S\rangle$ die synthetische Quelldomäne und
-$\langle \Dom{T}^{X}, f_T\rangle$ die reale Zieldomäne über demselben
-Eingaberaum und derselben Aufgabe. Ein Modell $h\in\Hcls$ minimiert im Training
-den Fehler auf $\Dom{S}$, soll aber im späteren Einsatz auf $\Dom{T}$ gute
-Vorhersagen erzeugen.
+Eine \emph{Domäne} besteht im Folgenden aus einer Verteilung der Eingabebilder
+und einer Beschriftungsfunktion, die jedem Bild seine richtige Beschriftung
+zuordnet. Die synthetische Quelldomäne ist $\langle \Dom{S}^{X}, f_S\rangle$,
+die reale Zieldomäne $\langle \Dom{T}^{X}, f_T\rangle$. Im synthetischen Fall
+ist $f_S$ die Boxberechnung des Generators, im realen Fall entspricht $f_T$ der
+Handannotation. Ein Modell $h$ aus einer Hypothesenklasse $\Hcls$ wird auf
+$\Dom{S}$ trainiert, soll aber auf $\Dom{T}$ gute Vorhersagen machen. Das ist
+etwas anderes als die übliche Aufteilung in Trainings- und Validierungsdaten:
+Dort stammen beide Teile aus derselben Verteilung, hier werden die Daten von
+einem anderen Prozess erzeugt.
 
-Zu betonen ist ferner, dass ein Domänenwechsel eine andere Achse betrifft als
-die übliche Aufteilung in Trainings- und Validierungsmenge. Ein Split trennt
-zwei Stichproben derselben Verteilung; ein Domänenwechsel bedeutet, dass der
-datengenerierende Prozess selbst ein anderer ist.
-
-\absatz{Die Domänenadaptationsschranke als Ordnungsrahmen.}
-Für die binäre Klassifikation unter dem $0/1$-Verlust beschränkt die
-Domänenadaptationsschranke von \textcite{bendavid2010} den Zielfehler
-gleichmäßig für alle $h\in\Hcls$:
+\absatz{Die Schranke von Ben-David.} Für die binäre Klassifikation mit
+$0/1$-Verlust zeigen \textcite{bendavid2010}, dass für jedes Modell
+$h\in\Hcls$ gilt:
 \begin{equation}
   \epsilon_T(h)
   \;\leq\;
@@ -526,11 +406,14 @@ gleichmäßig für alle $h\in\Hcls$:
   \tfrac{1}{2}\,
   d_{\HdH}\bigl(\Dom{S}^{X},\,\Dom{T}^{X}\bigr)
   \;+\;
-  \lambda ,
+  \lambda .
   \label{eq:bendavid}
 \end{equation}
-mit dem Quellfehler $\epsilon_S$, dem Zielfehler $\epsilon_T$, der
-$\HdH$-Divergenz der beiden Eingabe-Randverteilungen
+Der Fehler $\epsilon_T(h)$ auf realen Bildern ist also höchstens so groß wie die
+Summe aus drei Termen. Der erste, $\epsilon_S(h)$, ist der Fehler auf
+synthetischen Bildern, also genau die Größe, die das Training klein macht. Der
+zweite misst, wie verschieden synthetische und reale Bilder aus Sicht der
+Modelle in $\Hcls$ sind. Die $\HdH$-Divergenz ist definiert als
 \[
   d_{\HdH}\bigl(\Dom{S}^{X},\,\Dom{T}^{X}\bigr)
   =
@@ -539,79 +422,63 @@ $\HdH$-Divergenz der beiden Eingabe-Randverteilungen
     \Pr_{x\sim\Dom{S}^{X}}\bigl[h(x)\neq h'(x)\bigr]
     -
     \Pr_{x\sim\Dom{T}^{X}}\bigl[h(x)\neq h'(x)\bigr]
-  \Bigr|
+  \Bigr| .
 \]
-und dem idealen gemeinsamen Fehler
-$\lambda = \min_{h'\in\Hcls}\bigl[\epsilon_S(h') + \epsilon_T(h')\bigr]$, den die
-beste gemeinsame Hypothese $h^{*}$ erreicht.
-Die Schranke macht drei Einflussgrößen sichtbar: wie gut das Modell die synthetische
-Domäne lernt, wie stark sich die Eingabeverteilungen beider Domänen
-unterscheiden, und ob in $\Hcls$ überhaupt eine Hypothese existiert, die beide
-gleichzeitig gut beschreibt.
+Sie wird also groß, wenn es in $\Hcls$ zwei Modelle gibt, die sich auf der
+einen Domäne viel häufiger widersprechen als auf der anderen. Anschaulich ist
+die Divergenz groß, wenn sich mit Modellen aus $\Hcls$ gut unterscheiden lässt,
+ob ein Bild synthetisch oder real ist. Der dritte Term
+$\lambda = \min_{h'\in\Hcls}\bigl[\epsilon_S(h') + \epsilon_T(h')\bigr]$ ist
+der gemeinsame Fehler des besten Modells $h^{*}$ für beide Domänen. Er ist
+groß, wenn es in $\Hcls$ kein Modell gibt, das beide Domänen zugleich richtig
+beschreibt, zum Beispiel weil Generator und Handannotation dasselbe Objekt
+unterschiedlich beschriften.
 
-Zwei Eigenschaften sind für das Folgende wesentlich. Der Divergenzterm ist
-ausschließlich über den \emph{Randverteilungen der Eingaben} definiert -- und
-bei synthetischen Trainingsdaten ist $\Dom{S}^{X}$ nicht vorgegeben, sondern
-durch den Generator \emph{konstruiert}; $p(t)$ ist genau der Freiheitsgrad, über
-den dieser Term beeinflusst wird. Merkmale, die der Generator in die Bilder
-einführt und die in der Realität fehlen (Tabelle~\ref{tab:signaturen}),
-verändern $\Dom{S}^{X}$ und gehören deshalb zum Divergenzterm; ihre
-Gegenmaßnahmen sind Teil von $p(t)$. $\lambda$ dagegen hängt von der
-Hypothesenklasse ab, ist ohne beschriftete Zieldaten nicht schätzbar, und
-Unterschiede zwischen den Beschriftungsfunktionen $f_S \neq f_T$ wirken sich
-\emph{ausschließlich} dort aus, in dieser Arbeit etwa die abweichende
-Boxkonvention von Generator und Handannotation (Abschnitt~\ref{sec:boxversatz}).
+Für den Generator ist vor allem der Divergenzterm wichtig. Er hängt nur von den
+Bildern ab, nicht von den Beschriftungen, und die synthetische Verteilung
+$\Dom{S}^{X}$ ist nicht vorgegeben, sondern wird über $p(t)$ vom Generator
+erzeugt. Jedes Merkmal, das der Generator in die Bilder bringt und das in
+realen Bildern fehlt, etwa eine harte Kante um ein eingefügtes Objekt
+(Tabelle~\ref{tab:signaturen}), kann deshalb die Divergenz vergrößern. Jede
+Gegenmaßnahme ist entsprechend Teil von $p(t)$. Unterschiede in der
+Beschriftung tauchen auf der rechten Seite der Schranke dagegen nur in
+$\lambda$ auf. In dieser Arbeit betrifft das vor allem die abweichende
+Boxkonvention von Generator und Handannotation
+(Abschnitt~\ref{sec:boxversatz}). Ohne beschriftete reale Daten lässt sich
+$\lambda$ nicht schätzen.
 
-\absatz{Übertragung auf die Detektion.} Gleichung~\eqref{eq:bendavid} setzt
-binäre Klassifikation unter dem $0/1$-Verlust voraus. Ihre Struktur überträgt
-sich auf Verluste, die symmetrisch sind und die Dreiecksungleichung erfüllen:
-An die Stelle von $\tfrac{1}{2}\,d_{\HdH}$ tritt dann die
-Discrepancy-Distanz, die für den $0/1$-Verlust mit ihr zusammenfällt, und
-$\lambda$ wird mit demselben Verlust gebildet
-\parencite{mansour2009discrepancy}. Die Größe $1-\IoU$ erfüllt diese
-Bedingungen: Sie ist als Jaccard-Distanz auf Boxen positiver Fläche eine Metrik
-\parencite{kosub2019jaccard} und liegt in $[0,1]$. Für ein
-Lokalisierungsproblem mit genau einem Objekt je Bild gilt damit eine Schranke
-derselben Form, deren Terme mit dem Verlust $1-\IoU$ gebildet sind. Für die
-Bewertung dieser Arbeit trägt die Übertragung dennoch nicht:
-mAP ist kein Erwartungswert eines Verlusts pro Bild, sondern wird über die nach
-Konfidenz geordneten Detektionen des gesamten Datensatzes gebildet, und auch die
-Zuordnung einer variablen Zahl von Vorhersagen zu Ground-Truth-Boxen liegt
-außerhalb des Rahmens. Gleichung~\eqref{eq:bendavid} wird deshalb \emph{nicht}
-als formale Garantie in Anspruch genommen, sondern als begrifflicher
-Ordnungsrahmen für die folgenden Entwurfsentscheidungen.
+\absatz{Übertragung auf die Detektion.} Die Schranke ist für binäre
+Klassifikation bewiesen. Für Verlustfunktionen, die symmetrisch sind und die
+Dreiecksungleichung erfüllen, gibt es eine Verallgemeinerung, in der die
+sogenannte Discrepancy-Distanz an die Stelle der Divergenz tritt
+\parencite{mansour2009discrepancy}. Dazu gehört auch der Verlust $1-\IoU$, der
+als Jaccard-Distanz eine Metrik ist \parencite{kosub2019jaccard}. Für die
+Lokalisierung genau eines Objekts pro Bild gilt also eine Schranke derselben
+Form. Die mAP passt aber nicht in diesen Rahmen. Sie ist kein Mittelwert eines
+Verlusts pro Bild, sondern wird aus den nach Konfidenz sortierten Detektionen
+des ganzen Datensatzes berechnet, und auch die Zuordnung einer variablen Zahl
+von Detektionen zu den annotierten Boxen ist nicht abgedeckt.
+Gleichung~\eqref{eq:bendavid} wird deshalb nicht als mathematische Garantie
+verwendet, sondern als Denkrahmen für die Entwurfsentscheidungen der Pipeline.
 
-Eine Folgerung trägt dieser Rahmen dennoch: $\lambda$ ist keine Eigenschaft der
-Domänen allein, sondern hängt auch von der Bewertung ab. Eine Box gelte als
-richtig, sobald ihre IoU zur Referenz mindestens $t_{\IoU}$ beträgt.
-Unterscheiden sich $f_S$ und $f_T$ um den in Abschnitt~\ref{sec:boxversatz}
-gemessenen Größenversatz von rund zwei Pixeln, so erreicht ein Modell, das $f_S$
-exakt reproduziert, an einem $20$\px{} großen Objekt gegenüber $f_T$ nur
-$\IoU \approx 0{,}81$ (Abschnitt~\ref{subsec:kleine-objekte}). Für $\lambda$
-zählt aber die beste gemeinsame Hypothese $h^{*}$, und sie kann eine Box
-mittlerer Größe vorhersagen, rund $19$ statt $18$ oder $20$\px, die zu beiden
-Beschriftungen $\IoU \approx 0{,}90$ erreicht. Derselbe Versatz erhöht
-$\lambda$ also nur unter strengen Schwellen, hier erst oberhalb von
-$t_{\IoU} \approx 0{,}9$: Bei $t_{\IoU} = 0{,}5$ ist er folgenlos, bei
-$t_{\IoU} = 0{,}95$ dagegen nicht. Diese Abhängigkeit gilt formal, denn
-$\lambda$ ist für jede Bewertung definiert. Nicht gesichert ist unter einer
-Schwellenbewertung dagegen die Schranke selbst, weil die Dreiecksungleichung
-nicht erfüllt ist. Im Beispiel wird sie für Schwellen zwischen etwa $0{,}81$ und
-$0{,}90$ sogar verletzt: Bei gleicher Eingabeverteilung und einem Modell $h$,
-das $f_S$ reproduziert, sind $\epsilon_S(h)$, der Divergenzterm und $\lambda$
-null, $\epsilon_T(h)$ aber nicht.
+Dass $\lambda$ nicht nur von den Domänen, sondern auch von der Bewertung
+abhängt, zeigt ein einfaches Beispiel. Der Größenversatz von rund zwei Pixeln
+zwischen Generatorlabel und Handannotation (Abschnitt~\ref{sec:boxversatz})
+senkt die IoU bei einem 20\px{} großen Objekt auf etwa 0,81
+(Abschnitt~\ref{subsec:kleine-objekte}). Zählt eine Box ab einer IoU von 0,5
+als Treffer, bleibt der Versatz folgenlos. Bei einer Schwelle von 0,95 kann
+dagegen keine Box beide Beschriftungen zugleich treffen, und $\lambda$ steigt.
 
-\absatz{Sim-to-Real-Abstand.} Ausgewertet wird stattdessen die auf
-beschrifteten Realdaten gemessene Differenz
-$\Delta_{\mathrm{SR}} = \epsilon_T(h) - \epsilon_S(h)$. Beschriftete reale Daten
-sind dafür ausdrücklich nur in der Evaluation erforderlich, nicht im Training.
-In Kapitel~\ref{kap:auswertung} wird $\epsilon_S$ auf einem eigenen
-synthetischen Split geschätzt, der weder im Training noch bei der Modellauswahl
-verwendet wird (\code{sval}, Abschnitt~\ref{sec:simtoreal}). Beide Fehler werden
-dort als $\epsilon = 1 - \text{\mAPfifty}$ operationalisiert;
-$\Delta_{\mathrm{SR}}$ gibt also an, um wie viel \mAPfifty{} auf einem realen
-Split unter dem Wert auf \code{sval} liegt. Aus Gleichung~\eqref{eq:bendavid}
-folgt unmittelbar
+\absatz{Sim-to-Real-Abstand.} Messen lässt sich der Unterschied
+$\Delta_{\mathrm{SR}} = \epsilon_T(h) - \epsilon_S(h)$ zwischen dem Fehler auf
+realen und auf synthetischen Bildern. Beschriftete reale Bilder werden dafür
+nur zur Auswertung gebraucht, nicht zum Training. In
+Kapitel~\ref{kap:auswertung} wird $\epsilon_S$ auf einem eigenen synthetischen
+Split geschätzt, der weder im Training noch bei der Modellauswahl verwendet
+wird (\code{sval}, Abschnitt~\ref{sec:simtoreal}). Als Fehler dient dort
+$\epsilon = 1 - \text{\mAPfifty}$. Der Abstand gibt also an, um wie viel
+\mAPfifty{} auf einem realen Bild niedriger ist als auf \code{sval}. Durch
+Umstellen von Gleichung~\eqref{eq:bendavid} ergibt sich
 \begin{equation}
   \Delta_{\mathrm{SR}}
   \;\leq\;
@@ -620,123 +487,108 @@ folgt unmittelbar
   + \lambda .
   \label{eq:gap-bound}
 \end{equation}
-Für den in \mAPfifty{} gemessenen Abstand ist die Ungleichung aus dem oben
-genannten Grund nicht bewiesen, sondern dient nur als Ordnungsrahmen.
+Für einen in \mAPfifty{} gemessenen Abstand ist diese Ungleichung aus den
+genannten Gründen nicht bewiesen; sie dient nur der Einordnung.
 
-Diese Beziehung ist \emph{einseitig}, und die Richtung entscheidet über die
-Interpretation. Stimmen beide Domänen in Eingabeverteilung und
-Beschriftungsfunktion überein, sind beide Risiken identisch. Ein Abstand, der
-über die Stichprobenunsicherheit hinausgeht, belegt daher, dass synthetische und
-reale Domäne nicht übereinstimmen -- sei es in der Eingabeverteilung oder in der
-Beschriftungsfunktion. Der umgekehrte Schluss ist nicht zulässig: Ein kleiner
-Abstand erlaubt keinen Rückschluss auf eine geringe Divergenz, da die Schranke
-beliebig locker sein kann und sich die beiden Terme gegenseitig kompensieren
-können. $\Delta_{\mathrm{SR}}$ ist folglich kein Maß der Verteilungsdivergenz,
-sondern gerichtete Evidenz für Domänenungleichheit. Auch ein sehr niedriger
-synthetischer Fehler bei großem Abstand zeigt nur, dass die Summe aus Divergenzterm
-und $\lambda$ groß ist, aber nicht, welcher der beiden Terme dafür verantwortlich
-ist. In Kapitel~\ref{kap:auswertung} lassen sich beide ihrer Wirkung nach
-plausibel zuordnen, ohne dass einer von ihnen gemessen würde: Die abweichende
-Boxkonvention ($\lambda$) verschiebt vor allem die strengen IoU-Schwellen
-(Abschnitt~\ref{sec:boxversatz}), die fehlende Einbettung (Divergenzterm) kostet
-schon bei \mAPfifty{} Rückruf (Abschnitt~\ref{sec:ablationC}). Alle dort
-berichteten Werte werden auf endlichen Testmengen berechnet und sind damit
-selbst Schätzungen; ihre Stichprobenunsicherheit weist
-Abschnitt~\ref{sec:bootstrap} über Konfidenzintervalle aus.
+Aus ihr lässt sich nur in eine Richtung schließen. Sind beide Domänen gleich,
+in den Bildern wie in den Beschriftungen, dann ist der Abstand bis auf
+Messrauschen null. Ein Abstand, der deutlich über die Messunsicherheit
+hinausgeht, zeigt deshalb, dass sich die Domänen unterscheiden. Ein kleiner
+Abstand beweist umgekehrt nicht, dass die Domänen ähnlich sind, denn die rechte
+Seite ist nur eine obere Grenze und kann weit über dem tatsächlichen Abstand
+liegen. Der Abstand kann also zeigen, dass ein Unterschied besteht, aber nicht,
+wie groß er ist. Er verrät auch nicht, ob der Unterschied in den Bildern
+(Divergenzterm) oder in den Beschriftungen ($\lambda$) liegt. In
+Kapitel~\ref{kap:auswertung} lassen sich beide Ursachen aber ihrer Wirkung nach
+plausibel zuordnen, auch wenn keiner der Terme gemessen wird: Die abweichende
+Boxkonvention betrifft vor allem die strengen IoU-Schwellen
+(Abschnitt~\ref{sec:boxversatz}), die fehlende Einbettung kostet schon bei
+\mAPfifty{} Rückruf (Abschnitt~\ref{sec:ablationC}). Da alle Fehler an endlich
+vielen Testobjekten gemessen werden, sind sie selbst Schätzungen; ihre
+Unsicherheit gibt Abschnitt~\ref{sec:bootstrap} mit Konfidenzintervallen an.
 
-\absatz{Domain Randomization.} Eine verbreitete Strategie gegen einen großen
-Sim-to-Real-Abstand besteht darin, die synthetische Domäne absichtlich über die
-erwartete reale Variation hinaus zu erweitern. Bei Domain Randomization werden
-Parameter des Generators zufällig variiert, sodass das Modell nicht auf eine
-einzige, eng definierte Erscheinungsform angewiesen ist \parencite{tobin2017}.
-Eine strukturierte Variante beschränkt die Randomisierung dabei auf physikalisch
-plausible Parameterbereiche \parencite{prakash2019} -- die Richtung, der auch
-Anforderung~A3 folgt.
+\absatz{Domain Randomization.} Ein verbreiteter Ansatz gegen einen großen
+Sim-to-Real-Abstand ist Domain Randomization. Die Parameter des Generators
+werden dabei absichtlich stärker variiert, als es in der Realität zu erwarten
+ist, damit sich das Modell nicht auf eine einzige Erscheinungsform verlässt
+\parencite{tobin2017}. Die strukturierte Variante beschränkt die Variation auf
+physikalisch plausible Bereiche \parencite{prakash2019}; dieser Richtung folgt
+auch Anforderung~A3. In dieser Arbeit werden Position, Orientierung und Größe
+der Objekte, der Hintergrund, Helligkeit und Kontrast, Rauschen, Unschärfe,
+Kompression und Verdeckung zufällig variiert. Tabelle~\ref{tab:parameter} im
+Anhang nennt für jeden dieser Parameter den Bereich und den gemessenen Anteil.
 
-Randomisiert werden in dieser Arbeit Objektposition und -orientierung,
-Objektgröße, Hintergrund, Helligkeit und Kontrast, Rauschen, Unschärfe,
-Kompression und Verdeckung; Tabelle~\ref{tab:parameter} im Anhang führt jeden
-dieser Parameter mit Bereich und gemessenem Ist-Anteil auf.
-
-Im Rahmen von Gleichung~\eqref{eq:bendavid} ist diese Strategie differenzierter
-zu deuten, als es die Vorstellung einer bloßen Verbreiterung nahelegt. Die
-$\HdH$-Divergenz misst Unterschiede der Wahrscheinlichkeitsmasse, nicht die
-Abdeckung des Trägers. Für jeden Bereich $A = \{x : h(x) \neq h'(x)\}$, auf dem
-zwei Hypothesen aus $\Hcls$ uneinig sind, folgt unmittelbar aus der Definition
-von $d_{\HdH}$
+Mit der Schranke lässt sich genauer sagen, wann eine breitere Variation hilft.
+Die Divergenz vergleicht, wie viel Wahrscheinlichkeitsmasse die beiden
+Verteilungen auf dieselben Bildbereiche legen. Es reicht also nicht, dass der
+Generator realistische Bilder überhaupt erzeugen kann; es kommt auch darauf an,
+wie häufig er es tut. Direkt aus der Definition folgt: Ist
+$A = \{x : h(x) \neq h'(x)\}$ der Bereich, auf dem sich zwei Modelle aus
+$\Hcls$ widersprechen, dann gilt
 \begin{equation}
   d_{\HdH}\bigl(\Dom{S}^{X},\,\Dom{T}^{X}\bigr)
   \;\geq\;
   2\bigl(P_T(A) - P_S(A)\bigr),
   \label{eq:massenschranke}
 \end{equation}
-mit $P_S(A) = \Pr_{x\sim\Dom{S}^{X}}[x \in A]$ und $P_T(A)$ entsprechend.
-Lässt sich der Bereich, in dem reale Bilder liegen, durch ein solches $A$
-hinreichend genau erfassen, ist $P_T(A) \approx 1$, und jede Masse, die der
-Generator außerhalb davon verteilt, fehlt innerhalb davon: Der Divergenzterm
-$\tfrac{1}{2}\,d_{\HdH}$ beträgt dann mindestens etwa $1 - P_S(A)$, die Masse
-außerhalb. Randomisierung kann diese Untergrenze nur senken, soweit sie Masse
-dorthin verschiebt, wo die reale Domäne tatsächlich liegt; über deren Variation
-hinaus fortgesetzt, hebt sie die Untergrenze wieder an. Ihr Nutzen ist vor allem
-eine Absicherung: Da $\Dom{T}^{X}$ nur unvollständig bekannt ist (worauf auch
-Anforderung~A6 beruht), verhindert eine plausible Verbreiterung, dass die
-Quelldomäne den realen Bereich verfehlt -- um den Preis, dass der Term nicht
-beliebig klein werden kann. Diese Lesart stützt
-die strukturierte Variante und das Prinzip aus
-Abschnitt~\ref{sec:aug-formalisierung}. Beispiele, die bewusst außerhalb des
-realen Bereichs liegen, lassen sich mit der Schranke folglich nicht begründen;
-ihr möglicher Nutzen liegt darin, welche Hypothese das Training auswählt, und
-darüber macht die Schranke keine Aussage (siehe den Absatz zum Shortcut
-Learning).
+wobei $P_S(A)$ und $P_T(A)$ die Wahrscheinlichkeiten sind, dass ein
+synthetisches bzw.\ reales Bild in $A$ liegt. Angenommen, ein solcher Bereich
+$A$ umfasst fast alle realen Bilder, also $P_T(A) \approx 1$. Dann ist der
+Divergenzterm $\tfrac{1}{2}\,d_{\HdH}$ mindestens ungefähr so groß wie der
+Anteil $1 - P_S(A)$ der synthetischen Bilder, die außerhalb dieses Bereichs
+liegen. Jedes synthetische Bild, das so in der Realität nicht vorkommt, fehlt
+also dort, wo die realen Bilder liegen.
 
-Hinzu kommt ein zweiter Zielkonflikt: Eine deutlich breitere Quelldomäne
-verlangt von $\Hcls$, auf einem größeren Bereich des Eingaberaums gleichzeitig
-niedrige Fehler zu erzielen, und kann damit sowohl $\epsilon_S(h)$ als auch
-$\lambda$ erhöhen. Die drei Terme sind folglich nicht unabhängig voneinander
-optimierbar, was die Notwendigkeit einer experimentellen Bestimmung der
-Randomisierungsstärke begründet.
+Randomisierung senkt diese Untergrenze deshalb nur, solange sie Masse dorthin
+verschiebt, wo tatsächlich reale Bilder liegen. Geht sie über die reale
+Variation hinaus, steigt die Untergrenze wieder. Ihr Nutzen ist vor allem eine
+Absicherung: Weil die reale Verteilung nur unvollständig bekannt ist
+(Anforderung~A6), verhindert eine plausible Verbreiterung, dass die
+synthetische Verteilung den realen Bereich verfehlt. Der Preis ist, dass der
+Divergenzterm nicht beliebig klein werden kann. Das spricht für die
+strukturierte Variante und für das Prinzip aus
+Abschnitt~\ref{sec:aug-formalisierung}. Bewusst unrealistische Beispiele lassen
+sich mit der Schranke dagegen nicht begründen. Wenn sie nützen, dann dadurch,
+dass sie beeinflussen, welches Modell das Training auswählt, und darüber macht
+die Schranke keine Aussage (siehe den Absatz zum Shortcut Learning).
 
-Domain Randomization löst darüber hinaus nicht automatisch das Problem
-systematischer Unterschiede zwischen synthetischen und realen Bildern. Wenn eine
-bestimmte Eigenschaft in sämtlichen synthetischen Bildern auftritt, bleibt sie
-trotz zufälliger Variation anderer Parameter eine mögliche Abkürzung für das
-Modell.
+Dazu kommt ein zweiter Zielkonflikt. Je breiter die synthetische Verteilung
+ist, desto größer ist der Bereich, auf dem ein Modell aus $\Hcls$ zugleich gut
+sein muss. Das kann sowohl $\epsilon_S(h)$ als auch $\lambda$ erhöhen. Die drei
+Terme lassen sich also nicht unabhängig voneinander verkleinern, und wie stark
+randomisiert werden sollte, muss letztlich das Experiment zeigen.
 
-\absatz{Shortcut Learning.} Ein Modell kann für eine Aufgabe relevante Vorhersagen über Merkmale treffen,
-die zwar im Trainingsdatensatz korreliert, aber nicht kausal oder stabil mit der
-Zielklasse verbunden sind. Dieses Verhalten wird als Shortcut Learning
-bezeichnet \parencite{geirhos2020}.
+\absatz{Shortcut Learning.} Ein Modell kann seine Vorhersagen auf Merkmale
+stützen, die im Trainingsdatensatz mit der Zielklasse zusammenhängen, sie aber
+nicht wirklich ausmachen. Dieses Verhalten heißt Shortcut Learning
+\parencite{geirhos2020}. Bei synthetischen Daten ist das Risiko besonders groß,
+weil technische Eigenheiten des Generators in jedem Bild wiederkehren können,
+etwa harte Objektkanten, immer gleiche Schatten oder typische Farbübergänge.
+Ein Modell kann solche Merkmale nutzen, obwohl es sie in realen Bildern nicht
+gibt.
 
-Für eine synthetische Datengenerierung entsteht ein besonderes Risiko, da
-technische Eigenschaften des Generators systematisch wiederkehren können.
-Beispielsweise können harte Objektkanten, identische Schattenmuster oder
-charakteristische Farbübergänge in allen synthetischen Bildern auftreten. Ein
-Modell kann solche Merkmale nutzen, obwohl sie in realen Bildern nicht vorhanden
-sind. In der Terminologie von Gleichung~\eqref{eq:bendavid} ist das ein Beitrag
-zum Divergenzterm, nicht zu $\lambda$: Eine Hypothese, die auf die harte
-Objektkante reagiert, und eine, die die Stirnfläche selbst erkennt, stimmen auf
-synthetischen Bildern überein und widersprechen sich auf realen, und genau
-solche Paare machen $d_{\HdH}$ groß. $\lambda$ bleibt klein, weil die zweite in
-beiden Domänen richtig liegt; die Schranke sagt nur nicht, welche der beiden das
-Training auswählt.
+Im Sinne von Gleichung~\eqref{eq:bendavid} vergrößert ein solches Merkmal den
+Divergenzterm und nicht $\lambda$. Man stelle sich zwei Detektoren vor: Der eine
+reagiert auf die harte Kante um ein eingefügtes Objekt, der andere erkennt die
+Stirnfläche selbst. Auf synthetischen Bildern finden beide dieselben Objekte,
+auf realen Bildern liegt der erste daneben. Genau solche Modellpaare machen
+$d_{\HdH}$ groß. $\lambda$ bleibt dagegen klein, weil der zweite Detektor in
+beiden Domänen richtig liegt. Welchen der beiden das Training auswählt, sagt
+die Schranke allerdings nicht.
 
-Dabei muss zwischen zufälliger Variation und systematischem Bias unterschieden
-werden. Zufällige Variation kann die Vielfalt der beobachteten Beispiele
-erhöhen. Ein systematischer Fehler, der in allen synthetischen Bildern vorhanden
-ist, wird dagegen durch zusätzliche Ziehungen aus derselben fehlerhaften
-Verteilung nicht beseitigt.
+Mehr Zufallsvariation hilft gegen einen solchen Fehler nicht. Steckt ein
+Merkmal in jedem synthetischen Bild, wird es durch weitere Ziehungen aus
+derselben Verteilung nicht seltener. Die Qualität synthetischer Daten hängt
+deshalb nicht nur davon ab, wie vielfältig die Bilder sind, sondern auch davon,
+welche gleichbleibenden Spuren der Generator selbst hinterlässt.
 
-Dies ist für die vorliegende Arbeit besonders relevant: Die Qualität der
-synthetischen Daten hängt nicht nur davon ab, wie viele verschiedene Bilder
-erzeugt werden, sondern auch davon, welche konstanten visuellen Signaturen der
-Generator selbst einführt.
-
-\absatz{Synthetische Signaturen.} Für die verwendete Pipeline werden sechs potenzielle Quellen systematischer
-Unterschiede zwischen synthetischen und realen Bildern betrachtet. Dass sich
-eingefügte Bildbereiche anhand statistischer und lokaler Spuren überhaupt von
-ihrer Umgebung unterscheiden lassen, ist Gegenstand der Bildforensik
-\parencite{farid2009}; die dort untersuchten Merkmale sind zugleich diejenigen,
-die ein Faltungsnetz als Abkürzung verwenden kann.
+\absatz{Synthetische Signaturen.} Für die Pipeline werden sechs mögliche
+Quellen solcher systematischen Unterschiede betrachtet
+(Tabelle~\ref{tab:signaturen}). Dass sich eingefügte Bildbereiche an
+statistischen Spuren von ihrer Umgebung unterscheiden lassen, ist aus der
+Bildforensik bekannt \parencite{farid2009}. Die Merkmale, an denen dort
+Bildmanipulationen erkannt werden, kann auch ein Faltungsnetz als Abkürzung
+nutzen.
 
 \begin{table}[htbp]
   \centering
@@ -767,85 +619,67 @@ die ein Faltungsnetz als Abkürzung verwenden kann.
   \end{tabularx}
 \end{table}
 
-Tabelle~\ref{tab:signaturen} stellt keine vollständige Beschreibung aller
-möglichen Domain-Gap-Ursachen dar. Sie definiert vielmehr die sechs Signaturen,
-die für die in dieser Arbeit entwickelte Pipeline als besonders relevant
-betrachtet und experimentell untersucht werden.
+Die Liste ist nicht vollständig. Sie enthält die Unterschiede, die für diese
+Pipeline am wichtigsten erscheinen und deren Gegenmaßnahmen in
+Kapitel~\ref{kap:auswertung} experimentell geprüft werden.
 
-\absatz{Verdeckung als Domäneneigenschaft.} Bei den untersuchten Rohrprofilen ist Verdeckung ein normaler Bestandteil der
-Zielszene. Ein Rohrende kann teilweise durch davorliegende Profile, das Gitter
-oder andere Bildelemente verdeckt werden.
-
-Daraus ergibt sich ein Unterschied zu klassischen Verfahren wie Cutout oder
-Random Erasing. Dort wird Verdeckung primär als künstliche Störung eingesetzt. Im
-vorliegenden Fall soll dagegen die reale Ursache der Verdeckung nachgebildet
-werden.
-
-Die Qualität eines Okkluders besitzt deshalb zwei Dimensionen:
-\begin{enumerate}[label=\arabic*.,itemsep=2pt]
-  \item \textbf{geometrische Wirkung:} Wie viel des Zielobjekts wird verdeckt?
-  \item \textbf{visuelle Plausibilität:} Wie ähnlich ist der Okkluder einem
-        tatsächlich vor dem Objekt liegenden Profilelement?
-\end{enumerate}
-
-Insbesondere die zweite Dimension kann relevant werden, wenn das Modell nicht
-nur das sichtbare Rohrende, sondern auch die charakteristischen visuellen
-Übergänge zwischen Objekt und Okkluder als Erkennungsmerkmal verwendet.
-
-Ein künstlich erzeugter Okkluder kann dadurch selbst zu einer unerwünschten
-Trainingssignatur werden. Werden beispielsweise alle Verdeckungen mit identischen
-Kanten, Farben oder Schatten erzeugt, könnte das Modell lernen, diese künstlichen
-Muster mit der Zielklasse zu verbinden.
-
-Die Hypothese dieser Arbeit lautet daher, dass nicht allein die Menge der
-Verdeckung, sondern auch deren visuelle Realistik die Übertragbarkeit auf reale
-Bilder beeinflusst. Diese Hypothese wird in der späteren Ablation experimentell
-überprüft.
+\absatz{Verdeckung als Domäneneigenschaft.} Wie in
+Abschnitt~\ref{sec:aug-verfahren} beschrieben, soll die Pipeline die reale
+Ursache der Verdeckung nachbilden, statt zufällige Bildbereiche zu löschen. Ein
+Verdecker muss dafür zwei Dinge leisten. Er muss den richtigen Teil des Objekts
+abdecken (geometrische Wirkung), und er muss aussehen wie ein echtes Rohr, das
+vor dem Objekt liegt (visuelle Plausibilität). Die zweite Eigenschaft wird
+wichtig, wenn das Modell nicht nur das sichtbare Rohrende, sondern auch den
+Übergang zwischen Objekt und Verdecker als Merkmal nutzt. Haben alle
+künstlichen Verdecker dieselben Kanten, Farben oder Schatten, kann das Modell
+genau diese Muster mit der Zielklasse verbinden, und der Verdecker wird selbst
+zur Signatur. Diese Arbeit vermutet deshalb, dass nicht nur die Menge der
+Verdeckung, sondern auch ihr Realismus die Übertragung auf reale Bilder
+beeinflusst. Ablation~B prüft diese Vermutung (Abschnitt~\ref{sec:ablationB}).
 
 % ----------------------------------------------------------------------
 \section{Anforderungen an die Datengenerierungspipeline}
 \label{sec:anforderungen}
 
-Aus den vorangegangenen Überlegungen ergeben sich sechs Anforderungen an die in
-dieser Arbeit entwickelte Pipeline.
+Aus den Überlegungen dieses Kapitels ergeben sich sechs Anforderungen an die
+Pipeline.
 
 \begin{description}[leftmargin=0pt,labelsep=0.5em,itemsep=3pt,
                     font=\normalfont\bfseries]
-  \item[A1 -- Labelgenauigkeit.] Geometrische Transformationen müssen mit
-  möglichst geringer Abweichung zwischen Objekt und Bounding Box umgesetzt
-  werden; insbesondere darf keine zusätzliche Labelungenauigkeit entstehen, wo
-  die Objektgeometrie im Generator bekannt ist.
+  \item[A1 -- Labelgenauigkeit.] Auch nach geometrischen Transformationen muss
+  die Box das Objekt möglichst genau umschließen. Wo der Generator die
+  Objektform kennt, darf keine zusätzliche Ungenauigkeit entstehen.
 
-  \item[A2 -- Kalibrierte Objektgrößen.] Die erzeugte Größenverteilung muss die
-  für die reale Inferenz relevante abdecken, ohne durch Skalierung systematisch
-  Objekte zu erzeugen, deren effektive Größe im Verhältnis zu Eingabeauflösung
-  und feinstem Detektions-Stride zu klein ist.
+  \item[A2 -- Kalibrierte Objektgrößen.] Die erzeugten Objektgrößen müssen den
+  Bereich abdecken, der im Einsatz vorkommt. Dabei dürfen durch Skalierung
+  nicht systematisch Objekte entstehen, die für Eingabeauflösung und feinsten
+  Stride des Detektors zu klein sind.
 
   \item[A3 -- Physikalisch plausible Größenabhängigkeiten.] Parameter, die in
-  der realen Szene voneinander abhängen, dürfen nicht unabhängig randomisiert
-  werden -- Objektgröße, perspektivische Darstellung und die Größe gemeinsam
-  auftretender Instanzen sind konsistent zu behandeln.
+  der realen Szene zusammenhängen, dürfen nicht unabhängig voneinander gezogen
+  werden. Das betrifft vor allem die Objektgröße, die perspektivische
+  Darstellung und die Größe benachbarter Objekte.
 
   \item[A4 -- Kontrolle synthetischer Signaturen.] Für jede der Signaturen
-  S1--S6 muss eine Gegenmaßnahme vorgesehen und ihre Wirksamkeit, soweit der
-  Validierungsdatensatz das zulässt, experimentell geprüft werden.
+  S1--S6 ist eine Gegenmaßnahme vorzusehen. Ihre Wirksamkeit ist experimentell
+  zu prüfen, soweit die realen Bewertungsdaten das zulassen.
 
   \item[A5 -- Kontrollierbare Variation.] Die Verteilung $p(t)$ der
-  Generatorparameter muss explizit dokumentiert und reproduzierbar sein und eine
-  begründete Approximation der erwarteten Variation der Zieldomäne bilden.
+  Generatorparameter muss vollständig dokumentiert und reproduzierbar sein. Für
+  jede Transformation ist anzugeben, wie oft und wie stark sie wirkt, und
+  beides ist mit Blick auf die erwartete Variation der Zieldomäne zu begründen.
 
   \item[A6 -- Trennung von Annahme und Messung.] Eigenschaften der realen
-  Domäne, die nicht gemessen werden können, sind als Annahmen zu kennzeichnen;
-  Parameter, die allein auf einer Plausibilitätsüberlegung beruhen, dürfen nicht
-  als empirisch validiert dargestellt werden.
+  Domäne, die sich nicht messen lassen, werden als Annahmen gekennzeichnet.
+  Parameter, die nur auf einer Plausibilitätsüberlegung beruhen, dürfen nicht
+  als empirisch geprüft dargestellt werden.
 \end{description}
 
-Die theoretische Analyse bestimmt damit nicht die optimale Augmentierung a
-priori. Sie definiert die Eigenschaften, die eine geeignete Pipeline erfüllen
-sollte, und trennt so drei Ebenen der Untersuchung: theoretische Anforderungen,
-synthetische Datengenerierung, experimentelle Validierung. Ob die abgeleiteten
-Entscheidungen tatsächlich zu einer besseren Übertragung auf reale Bilder
-führen, wird in Kapitel~\ref{kap:auswertung} empirisch untersucht.
+Die Anforderungen legen nicht fest, welche Augmentierung optimal ist. Sie
+beschreiben, welche Eigenschaften eine geeignete Pipeline haben sollte.
+Kapitel~\ref{kap:pipeline} zeigt, wie die Pipeline sie umsetzt, und
+Kapitel~\ref{kap:auswertung} prüft, ob die Entscheidungen die Übertragung auf
+reale Bilder tatsächlich verbessern.
 
 
 %\end{document}
