@@ -22,10 +22,9 @@
 \label{sec:trainingsaufbau}
 
 \absatz{Datenaufteilung.} Trainiert wird auf synthetischen Bildern, validiert
-auf dem \emph{realen} \code{val}-Bild (98 Objekte). Das ist eine bewusste
-Entscheidung: Die Modellauswahl muss auf der Zieldomäne erfolgen; andernfalls
-fiele die Wahl auf das Modell, das am besten zu den eigenen Renderartefakten
-passt. \code{test}
+auf dem \emph{realen} \code{val}-Bild (98 Objekte). Das ist Absicht: Die
+Modellauswahl muss auf der Zieldomäne erfolgen, sonst fiele die Wahl auf das
+Modell, das am besten zu den eigenen Renderartefakten passt. \code{test}
 (89 Objekte) berührt Training und Modellauswahl nie und dient ausschließlich der
 Endbewertung. Ein vierter Split \code{sval} aus 400 synthetischen Bildern mit
 anderem Seed dient allein der Messung des Sim-to-Real-Abstands
@@ -71,122 +70,114 @@ die Läufe von der momentanen Fremdlast abhängig und damit unvergleichbar
 
 \absatz{Modellwahl.} Durchgängig verwendet wird \code{yolo26s-p2} mit
 9,66~Millionen Parametern. Die \emph{Größe} \enquote{s} folgt aus der Datenlage:
-Der Datensatz hat eine Klasse und nur neun zugrunde liegende Objektinstanzen, die
-Formvielfalt ist klein, die nötige Modellkapazität damit ebenfalls; die
-\enquote{nano}-Variante verliert bei 12--40\px{} großen Objekten Rückruf, größere
-Varianten würden die synthetischen Eigenheiten eher memorieren
-\parencite{zhang2017rethinking}. Der \emph{P2-Kopf}
-folgt aus der Auflösungsrechnung in Abschnitt~\ref{sec:p2kopf}: Er senkt die
-Schrittweite der feinsten Detektionsebene von 8 auf 4 und damit die in
-Gleichung~\eqref{eq:gridmiss} beschriebene kritische Größe $S\sqrt{2}$ von 11,3
-auf 5,7\px{} -- bei nativem Maßstab damit unter alle in \code{val} und
-\code{test} auftretenden Objektgrößen. Er kostet dabei keine Parameter -- die \code{-p2}-Variante hat
-sogar 2,9\,\% weniger als das Basismodell --, sondern Speicher.
+Der Datensatz hat nur eine Klasse und neun zugrunde liegende Objektinstanzen,
+die Formvielfalt und damit die nötige Modellkapazität sind also klein. Die
+\enquote{nano}-Variante verliert bei 12--40\px{} großen Objekten Rückruf,
+größere Varianten würden die synthetischen Eigenheiten eher auswendig lernen
+\parencite{zhang2017rethinking}. Der \emph{P2-Kopf} folgt aus der
+Auflösungsrechnung in Abschnitt~\ref{sec:p2kopf}. Er halbiert den Stride der
+feinsten Detektionsebene von 8 auf 4 und senkt damit die kritische Größe
+$S\sqrt{2}$ aus Gleichung~\eqref{eq:gridmiss} von 11,3 auf 5,7\px. Beim nativen
+Maßstab liegt sie damit unter allen Objektgrößen in \code{val} und \code{test}.
+Parameter kostet der P2-Kopf nicht, die \code{-p2}-Variante hat sogar 2,9\,\%
+weniger als das Basismodell; teurer wird nur der Speicher.
 
-Ausgangspunkt sind COCO-vortrainierte Gewichte: Die vortrainierten
-Low-Level-Filter sind domänenunabhängig \parencite{yosinski2014}, und
-\textcite{hinterstoisser2018} zeigen den Nutzen explizit für synthetische
-Trainingsdaten. Weil die \code{-p2}-Variante über eine Architekturdatei und nicht
-über einen fertigen Checkpoint definiert ist, werden die Gewichte nur
-\emph{partiell} übernommen; die zusätzlichen Blöcke der P2-Ebene sind zufällig
-initialisiert.
+Ausgangspunkt sind COCO-vortrainierte Gewichte. Die vortrainierten Filter der
+ersten Schichten sind weitgehend domänenunabhängig \parencite{yosinski2014},
+und \textcite{hinterstoisser2018} zeigen den Nutzen ausdrücklich für
+synthetische Trainingsdaten. Weil die \code{-p2}-Variante über eine
+Architekturdatei und nicht über einen fertigen Checkpoint definiert ist, werden
+die Gewichte nur \emph{teilweise} übernommen; die zusätzlichen Blöcke der
+P2-Ebene werden zufällig initialisiert.
 
 \absatz{Modellauswahl.} Gespeichert wird der Checkpoint mit der höchsten
-Fitness auf dem realen \code{val}-Bild. Die Werkzeugkette bildet die Fitness als
-gewichtete Summe der beiden Hauptmetriken,
-\begin{equation}
-  F = w_{50}\,\mAPfifty + w_{\text{all}}\,\mAPall ,
-  \qquad w_{50} + w_{\text{all}} = 1 ,
-  \label{eq:fitness}
-\end{equation}
-und setzt dafür in der verwendeten Version~8.4.117 unverändert $w_{50} = 0$ und
-$w_{\text{all}} = 1$, wählt also allein nach \mAPall{} (\code{Metric.fitness} in
-\code{ultralytics/utils/metrics.py}). Ältere Versionen gewichteten mit
-$w_{50} = 0{,}1$ und $w_{\text{all}} = 0{,}9$; für alle Läufe dieser Arbeit
-führen beide Gewichtungen auf dieselbe beste Epoche. Festzuhalten bleibt dabei: Diese Validierung
-läuft bei der \emph{Trainings}auflösung \code{imgsz}=1024, während alle
-berichteten Zahlen bei nativem Maßstab gemessen werden (2459 bzw.\ 1600\px,
-vom Netz auf ein Vielfaches von 32 aufgefüllt). Auswahl- und Bewertungsauflösung
-fallen also auseinander. Das ist hinnehmbar, weil die Rangfolge der Epochen von
-der Auflösung kaum abhängt und eine Auswahl bei nativem Maßstab eine zweite
-Validierung je Epoche kosten würde; es ist aber eine Annahme und keine Messung,
-und sie gilt für alle Läufe gleich.
+Fitness auf dem realen \code{val}-Bild. In der verwendeten Version~8.4.117 der
+Werkzeugkette ist die Fitness allein \mAPall{} (\code{Metric.fitness} in
+\code{ultralytics/utils/metrics.py}). Ältere Versionen bildeten sie als
+$0{,}1\cdot\mAPfifty + 0{,}9\cdot\mAPall$; für alle Läufe dieser Arbeit führen
+beide Varianten auf dieselbe beste Epoche. Diese Validierung läuft bei der
+\emph{Trainings}auflösung \code{imgsz}=1024, alle berichteten Zahlen werden
+dagegen beim nativen Maßstab gemessen (2459 bzw.\ 1600\px, vom Netz auf ein
+Vielfaches von 32 aufgefüllt). Ausgewählt und bewertet wird also bei
+unterschiedlicher Auflösung. Das ist vertretbar, weil die Rangfolge der Epochen
+kaum von der Auflösung abhängt und eine zweite Validierung je Epoche viel
+Rechenzeit kosten würde. Es bleibt aber eine Annahme, die für alle Läufe
+gleichermaßen gilt.
 
-\absatz{Eingabegröße.} \code{imgsz}=1024, identisch zur Leinwandgröße des
-Generators. Damit durchlaufen die synthetischen Bilder \emph{keine} Skalierung
-beim Einlesen, und die Objekte erreichen das Netz mit exakt der Pixelgröße, für
-die die Pipeline ausgelegt ist (Anforderung~A2). Bei 640\px{} wären sie nach
-Gleichung~\eqref{eq:deff} nur noch 7,5--27,5\px{} groß, und das untere Fünftel
-dieser Spanne läge unter der kritischen Größe von 11,3\px{} der P3-Ebene, die
-ohne P2-Kopf die feinste wäre.
+\absatz{Eingabegröße.} Die Eingabegröße \code{imgsz}=1024 entspricht der
+Leinwandgröße des Generators. Die synthetischen Bilder werden beim Einlesen also
+\emph{nicht} skaliert, und die Objekte erreichen das Netz genau in der Größe,
+für die die Pipeline ausgelegt ist (Anforderung~A2). Bei 640\px{} wären sie nach
+Gleichung~\eqref{eq:deff} nur noch 7,5--27,5\px{} groß. Das untere Fünftel
+dieser Spanne läge dann unter der kritischen Größe von 11,3\px{} der P3-Ebene,
+die ohne P2-Kopf die feinste wäre.
 
-\absatz{Optimierung.} AdamW \parencite{loshchilov2019} mit
-$\text{lr}_0 = 10^{-3}$ und Kosinusabfall auf 1\,\% davon
-\parencite{loshchilov2017sgdr}, Mixed Precision \parencite{micikevicius2018},
-Verlustgewichte auf den Standardwerten, fester Seed und deterministische Kernel;
-die vollständige Konfiguration steht in Tabelle~\ref{tab:trainaug} im Anhang.
-AdamW ist explizit gesetzt statt \code{auto}, weil kein Budget für eine
-Lernratensuche vorhanden ist. Early Stopping greift nach 20 Epochen ohne
-Verbesserung auf dem realen \code{val}-Bild -- ein bewusst großzügiges Fenster,
-weil die Fitness an knapp hundert Objekten \emph{eines} Bildes gemessen wird und
+\absatz{Optimierung.} Trainiert wird mit AdamW \parencite{loshchilov2019},
+Startlernrate $\text{lr}_0 = 10^{-3}$ und Kosinusabfall auf 1\,\% davon
+\parencite{loshchilov2017sgdr}, mit Mixed Precision \parencite{micikevicius2018},
+Standard-Verlustgewichten, festem Seed und deterministischen Kerneln; die
+vollständige Konfiguration steht in Tabelle~\ref{tab:trainaug} im Anhang. AdamW
+ist ausdrücklich gesetzt statt \code{auto}, weil für eine Lernratensuche kein
+Budget vorhanden war. Early Stopping greift nach 20 Epochen ohne Verbesserung
+auf dem realen \code{val}-Bild. Das Fenster ist bewusst großzügig, weil die
+Fitness an knapp hundert Objekten \emph{eines} Bildes gemessen wird und
 entsprechend stark schwankt (Abschnitt~\ref{sec:trainingsverlauf}).
 
 \section{Augmentierungsparameter zur Trainingszeit}
 \label{sec:trainparam}
 
-Die abgeschalteten Parameter sind ebenso begründungspflichtig wie die aktiven --
-ein auf Null gesetzter Standardwert ist eine Entscheidung.
+Auch abgeschaltete Parameter müssen begründet werden, denn einen Standardwert
+auf null zu setzen ist ebenfalls eine Entscheidung.
 
-Aktiv sind Mosaic (immer, in den letzten zehn Epochen abgeschaltet), Skalierung
-um $\pm a$, die einen Faktor aus $[1-a,\,1+a]$ zieht -- mit \code{scale}$\,=a=0{,}4$
-also aus $[0{,}6;\,1{,}4]$, gegenüber der Voreinstellung $a=0{,}5$ der
-Werkzeugkette abgesenkt (Tabelle~\ref{tab:trainaug}) --,
-Translation, horizontale und vertikale Spiegelung sowie HSV-Variation.
-Abgeschaltet sind \code{degrees}, \code{shear} und \code{perspective}, weil
-Bildrotation achsparallele Boxen nach Gleichung~\eqref{eq:dbox} um den Faktor
-$|\cos\theta|+|\sin\theta|$ aufweitet und die Überlappung mit der korrekten Box
-nach Gleichung~\eqref{eq:iou} auf $1/(1+|\sin 2\theta|)$ senkt -- für
-$\theta = 10^\circ$ sind das 15,8\,\% mehr Kantenlänge und $\IoU = 0{,}745$
-(Abschnitt~\ref{subsec:aabb-rotation}). Abgeschaltet sind ferner \code{mixup}
-und \code{cutmix}, allerdings aus zwei verschiedenen Gründen. \code{mixup}
-überblendet zwei Bilder im Verhältnis $r \approx 0{,}5$ und verkettet
-anschließend beide Labelsätze ungewichtet \parencite{zhang2018mixup}: Jedes
-Objekt erscheint halbtransparent und trägt dennoch ein volles Boxlabel.
-\code{cutmix} setzt den Flicken des zweiten Bildes dagegen gezielt in eine
-Fläche, die keine Box des ersten trifft, und übernimmt aus dem zweiten Bild
-alle Instanzen ab einem Flächenanteil von 10\,\% mit auf den Flicken
-beschnittener Box \parencite{yun2019cutmix}. Es entstehen Labels auf
-Objektfragmenten bis hinab zu einem Zehntel der Fläche -- gerade das, was die
-Sichtbarkeitsregel des Generators mit ihrer Grenze von 30\,\% aussortiert
-(Abschnitt~\ref{sec:sichtbarkeit}). Der Fall ist nicht selten: Auf die 6000
-erzeugten Bilder angewandt, findet die Flächenwahl der Werkzeugkette in
-67,7\,\% der Positivbilder eine boxfreie Fläche
-(\code{src/cutmix\_flaechen.py}). \code{erasing} und
-\code{copy\_paste} entfallen, weil beides der Generator physikalisch korrekt
-übernimmt. Die vollständige Tabelle mit Begründung je Parameter steht im Anhang
-(Tabelle~\ref{tab:trainaug}).
+Aktiv sind Mosaic (bei jedem Trainingsbeispiel, in den letzten zehn Epochen
+abgeschaltet),
+Skalierung, Translation, horizontale und vertikale Spiegelung sowie
+HSV-Variation. Die Skalierung zieht einen Faktor aus $[1-a,\,1+a]$, mit
+\code{scale}$\,=a=0{,}4$ also aus $[0{,}6;\,1{,}4]$; das ist etwas weniger als
+die Voreinstellung $a=0{,}5$ der Werkzeugkette (Tabelle~\ref{tab:trainaug}).
 
-Die beiden Augmentierungsschichten wirken bei der Objektgröße multiplikativ. Ist
-$[d_{\min}, d_{\max}]$ der Größenbereich des Generators und $a$ die
-Skalierungsstärke des Trainings, so sieht das Netz effektiv Objektgrößen aus
+Abgeschaltet sind \code{degrees}, \code{shear} und \code{perspective}. Eine
+Bildrotation weitet die Boxen nach Gleichung~\eqref{eq:dbox} auf und senkt ihre
+Überlappung mit der richtigen Box nach Gleichung~\eqref{eq:iou}; bei
+$\theta = 10^\circ$ wird die Kantenlänge um 15,8\,\% zu groß, und die IoU sinkt
+auf 0,745 (Abschnitt~\ref{subsec:aabb-rotation}). Auch \code{mixup} und
+\code{cutmix} sind abgeschaltet, aber aus verschiedenen Gründen. \code{mixup}
+überblendet zwei Bilder etwa im Verhältnis 1:1 und übernimmt beide Labelsätze
+vollständig \parencite{zhang2018mixup}. Jedes Objekt erscheint dann
+halbtransparent, trägt aber ein volles Label. \code{cutmix} setzt einen
+Ausschnitt des zweiten Bildes in eine Fläche des ersten, die keine Box trifft,
+und übernimmt aus dem zweiten Bild jedes Objekt, von dem mindestens 10\,\% im
+Ausschnitt liegen, mit entsprechend beschnittener Box \parencite{yun2019cutmix}.
+So entstehen Labels auf Objektresten bis hinab zu einem Zehntel der Fläche,
+also genau das, was die Sichtbarkeitsregel des Generators mit ihrer Grenze von
+30\,\% aussortiert (Abschnitt~\ref{sec:sichtbarkeit}). Selten wäre das nicht:
+Auf den 6000 erzeugten Bildern findet die Werkzeugkette in 67,7\,\% der
+Positivbilder eine boxfreie Fläche (\code{src/cutmix\_flaechen.py}).
+\code{erasing} und \code{copy\_paste} entfallen, weil der Generator beides
+physikalisch korrekt übernimmt. Die vollständige Tabelle mit Begründung je
+Parameter steht im Anhang (Tabelle~\ref{tab:trainaug}).
+
+Generator und Trainingsskalierung wirken bei der Objektgröße zusammen. Erzeugt
+der Generator Objekte im Bereich $[d_{\min}, d_{\max}]$ und skaliert das
+Training um einen Faktor aus $[1-a,\,1+a]$, so sieht das Netz Objektgrößen aus
 \begin{equation}
   \big[\,d_{\min}\,(1-a),\;\; d_{\max}\,(1+a)\,\big].
   \label{eq:effgroesse}
 \end{equation}
-Mit $[d_{\min}, d_{\max}] = [12, 44]$\px{} aus der Pipeline
-(Gleichung~\eqref{eq:zoom}, Abschnitt~\ref{sec:modellentscheidungen}) und
-$a = 0{,}4$ aus \code{scale} sind das $12 \cdot 0{,}6 = 7{,}2$ bis
-$44 \cdot 1{,}4 = 61{,}6$\px. Diese Spanne
-deckt nach unten die Objektgrößen bei niedriger Inferenzauflösung und nach oben
-jene bei starker Hochskalierung ab -- also den gesamten in
-Abschnitt~\ref{sec:imgsz} durchmusterten Bereich. Sie deckt zugleich die vier
-Objekte unter 12\px{} ab, die \code{test} enthält und die der Generator selbst
-nicht erzeugt (Abschnitt~\ref{sec:valtest}). Der untere Rand von 7,2\px{} liegt
-oberhalb der kritischen Größe $S\sqrt{2}$ aus Gleichung~\eqref{eq:gridmiss}, die
-für die P2-Ebene mit $S=4$ bei 5,7\px{} liegt, aber \emph{unterhalb} der
-11,3\px, die mit dem P3-Stride $S=8$ ohne P2-Kopf gälten: Erst die Modellwahl aus
-Abschnitt~\ref{sec:p2kopf} macht diese Skalierungsstärke zu einem Wert, bei dem
-auch der untere Rand der Trainingsverteilung noch zuverlässig zugewiesen wird.
+Mit $[d_{\min}, d_{\max}] = [12, 44]$\px{} (Gleichung~\eqref{eq:zoom},
+Abschnitt~\ref{sec:modellentscheidungen}) und $a = 0{,}4$ sind das
+$12 \cdot 0{,}6 = 7{,}2$ bis $44 \cdot 1{,}4 = 61{,}6$\px. Damit sind auch die
+vier Objekte unter 12\px{} abgedeckt, die \code{test} enthält und die der
+Generator selbst nicht erzeugt (Abschnitt~\ref{sec:valtest}). Nach oben reicht
+die Spanne auch für stark hochskalierte Bilder. Bei sehr niedriger
+Inferenzauflösung kommen die Objekte dagegen noch kleiner als 7,2\px{} im Netz
+an (Abschnitt~\ref{sec:imgsz}). Die Untergrenze von 7,2\px{} liegt über der
+kritischen Größe $S\sqrt{2}$ der P2-Ebene von 5,7\px{}
+(Gleichung~\eqref{eq:gridmiss}), aber \emph{unter} den 11,3\px, die ohne P2-Kopf
+für P3 gälten. Erst mit dem P2-Kopf erhalten also auch die kleinsten
+Trainingsobjekte nach der idealisierten Rechnung aus
+Abschnitt~\ref{subsec:kleine-objekte} in jeder Lage mindestens eine
+Gitterposition.
 
 \section{Trainingsverlauf}
 \label{sec:trainingsverlauf}
