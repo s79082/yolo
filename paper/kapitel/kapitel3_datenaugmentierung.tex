@@ -169,8 +169,10 @@ Clusters streut. Würde der Generator alle Größen unabhängig ziehen, entstün
 Kombinationen, die in echten Aufnahmen kaum vorkommen, etwa ein sehr großes
 Profil direkt neben einem sehr kleinen.
 
-Jede optionale Transformation $\nu$ wird nur in einem Teil der Fälle
-angewendet. Ihre Verteilung ist deshalb eine Mischung:
+Viele Transformationen werden nicht bei jedem Bild oder Objekt angewendet,
+sondern nur mit einer Wahrscheinlichkeit $\pi_\nu < 1$, etwa die Spiegelung,
+der Schlagschatten oder die Bewegungsunschärfe. Für eine solche optionale
+Transformation $\nu$ ist die Verteilung eine Mischung:
 \begin{equation}
   p(t_\nu)
   =
@@ -179,7 +181,7 @@ angewendet. Ihre Verteilung ist deshalb eine Mischung:
   \pi_\nu\, q_\nu .
   \label{eq:mischung}
 \end{equation}
-Mit Wahrscheinlichkeit $1-\pi_\nu$ bleibt das Bild unverändert
+Mit Wahrscheinlichkeit $1-\pi_\nu$ bleibt das Bild oder Objekt unverändert
 ($\delta_{\mathrm{id}}$ steht für die Identität). Mit Wahrscheinlichkeit
 $\pi_\nu$ wird die Transformation angewendet, und ihre Stärke wird aus der
 Verteilung $q_\nu$ über den zulässigen Bereich gezogen. Eine Transformation ist
