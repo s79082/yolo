@@ -23,7 +23,8 @@ an ihre Umgebung, ist der Verlust größer als bei jedem anderen gemessenen
 Eingriff in die Trainingsdaten -- auf synthetischen Validierungsbildern ist
 davon kaum etwas zu sehen. Den größten Einzeleffekt hat keine
 Augmentierungsentscheidung, sondern die Inferenzauflösung, die festlegt, wie
-groß die Objekte beim Netz ankommen. Ein systematischer Größenversatz zwischen
-erzeugten und handannotierten Boxen erklärt zudem großenteils die niedrigen
-Werte bei strengeren IoU-Schwellen: Bei programmatisch erzeugten Labels wird
-die Labelkonvention selbst zur messbaren Größe.
+groß die Objekte beim Netz ankommen. Die niedrigen Werte bei strengeren
+IoU-Schwellen gehen großenteils auf einen systematischen Größenversatz zurück:
+Der Generator legt seine Boxen enger um die Objekte als die Handannotation.
+Bei programmatisch erzeugten Labels wird damit sogar die Frage, wo genau eine
+Box endet, zu einer messbaren Einflussgröße.
