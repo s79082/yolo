@@ -491,40 +491,54 @@ Trainingsverteilung.
 \section{Nachweis der Anforderungen}
 \label{sec:nachweis}
 
-\begin{table}[htbp]
-\centering
-\caption[Nachweis der Anforderungen]{Umsetzung der sechs Anforderungen aus
-Abschnitt~\ref{sec:anforderungen}. Die letzte Spalte nennt, wo die Wirksamkeit
-der Maßnahme experimentell geprüft wird.}
-\label{tab:nachweis}
-\footnotesize
-\begin{tabularx}{\textwidth}{@{}lXl@{}}
-\toprule
-& \textbf{Umsetzung} & \textbf{geprüft} \\
-\midrule
-A1 & Box aus transformierter Alphamaske; \code{degrees}, \code{shear},
-     \code{perspective} $=0$; Verwerfungsregeln wie bei der Handannotation
-   & \ref{sec:boxversatz} \\
-A2 & Leinwand $=$ Trainingsauflösung; 12--44\px, faktisch bis 40\px{}
-     (Gl.~\eqref{eq:zoom}) & -- \\
-A3 & Maßstabskopplung, Schaft bei 88\,\% der Instanzen, parallele
-     Schaftrichtung, Tiefenmodell 75/25, volle Rotation & -- \\
-A4 & S1 Alphamaske und Kantenweichzeichnung, S2 partieller Farbangleich,
-     S3 flächentreue Skalierung und Unschärfeangleich, S4 Rauschangleich,
-     S5 JPEG-Requantisierung, S6 Schlagschatten und physikalische Verdeckung;
-     photographische Okkluder-Bibliothek gegen S2--S4
-   & \ref{sec:ablationB} \newline (Okkluder), \newline \ref{sec:ablationC}
-     \newline (S1--S5 als \newline Bündel) \\
-A5 & Tabelle~\ref{tab:parameter}: Sollbereich und gemessener Ist-Anteil je
-     Transformation; Erzeugungsbericht je Datensatz & -- \\
-A6 & Belegart je Parameterwert; die beiden numerischen Absicherungen
-     ausdrücklich ausgenommen & -- \\
-\bottomrule
-\end{tabularx}
-\end{table}
+Dieser Abschnitt fasst zusammen, wie die Pipeline die sechs Anforderungen aus
+Abschnitt~\ref{sec:anforderungen} umsetzt und wo geprüft wird, ob die
+Maßnahmen wirken.
 
-Tabelle~\ref{tab:nachweis} fasst zusammen, wie die sechs Anforderungen umgesetzt
-sind. Damit sind sie \emph{formal} erfüllt. Ob die Maßnahmen auch wirken, ist
-damit noch nicht gezeigt; die letzte Spalte nennt, wo das geprüft wird. Wie
-viele der 44 Parameterwerte der 37 Transformationen tatsächlich belegt sind,
-bilanziert Abschnitt~\ref{sec:tragend}.
+\absatz{A1 -- Labelgenauigkeit.} Die Box wird aus der transformierten
+Alphamaske berechnet. In der Trainingszeit-Augmentierung stehen
+\code{degrees}, \code{shear} und \code{perspective} auf 0
+(Tabelle~\ref{tab:trainaug}), damit keine Operation die Box nachträglich
+verfälscht. Labels werden nach denselben Regeln verworfen wie bei der
+Handannotation. Abschnitt~\ref{sec:boxversatz} prüft, wie gut die erzeugten
+Boxen zur Handannotation passen, und zeigt, dass A1 nur annähernd erfüllt ist.
+
+\absatz{A2 -- Kalibrierte Objektgrößen.} Die Leinwand ist so groß wie die
+Trainingsauflösung, und die Objekte werden auf 12--44\px{} skaliert. Wegen der
+Zoomdeckelung in Gleichung~\eqref{eq:zoom} reicht die erzeugte Verteilung
+faktisch nur bis gut 40\px.
+
+\absatz{A3 -- Plausible Größenabhängigkeiten.} Die Objektgröße ist an den
+Maßstab des Hintergrunds gekoppelt. Hinter 88\,\% der Instanzen steht ein
+Rohrschaft, die Schäfte eines Clusters laufen parallel, und das Tiefenmodell
+malt 75\,\% von ihnen ganz hinten und reiht 25\,\% zwischen die Instanzen ein.
+Gedreht wird über den vollen Winkelbereich.
+
+\absatz{A4 -- Kontrolle synthetischer Signaturen.} Gegen jede Signatur aus
+Tabelle~\ref{tab:signaturen} gibt es eine Maßnahme: gegen sichtbare Übergänge
+(S1) die weiche Alphamaske und das Weichzeichnen ihrer Kante, gegen künstliche
+Helligkeits- und Farbverhältnisse (S2) den partiellen Farbangleich, gegen
+unpassende Schärfe (S3) die flächentreue Skalierung und den Unschärfeangleich,
+gegen fehlendes Sensorrauschen (S4) den Rauschangleich, gegen fehlende
+Kompressionsspuren (S5) die JPEG-Requantisierung und gegen die fehlende
+Interaktion mit der Umgebung (S6) Schlagschatten und physikalische Verdeckung.
+Für die Verdecker selbst wirkt die photographische Okkluder-Bibliothek gegen
+S2 bis S4. Geprüft wird beides: die Herkunft der Verdecker in Ablation~B
+(Abschnitt~\ref{sec:ablationB}), die Maßnahmen gegen S1 bis S5 zusammen mit dem
+Schlagschatten als Bündel in Ablation~C (Abschnitt~\ref{sec:ablationC}).
+
+\absatz{A5 -- Kontrollierbare Variation.} Tabelle~\ref{tab:parameter} nennt für
+jede Transformation den Sollbereich und den im Datensatz gemessenen
+Ist-Anteil. Zu jedem Datensatz schreibt der Generator außerdem einen
+Erzeugungsbericht.
+
+\absatz{A6 -- Trennung von Annahme und Messung.} Jeder Parameterwert trägt eine
+Belegart. Ausgenommen sind nur die beiden numerischen Absicherungen der
+Rauschschätzung (Abschnitt~\ref{sec:synthese}), weil sie nichts über die
+Zieldomäne aussagen.
+
+Damit sind alle sechs Anforderungen \emph{formal} erfüllt. Ob die Maßnahmen
+auch wirken, ist damit noch nicht gezeigt. Experimentell geprüft werden A1 und
+A4; A2 und A3 werden nicht eigens geprüft, A5 und A6 betreffen die
+Dokumentation. Wie viele der 44 Parameterwerte der 37 Transformationen
+tatsächlich belegt sind, bilanziert Abschnitt~\ref{sec:tragend}.
