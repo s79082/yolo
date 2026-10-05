@@ -1,7 +1,7 @@
 % ======================================================================
 %  Kapitel 3 - Datenaugmentierung und synthetische Datengenerierung
 %
-%  Die Makros (\Dom, \Hcls, \HdH, \IoU, \px, \absatz, \mAPfifty, \mAPall)
+%  Die Makros (\Dom, \Hcls, \HdH, \disc, \IoU, \px, \absatz, \mAPfifty, \mAPall)
 %  stammen aus der Praeambel der Arbeit. Zitiert wird mit biblatex
 %  (\parencite, \textcite); alle Quellen stehen in literatur.bib.
 %
@@ -397,16 +397,31 @@ etwas anderes als die übliche Aufteilung in Trainings- und Validierungsdaten:
 Dort stammen beide Teile aus derselben Verteilung, hier werden die Daten von
 einem anderen Prozess erzeugt.
 
-\absatz{Die Schranke von Ben-David.} Für die binäre Klassifikation mit
-$0/1$-Verlust zeigen \textcite{bendavid2010}, dass für jedes Modell
-$h\in\Hcls$ gilt:
+\absatz{Die Schranke von Ben-David.} Unterschiede zwischen Vorhersagen misst
+wieder eine Verlustfunktion $L$, hier allerdings als Bewertungsmaß, das nicht
+der Trainingsverlust sein muss. Für zwei Modelle $h,h'\in\Hcls$ bezeichnet
+\[
+  \epsilon_S(h,h')
+  =
+  \mathbb{E}_{x\sim\Dom{S}^{X}}
+  \bigl[L\bigl(h(x),\,h'(x)\bigr)\bigr]
+\]
+ihren mittleren Unterschied auf synthetischen Bildern und $\epsilon_T(h,h')$
+entsprechend auf realen. Setzt man für $h'$ die Beschriftungsfunktion ein,
+erhält man den Fehler des Modells, $\epsilon_S(h)=\epsilon_S(h,f_S)$ und
+$\epsilon_T(h)=\epsilon_T(h,f_T)$. \textcite{bendavid2010} haben für die binäre
+Klassifikation gezeigt, wie sich der Fehler auf der Zieldomäne durch den Fehler
+auf der Quelldomäne beschränken lässt. In der Form von
+\textcite{mansour2009discrepancy} gilt diese Schranke für jede
+Verlustfunktion, die symmetrisch ist, $L(y,y')=L(y',y)$, und die
+Dreiecksungleichung $L(y,y'')\leq L(y,y')+L(y',y'')$ erfüllt. Für jedes Modell
+$h\in\Hcls$ gilt dann
 \begin{equation}
   \epsilon_T(h)
   \;\leq\;
   \epsilon_S(h)
   \;+\;
-  \tfrac{1}{2}\,
-  d_{\HdH}\bigl(\Dom{S}^{X},\,\Dom{T}^{X}\bigr)
+  \disc_L\bigl(\Dom{S}^{X},\,\Dom{T}^{X}\bigr)
   \;+\;
   \lambda .
   \label{eq:bendavid}
@@ -414,35 +429,36 @@ $h\in\Hcls$ gilt:
 Der Fehler $\epsilon_T(h)$ auf realen Bildern ist also höchstens so groß wie die
 Summe aus drei Termen. Der erste, $\epsilon_S(h)$, ist der Fehler auf
 synthetischen Bildern, also genau die Größe, die das Training klein macht. Der
-zweite misst, wie verschieden synthetische und reale Bilder aus Sicht der
-Modelle in $\Hcls$ sind. Die $\HdH$-Divergenz ist definiert als
+zweite, im Folgenden Distanzterm genannt, misst, wie verschieden synthetische
+und reale Bilder aus Sicht der Modelle in $\Hcls$ sind. Die dafür verwendete
+Discrepancy-Distanz ist definiert als
 \[
-  d_{\HdH}\bigl(\Dom{S}^{X},\,\Dom{T}^{X}\bigr)
+  \disc_L\bigl(\Dom{S}^{X},\,\Dom{T}^{X}\bigr)
   =
-  2 \sup_{h,h'\in\Hcls}
-  \Bigl|
-    \Pr_{x\sim\Dom{S}^{X}}\bigl[h(x)\neq h'(x)\bigr]
-    -
-    \Pr_{x\sim\Dom{T}^{X}}\bigl[h(x)\neq h'(x)\bigr]
-  \Bigr| .
+  \sup_{h,h'\in\Hcls}
+  \bigl|\,
+    \epsilon_S(h,h') - \epsilon_T(h,h')
+  \,\bigr| .
 \]
 Sie wird also groß, wenn es in $\Hcls$ zwei Modelle gibt, die sich auf der
-einen Domäne viel häufiger widersprechen als auf der anderen. Anschaulich ist
-die Divergenz groß, wenn sich mit Modellen aus $\Hcls$ gut unterscheiden lässt,
-ob ein Bild synthetisch oder real ist. Der dritte Term
+einen Domäne viel stärker unterscheiden als auf der anderen. Anschaulich
+verrät dann schon der Unterschied zwischen zwei Modellen, ob ein Bild
+synthetisch oder real ist. Für die binäre Klassifikation mit $0/1$-Verlust ist
+$\epsilon_S(h,h')$ die Wahrscheinlichkeit, dass sich $h$ und $h'$
+widersprechen, und $\disc_L$ ist die Hälfte der $\HdH$-Divergenz, mit der
+\textcite{bendavid2010} die Schranke ursprünglich angeben. Der dritte Term
 $\lambda = \min_{h'\in\Hcls}\bigl[\epsilon_S(h') + \epsilon_T(h')\bigr]$ ist
 der kleinste gemeinsame Fehler, den ein einziges Modell aus $\Hcls$ auf beiden
-Domänen zugleich erreichen kann. Er ist
-groß, wenn es in $\Hcls$ kein Modell gibt, das beide Domänen zugleich richtig
-beschreibt, zum Beispiel weil Generator und Handannotation dasselbe Objekt
-unterschiedlich beschriften.
+Domänen zugleich erreichen kann. Er ist groß, wenn es in $\Hcls$ kein Modell
+gibt, das beide Domänen zugleich richtig beschreibt, zum Beispiel weil
+Generator und Handannotation dasselbe Objekt unterschiedlich beschriften.
 
-Für den Generator ist vor allem der Divergenzterm wichtig. Er hängt nur von den
+Für den Generator ist vor allem der Distanzterm wichtig. Er hängt nur von den
 Bildern ab, nicht von den Beschriftungen, und die synthetische Verteilung
 $\Dom{S}^{X}$ ist nicht vorgegeben, sondern wird über $p(t)$ vom Generator
 erzeugt. Jedes Merkmal, das der Generator in die Bilder bringt und das in
 realen Bildern fehlt, etwa eine harte Kante um ein eingefügtes Objekt
-(Tabelle~\ref{tab:signaturen}), kann deshalb die Divergenz vergrößern. Jede
+(Tabelle~\ref{tab:signaturen}), kann deshalb den Distanzterm vergrößern. Jede
 Gegenmaßnahme ist entsprechend Teil von $p(t)$. Unterschiede in der
 Beschriftung tauchen auf der rechten Seite der Schranke dagegen nur in
 $\lambda$ auf. In dieser Arbeit betrifft das vor allem die abweichende
@@ -450,27 +466,61 @@ Boxkonvention von Generator und Handannotation
 (Abschnitt~\ref{sec:boxversatz}). Ohne beschriftete reale Daten lässt sich
 $\lambda$ nicht schätzen.
 
-\absatz{Übertragung auf die Detektion.} Die Schranke ist für binäre
-Klassifikation bewiesen. Für Verlustfunktionen, die symmetrisch sind und die
-Dreiecksungleichung erfüllen, gibt es eine Verallgemeinerung, in der die
-sogenannte Discrepancy-Distanz an die Stelle der Divergenz tritt
-\parencite{mansour2009discrepancy}. Dazu gehört auch der Verlust $1-\IoU$, der
-als Jaccard-Distanz eine Metrik ist \parencite{kosub2019jaccard}. Für die
-Lokalisierung genau eines Objekts pro Bild gilt also eine Schranke derselben
-Form. Die mAP passt aber nicht in diesen Rahmen. Sie ist kein Mittelwert eines
-Verlusts pro Bild, sondern wird aus den nach Konfidenz sortierten Detektionen
-des ganzen Datensatzes berechnet, und auch die Zuordnung einer variablen Zahl
-von Detektionen zu den annotierten Boxen ist nicht abgedeckt.
-Gleichung~\eqref{eq:bendavid} wird deshalb nicht als mathematische Garantie
-verwendet, sondern als Denkrahmen für die Entwurfsentscheidungen der Pipeline.
+\absatz{Übertragung auf die Detektion.} Der Verlust muss für die Schranke nur
+zwei Eigenschaften haben, Symmetrie und Dreiecksungleichung. Das zeigt ihre
+Herleitung, die wie der Beweis von Theorem~2 bei \textcite{bendavid2010}
+verläuft; dort steht für den $0/1$-Verlust $\tfrac{1}{2}\,d_{\HdH}$ an der
+Stelle von $\disc_L$. Für ein beliebiges Modell $h'\in\Hcls$ gilt
+\begin{align*}
+  \epsilon_T(h)
+  &\;\leq\; \epsilon_T(h,h') + \epsilon_T(h') \\
+  &\;\leq\; \epsilon_S(h,h') + \disc_L\bigl(\Dom{S}^{X},\,\Dom{T}^{X}\bigr)
+            + \epsilon_T(h') \\
+  &\;\leq\; \epsilon_S(h) + \epsilon_S(h')
+            + \disc_L\bigl(\Dom{S}^{X},\,\Dom{T}^{X}\bigr) + \epsilon_T(h') .
+\end{align*}
+Die erste und die dritte Zeile folgen aus der Dreiecksungleichung mit dem Umweg
+über $h'(x)$ bzw.\ $f_S(x)$, die dritte zusätzlich aus der Symmetrie; die
+zweite folgt aus der Definition von $\disc_L$. Weil $h'$ beliebig war, darf man das
+Modell mit der kleinsten Summe $\epsilon_S(h')+\epsilon_T(h')$ einsetzen, und
+es folgt Gleichung~\eqref{eq:bendavid}.
 
-Dass $\lambda$ nicht nur von den Domänen, sondern auch von der Bewertung
-abhängt, zeigt ein einfaches Beispiel. Der Größenversatz von rund zwei Pixeln
-zwischen Generatorlabel und Handannotation (Abschnitt~\ref{sec:boxversatz})
-senkt die IoU bei einem 20\px{} großen Objekt auf etwa 0,81
-(Abschnitt~\ref{subsec:kleine-objekte}). Zählt eine Box ab einer IoU von 0,5
-als Treffer, bleibt der Versatz folgenlos. Bei einer Schwelle von 0,95 kann
-dagegen keine Box beide Beschriftungen zugleich treffen, und $\lambda$ steigt.
+Der Verlust $1-\IoU$ erfüllt beide Eigenschaften, denn er ist als
+Jaccard-Distanz eine Metrik \parencite{kosub2019jaccard}. Für die Lokalisierung
+genau eines Objekts pro Bild gilt die Schranke also. Die mAP passt dagegen nicht
+in diesen Rahmen, und das schon bei einem einzelnen Objekt. Sie zählt eine Box
+als Treffer, wenn ihre IoU mit der Beschriftung eine Schwelle erreicht, und der
+zugehörige Verlust, 0 für einen Treffer und 1 sonst, verletzt die
+Dreiecksungleichung. Nach Gleichung~\eqref{eq:ioushift} haben zwei 20\px{}
+große Boxen bei 6\px{} Versatz eine IoU von 0,54, bei 12\px{} nur noch 0,25.
+Liegt Box $a$ 6\px{} links und Box $c$ 6\px{} rechts von Box $b$, so ist der
+Verlust bei der Schwelle 0,5 zwischen $a$ und $b$ ebenso wie zwischen $b$ und
+$c$ gleich 0, zwischen $a$ und $c$ aber 1. Der direkte Weg ist dann teurer als
+der Umweg über $b$. Außerdem ist die mAP kein Mittelwert eines Verlusts pro Bild,
+sondern wird aus den nach Konfidenz sortierten Detektionen des ganzen
+Datensatzes berechnet, und auch die Zuordnung einer variablen Zahl von
+Detektionen zu den annotierten Boxen ist nicht abgedeckt.
+Für die gemessenen Werte liefert Gleichung~\eqref{eq:bendavid} deshalb keine
+beweisbare Grenze. Sie dient dazu, die Entwurfsentscheidungen der Pipeline
+danach zu ordnen, welchen der drei Terme sie verkleinern sollen.
+
+Dass $\lambda$ nicht nur von den Domänen, sondern auch vom Verlust abhängt,
+zeigt ein einfaches Beispiel. Der Größenversatz von rund zwei Pixeln zwischen
+Generatorlabel und Handannotation (Abschnitt~\ref{sec:boxversatz}) senkt die
+IoU zwischen beiden Beschriftungen bei einem 20\px{} großen Objekt auf etwa
+0,81 (Abschnitt~\ref{subsec:kleine-objekte}). Mit $L=1-\IoU$ liegen die beiden
+Beschriftungen also 0,19 auseinander, und nach der Dreiecksungleichung beträgt
+für jede Box die Summe ihrer Abstände zu beiden Beschriftungen mindestens
+0,19. Sieht ein Objekt in beiden
+Domänen gleich aus, kann deshalb kein Modell beide Beschriftungen zugleich
+genau treffen, und $\lambda$ wächst. Bei einem 200\px{} großen Objekt sind es
+nur 0,02. Dieselbe
+Rechnung erklärt, warum der Versatz vor allem die strengen IoU-Schwellen
+betrifft. Eine Box, die beide Beschriftungen mit einer IoU von mindestens 0,95
+trifft, läge von jeder höchstens 0,05 entfernt, die beiden Beschriftungen nach
+der Dreiecksungleichung also höchstens 0,1 voneinander. Bei 0,19 ist das
+unmöglich. Bei der Schwelle 0,5 trifft dagegen schon eine Box, die genau dem
+Generatorlabel entspricht, beide Beschriftungen.
 
 \absatz{Sim-to-Real-Abstand.} Messen lässt sich der Unterschied
 $\Delta_{\mathrm{SR}} = \epsilon_T(h) - \epsilon_S(h)$ zwischen dem Fehler auf
@@ -485,8 +535,7 @@ Umstellen von Gleichung~\eqref{eq:bendavid} ergibt sich
 \begin{equation}
   \Delta_{\mathrm{SR}}
   \;\leq\;
-  \tfrac{1}{2}\,
-  d_{\HdH}\bigl(\Dom{S}^{X},\,\Dom{T}^{X}\bigr)
+  \disc_L\bigl(\Dom{S}^{X},\,\Dom{T}^{X}\bigr)
   + \lambda .
   \label{eq:gap-bound}
 \end{equation}
@@ -501,7 +550,7 @@ Abstand beweist umgekehrt nicht, dass die Domänen ähnlich sind, denn die recht
 Seite ist nur eine obere Grenze und kann weit über dem tatsächlichen Abstand
 liegen. Der Abstand kann also zeigen, dass ein Unterschied besteht, aber nicht,
 wie groß er ist. Er verrät auch nicht, ob der Unterschied in den Bildern
-(Divergenzterm) oder in den Beschriftungen ($\lambda$) liegt. In
+(Distanzterm) oder in den Beschriftungen ($\lambda$) liegt. In
 Kapitel~\ref{kap:auswertung} lassen sich beide Ursachen aber ihrer Wirkung nach
 plausibel zuordnen, auch wenn keiner der Terme gemessen wird: Die abweichende
 Boxkonvention betrifft vor allem die strengen IoU-Schwellen
@@ -522,23 +571,24 @@ Kompression und Verdeckung zufällig variiert. Tabelle~\ref{tab:parameter} im
 Anhang nennt für jeden dieser Parameter den Bereich und den gemessenen Anteil.
 
 Mit der Schranke lässt sich genauer sagen, wann eine breitere Variation hilft.
-Die Divergenz vergleicht, wie viel Wahrscheinlichkeitsmasse die beiden
+Der Distanzterm vergleicht, wie viel Wahrscheinlichkeitsmasse die beiden
 Verteilungen auf dieselben Bildbereiche legen. Es reicht also nicht, dass der
 Generator realistische Bilder überhaupt erzeugen kann; es kommt auch darauf an,
-wie häufig er es tut. Direkt aus der Definition folgt: Ist
-$A = \{x : h(x) \neq h'(x)\}$ der Bereich, auf dem sich zwei Modelle aus
-$\Hcls$ widersprechen, dann gilt
+wie häufig er es tut. Angenommen, zwei Modelle aus $\Hcls$ widersprechen sich
+auf einem Bereich $A$ von Bildern vollständig, also mit $L=1$ (bei $1-\IoU$
+Boxen ohne Überlappung), und stimmen außerhalb von $A$ überein. Dann ist
+$\epsilon_S(h,h')=P_S(A)$ und $\epsilon_T(h,h')=P_T(A)$, wobei $P_S(A)$ und
+$P_T(A)$ die Wahrscheinlichkeiten sind, dass ein synthetisches bzw.\ reales
+Bild in $A$ liegt. Aus der Definition der Discrepancy-Distanz folgt deshalb
 \begin{equation}
-  d_{\HdH}\bigl(\Dom{S}^{X},\,\Dom{T}^{X}\bigr)
+  \disc_L\bigl(\Dom{S}^{X},\,\Dom{T}^{X}\bigr)
   \;\geq\;
-  2\bigl(P_T(A) - P_S(A)\bigr),
+  P_T(A) - P_S(A).
   \label{eq:massenschranke}
 \end{equation}
-wobei $P_S(A)$ und $P_T(A)$ die Wahrscheinlichkeiten sind, dass ein
-synthetisches bzw.\ reales Bild in $A$ liegt. Angenommen, ein solcher Bereich
-$A$ umfasst fast alle realen Bilder, also $P_T(A) \approx 1$. Dann ist der
-Divergenzterm $\tfrac{1}{2}\,d_{\HdH}$ mindestens ungefähr so groß wie der
-Anteil $1 - P_S(A)$ der synthetischen Bilder, die außerhalb dieses Bereichs
+Umfasst ein solcher Bereich $A$ fast alle realen Bilder, also
+$P_T(A) \approx 1$, dann ist der Distanzterm mindestens ungefähr so groß wie
+der Anteil $1 - P_S(A)$ der synthetischen Bilder, die außerhalb dieses Bereichs
 liegen. Jedes synthetische Bild, das so in der Realität nicht vorkommt, fehlt
 also dort, wo die realen Bilder liegen.
 
@@ -548,7 +598,7 @@ Variation hinaus, steigt die Untergrenze wieder. Ihr Nutzen ist vor allem eine
 Absicherung: Weil die reale Verteilung nur unvollständig bekannt ist
 (Anforderung~A6), verhindert eine plausible Verbreiterung, dass die
 synthetische Verteilung den realen Bereich verfehlt. Der Preis ist, dass der
-Divergenzterm nicht beliebig klein werden kann. Das spricht für die
+Distanzterm nicht beliebig klein werden kann. Das spricht für die
 strukturierte Variante und für das Prinzip aus
 Abschnitt~\ref{sec:aug-formalisierung}. Bewusst unrealistische Beispiele lassen
 sich mit der Schranke dagegen nicht begründen. Wenn sie nützen, dann dadurch,
@@ -571,12 +621,13 @@ Ein Modell kann solche Merkmale nutzen, obwohl es sie in realen Bildern nicht
 gibt.
 
 Im Sinne von Gleichung~\eqref{eq:bendavid} vergrößert ein solches Merkmal den
-Divergenzterm und nicht $\lambda$. Man stelle sich zwei Detektoren vor: Der eine
+Distanzterm und nicht $\lambda$. Man stelle sich zwei Detektoren vor: Der eine
 reagiert auf die harte Kante um ein eingefügtes Objekt, der andere erkennt die
-Stirnfläche selbst. Auf synthetischen Bildern finden beide dieselben Objekte,
-auf realen Bildern liegt der erste daneben. Genau solche Modellpaare machen
-$d_{\HdH}$ groß. $\lambda$ bleibt dagegen klein, weil der zweite Detektor in
-beiden Domänen richtig liegt. Welchen der beiden das Training auswählt, sagt
+Stirnfläche selbst. Auf synthetischen Bildern liefern beide dieselben Boxen,
+auf realen Bildern liegt der erste daneben. Ihr Unterschied ist also auf
+synthetischen Bildern klein und auf realen groß, und genau solche Modellpaare
+machen $\disc_L$ groß. $\lambda$ bleibt dagegen klein, weil der zweite Detektor
+in beiden Domänen richtig liegt. Welchen der beiden das Training auswählt, sagt
 die Schranke allerdings nicht.
 
 Mehr Zufallsvariation hilft gegen einen solchen Fehler nicht. Steckt ein
