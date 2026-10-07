@@ -246,22 +246,14 @@ die drei Fremdszenen ist Gleichung~\eqref{eq:zoom} nicht definiert, weil sie
 keine Rohrschäfte zeigen; dort werden Zoom und Objektgröße unabhängig gezogen
 (Tabelle~\ref{tab:parameter}).
 
-\absatz{Skalierung und Ovalisierung} geschehen in einem Schritt. Das Objekt
-wird in $x$- und $y$-Richtung unterschiedlich stark skaliert, mit dem gezogenen
-Achsverhältnis $\rho = s_y/s_x$. Bei Quelldurchmesser $d_{\text{src}}$ und
-Zieldurchmesser $d$ gilt
-\[
-  s_x = \frac{d}{d_{\text{src}}\sqrt{\rho}}, \qquad
-  s_y = \frac{d\sqrt{\rho}}{d_{\text{src}}}, \qquad\text{also}\qquad
-  \sqrt{s_x s_y}\,d_{\text{src}} = d .
-\]
-Das geometrische Mittel der beiden Durchmesser bleibt also gleich $d$. Das ist
-wichtig, weil auch die Realmessung den Durchmesser als $\sqrt{\text{Fläche}}$
-bestimmt, also über genau dieses Mittel. Die Ovalisierung verschiebt die
-kalibrierte Größenverteilung deshalb nicht und ändert nur das Seitenverhältnis
-der Box, das mit den Realdaten verglichen wird. Bei kreisförmiger Quelle ist
-dieses Seitenverhältnis $w/h = s_x/s_y = 1/\rho$. Ein oblates, also breites
-Objekt ($w/h > 1$) entsteht damit aus $\rho < 1$.
+\absatz{Skalierung und Ovalisierung} geschehen in einem Schritt: Mit dem
+gezogenen Achsverhältnis $\rho = s_y/s_x$ wird das Objekt in $x$- und
+$y$-Richtung gegenläufig um den Faktor $\sqrt{\rho}$ skaliert, sodass eine
+kreisförmige Quelle das Seitenverhältnis $w/h = 1/\rho$ erhält und das
+geometrische Mittel der beiden Durchmesser gleich dem Zieldurchmesser $d$
+bleibt. Weil auch die Realmessung den Durchmesser über dieses Mittel bestimmt,
+als $\sqrt{\text{Fläche}}$, verschiebt die Ovalisierung die kalibrierte
+Größenverteilung nicht.
 
 \absatz{Farbangleich.} Die Farbe jedes eingefügten Objekts wird teilweise an
 seine Umgebung angeglichen, nach dem Vorbild des Statistiktransfers von
@@ -285,77 +277,23 @@ glatte oder sehr unruhige Einfügestelle den Objektkontrast nicht zu stark
 verändert. Mit $\alpha_\mu = \alpha_\sigma = 1$ ergäbe sich der vollständige
 Reinhard-Transfer. Er wird nicht verwendet, weil er den Albedo-Unterschied
 zwischen dunkler Bohrung und hellem Kranz einebnen würde, an dem das Objekt
-überhaupt zu erkennen ist (Abbildung~\ref{abb:farbangleich}). Angeglichen werden
+überhaupt zu erkennen ist. Angeglichen werden
 soll nur der Unterschied in Beleuchtung und Weißabgleich, nicht die Objektfarbe
 selbst. Begründet ist damit die \emph{Richtung} des Angleichs, nicht seine
 Stärke: Die vier Grenzen der Angleichstärken sind Sollwerte aus
 \code{src/generate.py} und in Tabelle~\ref{tab:parameter} als Annahme
 gekennzeichnet.
 
-\begin{figure}[htbp]
-\centering
-\begin{tikzpicture}[x=0.030cm,y=1.9cm]
-  \draw[gray!25,fill=gray!25,smooth]
-    plot[domain=0:255,samples=110] (\x, {0.85*exp(-((\x-70)/26)^2)})
-    -- (255,0) -- (0,0) -- cycle;
-  \draw[->,semithick] (0,0) -- (258,0);
-  \node[font=\scriptsize,anchor=north] at (215,-0.20) {Grauwert};
-  \foreach \g in {0,50,100,150,200,250}
-    \draw[semithick] (\g,0) -- (\g,-0.030) node[below,font=\scriptsize] {\g};
-  \draw[red!70!black,thick,dotted,smooth]
-    plot[domain=0:255,samples=150] (\x, {1.18*exp(-((\x-70)/12)^2)});
-  \draw[very thick,blue!60!black,smooth]
-    plot[domain=0:255,samples=150]
-    (\x, {exp(-((\x-60)/16)^2) + 0.9*exp(-((\x-155)/20)^2)});
-  \draw[very thick,orange!85!black,densely dashed,smooth]
-    plot[domain=0:255,samples=150]
-    (\x, {exp(-((\x-46)/16)^2) + 0.9*exp(-((\x-141)/20)^2)});
-  \draw[dashed,gray!55] (70,0) -- (70,1.34);
-  \node[font=\scriptsize,gray!40!black,anchor=south,fill=white,inner sep=1pt]
-       at (70,1.32) {$\mu_b$};
-  \draw[dashed,gray!55] (105,0) -- (105,1.34);
-  \node[font=\scriptsize,gray!40!black,anchor=south,fill=white,inner sep=1pt]
-       at (105,1.32) {$\mu_i$};
-  \draw[->,>=stealth,orange!85!black,thick] (105,1.13) -- (91,1.13);
-  \node[font=\scriptsize,orange!85!black,anchor=south,inner sep=1pt,
-        fill=white] at (97,1.16) {$\alpha_\mu(\mu_b - \mu_i)$};
-  \node[font=\scriptsize,blue!60!black,anchor=south,fill=white,inner sep=1pt]
-       at (58,1.03) {Bohrung};
-  \node[font=\scriptsize,blue!60!black,anchor=south,fill=white,inner sep=1pt]
-       at (158,0.93) {Kranz};
-  \begin{scope}[shift={(272,0)}]
-    \draw[very thick,blue!60!black] (0,1.15) -- (22,1.15);
-    \node[font=\scriptsize,anchor=west] at (26,1.15) {Objekt, vorher};
-    \draw[very thick,orange!85!black,densely dashed] (0,0.90) -- (22,0.90);
-    \node[font=\scriptsize,anchor=west] at (26,0.90) {teilweise angeglichen};
-    \draw[thick,red!70!black,dotted] (0,0.65) -- (22,0.65);
-    \node[font=\scriptsize,anchor=west] at (26,0.65) {vollständiger Angleich};
-    \fill[gray!25] (0,0.34) rectangle (22,0.46);
-    \node[font=\scriptsize,anchor=west] at (26,0.40) {lokaler Hintergrund};
-  \end{scope}
-\end{tikzpicture}
-\caption[Partieller Farbangleich]{Partieller Farbangleich nach
-Gleichung~\eqref{eq:harmonize}. Die Grauwertverteilung des Objekts ist
-zweigipfelig: dunkle Bohrung und heller Kranz. Der Angleich verschiebt sie um
-$\alpha_\mu(\mu_b - \mu_i)$ in Richtung des lokalen Hintergrunds, hält die
-beiden Gipfel aber auseinander. Ein vollständiger Angleich (gepunktet) zöge sie
-auf die Hintergrundverteilung zusammen und zerstörte damit den
-Albedo-Unterschied, der das Objekt überhaupt erkennbar macht.}
-\label{abb:farbangleich}
-\end{figure}
-
 \absatz{Rauschschätzung.} Das lokale Rauschniveau wird als Streuung des
 Hochpassrests geschätzt, $\hat{\sigma} = \operatorname{std}(g -
-\operatorname{median}_{3\times3}(g))$ \parencite[vgl.][]{immerkaer1996}. Als
-Tiefpass dient ein Medianfilter, weil er Kanten weniger verschmiert. Eingefügt
-wird Rauschen der Stärke $\sigma_{\text{Rausch}} = \max(0{,}5,\,
-\hat{\sigma}\cdot\mathcal{U}[0{,}5;\,1{,}25])$. Ohne Normierungsfaktor
-überschätzt $\hat\sigma$ das Rauschen systematisch und geht deshalb nur als
-\emph{relatives} Maß ein. Die Untergrenze von 0,5 und die Begrenzung von
-$\sigma_b/\sigma_i$ auf $[0{,}6;\,1{,}6]$ fangen entartete Schätzwerte ab, etwa
-bei einem völlig gleichmäßigen Hintergrundfleck oder einem rauschfreien
-Ausschnitt. Sie sagen nichts über die Zieldomäne aus und zählen nicht zu den in
-Tabelle~\ref{tab:parameter} bilanzierten Parameterwerten.
+\operatorname{median}_{3\times3}(g))$ \parencite[vgl.][]{immerkaer1996}, und
+geht ohne Normierungsfaktor nur als \emph{relatives} Maß ein: Eingefügt wird
+Rauschen der Stärke $\max(0{,}5,\,\hat{\sigma}\cdot\mathcal{U}[0{,}5;\,1{,}25])$.
+Die Untergrenze von 0,5 und die Begrenzung von $\sigma_b/\sigma_i$ auf
+$[0{,}6;\,1{,}6]$ fangen nur entartete Schätzwerte ab, etwa bei einem völlig
+gleichmäßigen Hintergrundfleck; sie sagen nichts über die Zieldomäne aus und
+zählen nicht zu den in Tabelle~\ref{tab:parameter} bilanzierten
+Parameterwerten.
 
 \absatz{Layoutmodell.} Die Objektzentren eines Clusters mit Basisdurchmesser
 $d_0$ liegen auf einem schiefwinkligen Gitter mit zufälligen Abweichungen:
@@ -379,15 +317,10 @@ Median und p90 des NN-Abstands, der Winkelbereich das Histogramm der
 Nachbarrichtungen und $c_\sigma$ das p10 des NN-Abstands und die
 Berührungsquote (Tabelle~\ref{tab:kalibrierung}; Belegart je Wert in
 Tabelle~\ref{tab:parameter}, Block T4). Ohne den Rauschterm
-$\boldsymbol{\epsilon}_{ij}$ entstünden sichtbar künstliche Reihen. Er
-verschiebt jedes Zentrum im Mittel um
-$\mathbb{E}\lVert\boldsymbol{\epsilon}\rVert = c_\sigma\,d_0\sqrt{\pi/2}
-\approx 0{,}21\,d_0$. Die Untergrenze der Gitterabstände ist physikalisch
-begründet, denn zwei Rohre können sich nicht durchdringen. Die zwei Prozent
-Spielraum unter einem Durchmesser kommen von der Messkonvention: $d_0$ wird über
-die \emph{modale} Box gemessen, die bei verdeckten Objekten kleiner ist als das
-Rohr selbst. Deshalb liegt schon der reale NN-Abstand mit p10 $=0{,}86$
-(\code{val}) bzw.\ $0{,}78\,\Oe$ (\code{test}) unter einem Durchmesser. Das
+$\boldsymbol{\epsilon}_{ij}$ entstünden sichtbar künstliche Reihen. Die
+Untergrenze der Gitterabstände ist physikalisch begründet, denn zwei Rohre
+können sich nicht durchdringen; die zwei Prozent Spielraum darunter folgen aus
+der modalen Boxkonvention (Tabelle~\ref{tab:parameter}, T4). Das
 Clusterzentrum $\mathbf{c}$ darf außerhalb der Leinwand liegen, damit auch am
 Bildrand angeschnittene Objekte entstehen (Befund~9).
 
