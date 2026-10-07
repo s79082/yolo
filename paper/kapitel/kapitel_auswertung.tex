@@ -55,12 +55,7 @@ der längsten Bildkante, auf ein Vielfaches von 32 aufgerundet, also 2464 für
 einzige Wert, der ohne eine Auswahlentscheidung feststeht; jede andere Wahl
 müsste erst begründet werden und würde die Ablationen von einer nachgelagerten
 Optimierung abhängig machen. \emph{Zweitens} umfassen die Bewertungsdaten
-98 (\code{val}) und 89 (\code{test}) Objekte (Abschnitt~\ref{sec:valtest}). Woher die einzelnen Zahlenwerte dieses
-Kapitels stammen, ist in Tabelle~\ref{tab:herkunft} im Anhang aufgeschlüsselt.
-Alle Metriken und alle Tabellen dieses Kapitels werden aus den Ergebnisdateien
-in den Text eingesetzt und nicht abgeschrieben; ausgeschrieben sind nur
-Differenzen und Kennwerte, die sich aus den eingesetzten Werten unmittelbar
-nachrechnen lassen.
+98 (\code{val}) und 89 (\code{test}) Objekte (Abschnitt~\ref{sec:valtest}).
 
 \section{Hauptergebnis und Sim-to-Real-Abstand}
 \label{sec:hauptergebnis}
@@ -142,13 +137,7 @@ Die Inferenzauflösung ist der einzige Parameter, der nach dem Training noch
 frei ist, und deshalb der einzige, dessen Wert gemessen und nicht begründet
 wird. Dafür wird kein Modell neu trainiert. Dasselbe Modell wird bei zehn
 Auflösungen ausgewertet, neun festen Stufen zwischen 640 und 2464\px{} und dem
-nativen Maßstab des jeweiligen Splits. Ausgewählt wird die Stufe mit dem
-höchsten \mAPall{} auf \code{val}, und dieser Wert gilt dann unverändert für
-beide Splits. Eine eigene Wahl für \code{test} wäre eine Optimierung auf dem
-Testsatz und würde seine Zahlen entwerten. Als Kriterium dient \mAPall{} statt
-\mAPfifty, weil es auch die Lokalisierungsgüte bewertet. Es wurde vor den
-Läufen festgelegt, also bevor der Befund aus Abschnitt~\ref{sec:boxversatz}
-bekannt war. Gewählt wird damit \code{imgsz}~\zbestImgsz.
+nativen Maßstab des jeweiligen Splits.
 
 
 Von \code{imgsz}~640 auf \zswValBestAt{} steigt \mAPfifty{} auf \code{val} von
@@ -195,23 +184,18 @@ erwartete Objektgröße im Netzeingang dem Median der Trainingsverteilung
 entspricht. Die Feststellung: Objektgrößenbereich des Generators und
 Inferenzauflösung sind \emph{nicht} unabhängig voneinander wählbar; eine
 Entscheidung in der Datenerzeugung legt eine Entscheidung zur Inferenzzeit
-fest. Das Auswahlkriterium \mAPall{} auf \code{val} entscheidet sich für
-\code{imgsz}~\zbestImgsz; der Unterschied zu \zswValBestAt{} liegt in
-\mAPfifty{} mit einem Prozentpunkt unter dem Bootstrap-Intervall und ist damit
-nicht bedeutsam.
+fest.
 
-\absatz{Warum die berichteten Zahlen trotzdem beim nativen Maßstab gemessen
-sind.} Diese Empfehlung scheint dem Bewertungsprotokoll aus
-Abschnitt~\ref{sec:metriken} zu widersprechen. \code{imgsz}~\zbestImgsz{} ist
-die Auflösung, die man für den \emph{Einsatz} des Modells wählen würde, und sie
-ist an \code{val} optimiert. Die berichteten Zahlen stehen dagegen beim nativen
-Maßstab, weil dieser ohne jede Auswahlentscheidung feststeht und die Ablationen
-sonst von einer nachträglichen Optimierung abhingen. Tabelle~\ref{tab:imgszvoll}
-im Anhang enthält beide Varianten. Der Unterschied ist klein: Auf \code{test}
-läge \mAPfifty{} bei \zbestImgsz{} mit \zselTestMap{} etwas \emph{über} dem
-berichteten \zrefTestMap{}, auf \code{val} mit \zselValMap{} knapp darunter. Die
-berichteten Werte sind also keine Bestwerte, sondern folgen einer Konvention,
-die vor den Läufen feststand.
+Für den Einsatz würde man die Auflösung allein auf \code{val} wählen und
+unverändert auf \code{test} übertragen; eine eigene Wahl für \code{test} wäre
+eine Optimierung auf dem Testsatz. Das vor den Läufen und damit vor dem Befund
+aus Abschnitt~\ref{sec:boxversatz} festgelegte Kriterium, das höchste
+\mAPall{} auf \code{val}, wählt \code{imgsz}~\zbestImgsz; in \mAPfifty{} liegt
+das nur einen Prozentpunkt unter dem \code{val}-Optimum bei \zswValBestAt, also
+innerhalb der Messunsicherheit. Bei \zbestImgsz{} läge \mAPfifty{} auf
+\code{test} mit \zselTestMap{} etwas über dem berichteten \zrefTestMap, auf
+\code{val} mit \zselValMap{} knapp darunter (Tabelle~\ref{tab:imgszvoll});
+berichtet wird trotzdem beim nativen Maßstab (Abschnitt~\ref{sec:metriken}).
 
 Die übrigen Inferenzparameter sind unkritisch: NMS-Schwellwert und
 Test-Time-Augmentation wirken beim NMS-freien Ende-zu-Ende-Modell nicht
