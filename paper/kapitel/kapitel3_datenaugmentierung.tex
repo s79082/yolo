@@ -382,24 +382,19 @@ Größenverteilung beurteilen, die am Ende beim Netz ankommt
 \label{sec:sim2real}
 
 Wird fast der gesamte Trainingsdatensatz synthetisch erzeugt, lernt das Modell
-auf einer anderen Verteilung als der, auf der es später arbeiten soll. Dieser
-Abschnitt beschreibt den Unterschied zwischen beiden Verteilungen formal und
-leitet daraus ab, worauf der Generator achten muss.
-
-Eine \emph{Domäne} besteht im Folgenden aus einer Verteilung der Eingabebilder
-und einer Beschriftungsfunktion, die jedem Bild seine richtige Beschriftung
+auf einer anderen Verteilung als der, auf der es später arbeiten soll. Eine
+\emph{Domäne} besteht im Folgenden aus einer Verteilung der Eingabebilder und
+einer Beschriftungsfunktion, die jedem Bild seine richtige Beschriftung
 zuordnet. Die synthetische Quelldomäne ist $\langle \Dom{S}^{X}, f_S\rangle$,
-die reale Zieldomäne $\langle \Dom{T}^{X}, f_T\rangle$. Im synthetischen Fall
-ist $f_S$ die Boxberechnung des Generators, im realen Fall entspricht $f_T$ der
-Handannotation. Ein Modell $h$ aus einer Hypothesenklasse $\Hcls$ wird auf
-$\Dom{S}$ trainiert, soll aber auf $\Dom{T}$ gute Vorhersagen machen. Das ist
-etwas anderes als die übliche Aufteilung in Trainings- und Validierungsdaten:
-Dort stammen beide Teile aus derselben Verteilung, hier werden die Daten von
-einem anderen Prozess erzeugt.
+die reale Zieldomäne $\langle \Dom{T}^{X}, f_T\rangle$; $f_S$ ist die
+Boxberechnung des Generators, $f_T$ die Handannotation. Ein Modell $h$ aus einer
+Hypothesenklasse $\Hcls$ wird auf $\Dom{S}$ trainiert, soll aber auf $\Dom{T}$
+gute Vorhersagen machen. Anders als bei der üblichen Aufteilung in Trainings-
+und Validierungsdaten stammen die Daten also aus zwei verschiedenen Prozessen.
 
 \absatz{Die Schranke von Ben-David.} Unterschiede zwischen Vorhersagen misst
-wieder eine Verlustfunktion $L$, hier allerdings als Bewertungsmaß, das nicht
-der Trainingsverlust sein muss. Für zwei Modelle $h,h'\in\Hcls$ bezeichnet
+wieder eine Verlustfunktion $L$, hier als Bewertungsmaß, das nicht der
+Trainingsverlust sein muss. Für zwei Modelle $h,h'\in\Hcls$ bezeichnet
 \[
   \epsilon_S(h,h')
   =
@@ -407,14 +402,14 @@ der Trainingsverlust sein muss. Für zwei Modelle $h,h'\in\Hcls$ bezeichnet
   \bigl[L\bigl(h(x),\,h'(x)\bigr)\bigr]
 \]
 ihren mittleren Unterschied auf synthetischen Bildern und $\epsilon_T(h,h')$
-entsprechend auf realen. Setzt man für $h'$ die Beschriftungsfunktion ein,
-erhält man den Fehler des Modells, $\epsilon_S(h)=\epsilon_S(h,f_S)$ und
-$\epsilon_T(h)=\epsilon_T(h,f_T)$. \textcite{bendavid2010} haben für die binäre
-Klassifikation gezeigt, wie sich der Fehler auf der Zieldomäne durch den Fehler
-auf der Quelldomäne beschränken lässt. In der Form von
-\textcite{mansour2009discrepancy} gilt diese Schranke für jede
-Verlustfunktion, die symmetrisch ist, $L(y,y')=L(y',y)$, und die
-Dreiecksungleichung $L(y,y'')\leq L(y,y')+L(y',y'')$ erfüllt. Für jedes Modell
+entsprechend auf realen. Der Fehler eines Modells ist
+$\epsilon_S(h)=\epsilon_S(h,f_S)$ bzw.\ $\epsilon_T(h)=\epsilon_T(h,f_T)$.
+\textcite{bendavid2010} haben für die binäre Klassifikation gezeigt, wie sich
+der Fehler auf der Zieldomäne durch den Fehler auf der Quelldomäne beschränken
+lässt. In der Form von \textcite{mansour2009discrepancy} gilt diese Schranke
+für jede Verlustfunktion, die symmetrisch ist, $L(y,y')=L(y',y)$, und die
+Dreiecksungleichung $L(y,y'')\leq L(y,y')+L(y',y'')$ erfüllt; der Beweis
+verläuft wie der von Theorem~2 bei \textcite{bendavid2010}. Für jedes Modell
 $h\in\Hcls$ gilt dann
 \begin{equation}
   \epsilon_T(h)
@@ -426,12 +421,9 @@ $h\in\Hcls$ gilt dann
   \lambda .
   \label{eq:bendavid}
 \end{equation}
-Der Fehler $\epsilon_T(h)$ auf realen Bildern ist also höchstens so groß wie die
-Summe aus drei Termen. Der erste, $\epsilon_S(h)$, ist der Fehler auf
-synthetischen Bildern, also genau die Größe, die das Training klein macht. Der
-zweite, im Folgenden Distanzterm genannt, misst, wie verschieden synthetische
-und reale Bilder aus Sicht der Modelle in $\Hcls$ sind. Die dafür verwendete
-Discrepancy-Distanz ist definiert als
+Der erste Term, $\epsilon_S(h)$, ist der Fehler auf synthetischen Bildern, also
+genau die Größe, die das Training klein macht. Der zweite, im Folgenden
+Distanzterm genannt, ist die Discrepancy-Distanz
 \[
   \disc_L\bigl(\Dom{S}^{X},\,\Dom{T}^{X}\bigr)
   =
@@ -440,209 +432,130 @@ Discrepancy-Distanz ist definiert als
     \epsilon_S(h,h') - \epsilon_T(h,h')
   \,\bigr| .
 \]
-Sie wird also groß, wenn es in $\Hcls$ zwei Modelle gibt, die sich auf der
-einen Domäne viel stärker unterscheiden als auf der anderen. Anschaulich
-verrät dann schon der Unterschied zwischen zwei Modellen, ob ein Bild
-synthetisch oder real ist. Für die binäre Klassifikation mit $0/1$-Verlust ist
-$\epsilon_S(h,h')$ die Wahrscheinlichkeit, dass sich $h$ und $h'$
-widersprechen, und $\disc_L$ ist die Hälfte der $\HdH$-Divergenz, mit der
-\textcite{bendavid2010} die Schranke ursprünglich angeben. Der dritte Term
+Sie wird groß, wenn es in $\Hcls$ zwei Modelle gibt, die sich auf der einen
+Domäne viel stärker unterscheiden als auf der anderen; dann verrät schon ihr
+Unterschied, ob ein Bild synthetisch oder real ist. Beim $0/1$-Verlust ist sie
+die Hälfte der $\HdH$-Divergenz, mit der \textcite{bendavid2010} die Schranke
+ursprünglich angeben. Der dritte Term
 $\lambda = \min_{h'\in\Hcls}\bigl[\epsilon_S(h') + \epsilon_T(h')\bigr]$ ist
 der kleinste gemeinsame Fehler, den ein einziges Modell aus $\Hcls$ auf beiden
-Domänen zugleich erreichen kann. Er ist groß, wenn es in $\Hcls$ kein Modell
-gibt, das beide Domänen zugleich richtig beschreibt, zum Beispiel weil
-Generator und Handannotation dasselbe Objekt unterschiedlich beschriften.
+Domänen zugleich erreichen kann. Er ist groß, wenn kein Modell beide Domänen
+zugleich richtig beschreibt, zum Beispiel weil Generator und Handannotation
+dasselbe Objekt unterschiedlich beschriften.
 
 Für den Generator ist vor allem der Distanzterm wichtig. Er hängt nur von den
-Bildern ab, nicht von den Beschriftungen, und die synthetische Verteilung
-$\Dom{S}^{X}$ ist nicht vorgegeben, sondern wird über $p(t)$ vom Generator
-erzeugt. Jedes Merkmal, das der Generator in die Bilder bringt und das in
-realen Bildern fehlt, etwa eine harte Kante um ein eingefügtes Objekt
-(Tabelle~\ref{tab:signaturen}), kann deshalb den Distanzterm vergrößern. Jede
-Gegenmaßnahme ist entsprechend Teil von $p(t)$. Unterschiede in der
-Beschriftung tauchen auf der rechten Seite der Schranke dagegen nur in
-$\lambda$ auf. In dieser Arbeit betrifft das vor allem die abweichende
-Boxkonvention von Generator und Handannotation
-(Abschnitt~\ref{sec:boxversatz}). Ohne beschriftete reale Daten lässt sich
-$\lambda$ nicht schätzen.
+Bildern ab, und deren Verteilung $\Dom{S}^{X}$ erzeugt der Generator selbst
+über $p(t)$. Jedes Merkmal, das er in die Bilder bringt und das in realen
+Bildern fehlt, etwa eine harte Kante um ein eingefügtes Objekt
+(Tabelle~\ref{tab:signaturen}), kann den Distanzterm vergrößern, und jede
+Gegenmaßnahme ist Teil von $p(t)$. Unterschiede in der Beschriftung gehen
+dagegen nur in $\lambda$ ein. In dieser Arbeit betrifft das vor allem die
+abweichende Boxkonvention von Generator und Handannotation
+(Abschnitt~\ref{sec:boxversatz}), die bei kleinen Objekten vor allem die
+strengen IoU-Schwellen trifft (Abschnitt~\ref{subsec:kleine-objekte}). Ohne
+beschriftete reale Daten lässt sich $\lambda$ nicht schätzen.
 
-\absatz{Übertragung auf die Detektion.} Der Verlust muss für die Schranke nur
-zwei Eigenschaften haben, Symmetrie und Dreiecksungleichung. Das zeigt ihre
-Herleitung, die wie der Beweis von Theorem~2 bei \textcite{bendavid2010}
-verläuft; dort steht für den $0/1$-Verlust $\tfrac{1}{2}\,d_{\HdH}$ an der
-Stelle von $\disc_L$. Für ein beliebiges Modell $h'\in\Hcls$ gilt
-\begin{align*}
-  \epsilon_T(h)
-  &\;\leq\; \epsilon_T(h,h') + \epsilon_T(h') \\
-  &\;\leq\; \epsilon_S(h,h') + \disc_L\bigl(\Dom{S}^{X},\,\Dom{T}^{X}\bigr)
-            + \epsilon_T(h') \\
-  &\;\leq\; \epsilon_S(h) + \epsilon_S(h')
-            + \disc_L\bigl(\Dom{S}^{X},\,\Dom{T}^{X}\bigr) + \epsilon_T(h') .
-\end{align*}
-Die erste und die dritte Zeile folgen aus der Dreiecksungleichung mit dem Umweg
-über $h'(x)$ bzw.\ $f_S(x)$, die dritte zusätzlich aus der Symmetrie; die
-zweite folgt aus der Definition von $\disc_L$. Weil $h'$ beliebig war, darf man das
-Modell mit der kleinsten Summe $\epsilon_S(h')+\epsilon_T(h')$ einsetzen, und
-es folgt Gleichung~\eqref{eq:bendavid}.
-
-Der Verlust $1-\IoU$ erfüllt beide Eigenschaften, denn er ist als
-Jaccard-Distanz eine Metrik \parencite{kosub2019jaccard}. Für die Lokalisierung
-genau eines Objekts pro Bild gilt die Schranke also. Die mAP passt dagegen nicht
-in diesen Rahmen, und das schon bei einem einzelnen Objekt. Sie zählt eine Box
-als Treffer, wenn ihre IoU mit der Beschriftung eine Schwelle erreicht, und der
-zugehörige Verlust, 0 für einen Treffer und 1 sonst, verletzt die
-Dreiecksungleichung. Nach Gleichung~\eqref{eq:ioushift} haben zwei 20\px{}
-große Boxen bei 6\px{} Versatz eine IoU von 0,54, bei 12\px{} nur noch 0,25.
-Liegt Box $a$ 6\px{} links und Box $c$ 6\px{} rechts von Box $b$, so ist der
-Verlust bei der Schwelle 0,5 zwischen $a$ und $b$ ebenso wie zwischen $b$ und
-$c$ gleich 0, zwischen $a$ und $c$ aber 1. Der direkte Weg ist dann teurer als
-der Umweg über $b$. Außerdem ist die mAP kein Mittelwert eines Verlusts pro Bild,
-sondern wird aus den nach Konfidenz sortierten Detektionen des ganzen
-Datensatzes berechnet, und auch die Zuordnung einer variablen Zahl von
-Detektionen zu den annotierten Boxen ist nicht abgedeckt.
-Für die gemessenen Werte liefert Gleichung~\eqref{eq:bendavid} deshalb keine
-beweisbare Grenze. Sie dient dazu, die Entwurfsentscheidungen der Pipeline
-danach zu ordnen, welchen der drei Terme sie verkleinern sollen.
-
-Dass $\lambda$ nicht nur von den Domänen, sondern auch vom Verlust abhängt,
-zeigt ein einfaches Beispiel. Der Größenversatz von rund zwei Pixeln zwischen
-Generatorlabel und Handannotation (Abschnitt~\ref{sec:boxversatz}) senkt die
-IoU zwischen beiden Beschriftungen bei einem 20\px{} großen Objekt auf etwa
-0,81 (Abschnitt~\ref{subsec:kleine-objekte}). Mit $L=1-\IoU$ liegen die beiden
-Beschriftungen also 0,19 auseinander, und nach der Dreiecksungleichung beträgt
-für jede Box die Summe ihrer Abstände zu beiden Beschriftungen mindestens
-0,19. Sieht ein Objekt in beiden
-Domänen gleich aus, kann deshalb kein Modell beide Beschriftungen zugleich
-genau treffen, und $\lambda$ wächst. Bei einem 200\px{} großen Objekt sind es
-nur 0,02. Dieselbe
-Rechnung erklärt, warum der Versatz vor allem die strengen IoU-Schwellen
-betrifft. Eine Box, die beide Beschriftungen mit einer IoU von mindestens 0,95
-trifft, läge von jeder höchstens 0,05 entfernt, die beiden Beschriftungen nach
-der Dreiecksungleichung also höchstens 0,1 voneinander. Bei 0,19 ist das
-unmöglich. Bei der Schwelle 0,5 trifft dagegen schon eine Box, die genau dem
-Generatorlabel entspricht, beide Beschriftungen.
+\absatz{Übertragung auf die Detektion.} Der Verlust $1-\IoU$ ist als
+Jaccard-Distanz eine Metrik \parencite{kosub2019jaccard}; für die
+Lokalisierung genau eines Objekts pro Bild gilt die Schranke also. Die mAP
+passt dagegen nicht in diesen Rahmen. Sie zählt eine Box als Treffer, wenn ihre
+IoU mit der Beschriftung eine Schwelle erreicht, und dieser Verlust, 0 für
+einen Treffer und 1 sonst, verletzt die Dreiecksungleichung: Liegen zwei
+20\px{} große Boxen 6\px{} links und rechts einer dritten, treffen beide diese
+bei der Schwelle 0,5 (IoU 0,54 nach Gleichung~\eqref{eq:ioushift}), einander
+aber nicht (IoU 0,25). Außerdem ist die mAP kein Mittelwert eines Verlusts pro
+Bild, sondern wird aus den nach Konfidenz sortierten Detektionen des ganzen
+Datensatzes berechnet, und die Zuordnung einer variablen Zahl von Detektionen
+zu den annotierten Boxen ist nicht abgedeckt. Für die gemessenen Werte liefert
+Gleichung~\eqref{eq:bendavid} deshalb keine beweisbare Grenze. Sie dient dazu,
+die Entwurfsentscheidungen der Pipeline danach zu ordnen, welchen der drei
+Terme sie verkleinern sollen.
 
 \absatz{Sim-to-Real-Abstand.} Messen lässt sich der Unterschied
 $\Delta_{\mathrm{SR}} = \epsilon_T(h) - \epsilon_S(h)$ zwischen dem Fehler auf
-realen und auf synthetischen Bildern. Beschriftete reale Bilder werden dafür
-nur zur Auswertung gebraucht, nicht zum Training. In
-Kapitel~\ref{kap:auswertung} wird $\epsilon_S$ auf einem eigenen synthetischen
-Split geschätzt, der weder im Training noch bei der Modellauswahl verwendet
-wird (\code{sval}, Abschnitt~\ref{sec:simtoreal}). Als Fehler dient dort
-$\epsilon = 1 - \text{\mAPfifty}$. Der Abstand gibt also an, um wie viel
-\mAPfifty{} auf einem realen Bild niedriger ist als auf \code{sval}. Durch
-Umstellen von Gleichung~\eqref{eq:bendavid} ergibt sich
+realen und auf synthetischen Bildern; beschriftete reale Bilder werden dafür
+nur zur Auswertung gebraucht. In Kapitel~\ref{kap:auswertung} wird $\epsilon_S$
+auf einem eigenen synthetischen Split geschätzt, der weder im Training noch bei
+der Modellauswahl verwendet wird (\code{sval}, Abschnitt~\ref{sec:simtoreal}),
+und als Fehler dient $\epsilon = 1 - \text{\mAPfifty}$. Durch Umstellen von
+Gleichung~\eqref{eq:bendavid} ergibt sich
 \begin{equation}
   \Delta_{\mathrm{SR}}
   \;\leq\;
   \disc_L\bigl(\Dom{S}^{X},\,\Dom{T}^{X}\bigr)
-  + \lambda .
+  + \lambda ,
   \label{eq:gap-bound}
 \end{equation}
-Für einen in \mAPfifty{} gemessenen Abstand ist diese Ungleichung aus den
-genannten Gründen nicht bewiesen; sie dient nur der Einordnung.
+für einen in \mAPfifty{} gemessenen Abstand aus den genannten Gründen aber nur
+als Einordnung.
 
-Aus ihr lässt sich nur in eine Richtung schließen. Sind beide Domänen gleich,
-in den Bildern wie in den Beschriftungen, dann ist der Abstand bis auf
-Messrauschen null. Ein Abstand, der deutlich über die Messunsicherheit
-hinausgeht, zeigt deshalb, dass sich die Domänen unterscheiden. Ein kleiner
-Abstand beweist umgekehrt nicht, dass die Domänen ähnlich sind, denn die rechte
-Seite ist nur eine obere Grenze und kann weit über dem tatsächlichen Abstand
-liegen. Der Abstand kann also zeigen, dass ein Unterschied besteht, aber nicht,
-wie groß er ist. Er verrät auch nicht, ob der Unterschied in den Bildern
-(Distanzterm) oder in den Beschriftungen ($\lambda$) liegt. In
-Kapitel~\ref{kap:auswertung} lassen sich beide Ursachen aber ihrer Wirkung nach
-plausibel zuordnen, auch wenn keiner der Terme gemessen wird: Die abweichende
-Boxkonvention betrifft vor allem die strengen IoU-Schwellen
-(Abschnitt~\ref{sec:boxversatz}), die fehlende Einbettung kostet schon bei
-\mAPfifty{} Rückruf (Abschnitt~\ref{sec:ablationC}). Da alle Fehler an endlich
-vielen Testobjekten gemessen werden, sind sie selbst Schätzungen; ihre
-Unsicherheit gibt Abschnitt~\ref{sec:bootstrap} mit Konfidenzintervallen an.
+Der Abstand erlaubt nur einen Schluss in eine Richtung. Sind beide Domänen
+gleich, in den Bildern wie in den Beschriftungen, ist er bis auf Messrauschen
+null. Ein Abstand, der deutlich über die Messunsicherheit
+(Abschnitt~\ref{sec:bootstrap}) hinausgeht, zeigt deshalb, dass sich die
+Domänen unterscheiden. Ein kleiner Abstand beweist umgekehrt nicht, dass sie
+ähnlich sind, denn die rechte Seite von Gleichung~\eqref{eq:gap-bound} ist nur
+eine obere Grenze. Der Abstand verrät auch nicht, ob der Unterschied in den
+Bildern (Distanzterm) oder in den Beschriftungen ($\lambda$) liegt.
 
 \absatz{Domain Randomization.} Ein verbreiteter Ansatz gegen einen großen
-Sim-to-Real-Abstand ist Domain Randomization. Die Parameter des Generators
-werden dabei absichtlich stärker variiert, als es in der Realität zu erwarten
-ist, damit sich das Modell nicht auf eine einzige Erscheinungsform verlässt
+Sim-to-Real-Abstand ist Domain Randomization: Die Parameter des Generators
+werden absichtlich stärker variiert, als es in der Realität zu erwarten ist,
+damit sich das Modell nicht auf eine einzige Erscheinungsform verlässt
 \parencite{tobin2017}. Die strukturierte Variante beschränkt die Variation auf
 physikalisch plausible Bereiche \parencite{prakash2019}; dieser Richtung folgt
 auch Anforderung~A3. In dieser Arbeit werden Position, Orientierung und Größe
 der Objekte, der Hintergrund, Helligkeit und Kontrast, Rauschen, Unschärfe,
-Kompression und Verdeckung zufällig variiert. Tabelle~\ref{tab:parameter} im
-Anhang nennt für jeden dieser Parameter den Bereich und den gemessenen Anteil.
+Kompression und Verdeckung zufällig variiert (Tabelle~\ref{tab:parameter} im
+Anhang).
 
-Mit der Schranke lässt sich genauer sagen, wann eine breitere Variation hilft.
-Der Distanzterm vergleicht, wie viel Wahrscheinlichkeitsmasse die beiden
-Verteilungen auf dieselben Bildbereiche legen. Es reicht also nicht, dass der
-Generator realistische Bilder überhaupt erzeugen kann; es kommt auch darauf an,
-wie häufig er es tut. Angenommen, zwei Modelle aus $\Hcls$ widersprechen sich
-auf einem Bereich $A$ von Bildern vollständig, also mit $L=1$ (bei $1-\IoU$
-Boxen ohne Überlappung), und stimmen außerhalb von $A$ überein. Dann ist
-$\epsilon_S(h,h')=P_S(A)$ und $\epsilon_T(h,h')=P_T(A)$, wobei $P_S(A)$ und
-$P_T(A)$ die Wahrscheinlichkeiten sind, dass ein synthetisches bzw.\ reales
-Bild in $A$ liegt. Aus der Definition der Discrepancy-Distanz folgt deshalb
-\begin{equation}
-  \disc_L\bigl(\Dom{S}^{X},\,\Dom{T}^{X}\bigr)
-  \;\geq\;
-  P_T(A) - P_S(A).
-  \label{eq:massenschranke}
-\end{equation}
-Umfasst ein solcher Bereich $A$ fast alle realen Bilder, also
-$P_T(A) \approx 1$, dann ist der Distanzterm mindestens ungefähr so groß wie
-der Anteil $1 - P_S(A)$ der synthetischen Bilder, die außerhalb dieses Bereichs
-liegen. Jedes synthetische Bild, das so in der Realität nicht vorkommt, fehlt
-also dort, wo die realen Bilder liegen.
-
-Randomisierung senkt diese Untergrenze deshalb nur, solange sie Masse dorthin
-verschiebt, wo tatsächlich reale Bilder liegen. Geht sie über die reale
-Variation hinaus, steigt die Untergrenze wieder. Ihr Nutzen ist vor allem eine
-Absicherung: Weil die reale Verteilung nur unvollständig bekannt ist
-(Anforderung~A6), verhindert eine plausible Verbreiterung, dass die
-synthetische Verteilung den realen Bereich verfehlt. Der Preis ist, dass der
-Distanzterm nicht beliebig klein werden kann. Das spricht für die
-strukturierte Variante und für das Prinzip aus
-Abschnitt~\ref{sec:aug-formalisierung}. Bewusst unrealistische Beispiele lassen
-sich mit der Schranke dagegen nicht begründen. Wenn sie nützen, dann dadurch,
-dass sie beeinflussen, welches Modell das Training auswählt, und darüber macht
-die Schranke keine Aussage (siehe den Absatz zum Shortcut Learning).
-
-Dazu kommt ein zweiter Zielkonflikt. Je breiter die synthetische Verteilung
-ist, desto größer ist der Bereich, auf dem ein Modell aus $\Hcls$ zugleich gut
-sein muss. Das kann sowohl $\epsilon_S(h)$ als auch $\lambda$ erhöhen. Die drei
-Terme lassen sich also nicht unabhängig voneinander verkleinern, und wie stark
-randomisiert werden sollte, muss letztlich das Experiment zeigen.
+Mit der Schranke lässt sich sagen, wann eine breitere Variation hilft.
+Widersprechen sich zwei Modelle aus $\Hcls$ auf einem Bereich $A$ von Bildern
+vollständig, also mit $L=1$, und stimmen außerhalb von $A$ überein, so ist
+$\epsilon_S(h,h')=P_S(A)$ und $\epsilon_T(h,h')=P_T(A)$, und aus der Definition
+folgt $\disc_L \geq P_T(A) - P_S(A)$. Liegen fast alle realen Bilder in $A$,
+ist der Distanzterm also mindestens ungefähr so groß wie der Anteil der
+synthetischen Bilder außerhalb von $A$. Randomisierung senkt diese Untergrenze
+nur, solange sie Masse dorthin verschiebt, wo reale Bilder liegen; geht sie
+über die reale Variation hinaus, steigt die Untergrenze wieder. Ihr Nutzen ist
+vor allem eine Absicherung: Weil die reale Verteilung nur unvollständig bekannt
+ist (Anforderung~A6), verhindert eine plausible Verbreiterung, dass die
+synthetische Verteilung den realen Bereich verfehlt. Das spricht für die
+strukturierte Variante. Bewusst unrealistische Beispiele begründet die Schranke
+nicht; wenn sie nützen, dann über die Frage, welches Modell das Training
+auswählt, und dazu sagt die Schranke nichts. Zugleich muss ein Modell bei
+breiterer Verteilung auf einem größeren Bereich gut sein, was $\epsilon_S(h)$
+und $\lambda$ erhöhen kann. Wie stark randomisiert werden sollte, folgt aus der
+Schranke deshalb nicht. Diese Arbeit legt die Bereiche anhand von Messungen,
+physikalischen Randbedingungen und ausgewiesenen Annahmen fest
+(Tabelle~\ref{tab:parameter}) und prüft ihre Breite nicht experimentell;
+Abschnitt~\ref{sec:grenzen} nennt das als nächsten Schritt.
 
 \absatz{Shortcut Learning.} Ein Modell kann seine Vorhersagen auf Merkmale
 stützen, die im Trainingsdatensatz mit der Zielklasse zusammenhängen, sie aber
-nicht wirklich ausmachen. Dieses Verhalten heißt Shortcut Learning
-\parencite{geirhos2020}. Bei synthetischen Daten ist das Risiko besonders groß,
-weil technische Eigenheiten des Generators in jedem Bild wiederkehren können,
-etwa harte Objektkanten, immer gleiche Schatten oder typische Farbübergänge.
-Ein Modell kann solche Merkmale nutzen, obwohl es sie in realen Bildern nicht
-gibt.
+nicht wirklich ausmachen \parencite{geirhos2020}. Bei synthetischen Daten ist
+das Risiko besonders groß, weil technische Eigenheiten des Generators in jedem
+Bild wiederkehren können, etwa harte Objektkanten, immer gleiche Schatten oder
+typische Farbübergänge. Im Sinne von Gleichung~\eqref{eq:bendavid} vergrößert
+ein solches Merkmal den Distanzterm und nicht $\lambda$: Ein Detektor, der auf
+die harte Kante um ein eingefügtes Objekt reagiert, und einer, der die
+Stirnfläche selbst erkennt, liefern auf synthetischen Bildern dieselben Boxen,
+auf realen aber nicht. Weil der zweite in beiden Domänen richtig liegt, bleibt
+$\lambda$ klein; welchen der beiden das Training auswählt, sagt die Schranke
+nicht. Mehr Zufallsvariation hilft gegen einen solchen Fehler nicht, denn ein
+Merkmal, das in jedem synthetischen Bild steckt, wird durch weitere Ziehungen
+aus derselben Verteilung nicht seltener. Es kommt deshalb nicht nur darauf an,
+wie vielfältig die Bilder sind, sondern auch darauf, welche gleichbleibenden
+Spuren der Generator selbst hinterlässt.
 
-Im Sinne von Gleichung~\eqref{eq:bendavid} vergrößert ein solches Merkmal den
-Distanzterm und nicht $\lambda$. Man stelle sich zwei Detektoren vor: Der eine
-reagiert auf die harte Kante um ein eingefügtes Objekt, der andere erkennt die
-Stirnfläche selbst. Auf synthetischen Bildern liefern beide dieselben Boxen,
-auf realen Bildern liegt der erste daneben. Ihr Unterschied ist also auf
-synthetischen Bildern klein und auf realen groß, und genau solche Modellpaare
-machen $\disc_L$ groß. $\lambda$ bleibt dagegen klein, weil der zweite Detektor
-in beiden Domänen richtig liegt. Welchen der beiden das Training auswählt, sagt
-die Schranke allerdings nicht.
-
-Mehr Zufallsvariation hilft gegen einen solchen Fehler nicht. Steckt ein
-Merkmal in jedem synthetischen Bild, wird es durch weitere Ziehungen aus
-derselben Verteilung nicht seltener. Die Qualität synthetischer Daten hängt
-deshalb nicht nur davon ab, wie vielfältig die Bilder sind, sondern auch davon,
-welche gleichbleibenden Spuren der Generator selbst hinterlässt.
-
-\absatz{Synthetische Signaturen.} Für die Pipeline werden sechs mögliche
-Quellen solcher systematischen Unterschiede betrachtet
-(Tabelle~\ref{tab:signaturen}). Dass sich eingefügte Bildbereiche an
+\absatz{Synthetische Signaturen.} Dass sich eingefügte Bildbereiche an
 statistischen Spuren von ihrer Umgebung unterscheiden lassen, ist aus der
-Bildforensik bekannt \parencite{farid2009}. Die Merkmale, an denen dort
-Bildmanipulationen erkannt werden, kann auch ein Faltungsnetz als Abkürzung
-nutzen.
+Bildforensik bekannt \parencite{farid2009}; dieselben Merkmale kann auch ein
+Faltungsnetz als Abkürzung nutzen. Tabelle~\ref{tab:signaturen} nennt sechs
+mögliche Quellen solcher Unterschiede. Die Liste ist nicht vollständig; sie
+enthält die Unterschiede, die für diese Pipeline am wichtigsten erscheinen und
+deren Gegenmaßnahmen in Kapitel~\ref{kap:auswertung} experimentell geprüft
+werden.
 
 \begin{table}[htbp]
   \centering
@@ -673,21 +586,14 @@ nutzen.
   \end{tabularx}
 \end{table}
 
-Die Liste ist nicht vollständig. Sie enthält die Unterschiede, die für diese
-Pipeline am wichtigsten erscheinen und deren Gegenmaßnahmen in
-Kapitel~\ref{kap:auswertung} experimentell geprüft werden.
-
 \absatz{Verdeckung als Domäneneigenschaft.} Wie in
 Abschnitt~\ref{sec:aug-verfahren} beschrieben, soll die Pipeline die reale
 Ursache der Verdeckung nachbilden, statt zufällige Bildbereiche zu löschen. Ein
-Verdecker muss dafür zwei Dinge leisten. Er muss den richtigen Teil des Objekts
-abdecken (geometrische Wirkung), und er muss aussehen wie ein echtes Rohr, das
-vor dem Objekt liegt (visuelle Plausibilität). Die zweite Eigenschaft wird
-wichtig, wenn das Modell nicht nur das sichtbare Rohrende, sondern auch den
-Übergang zwischen Objekt und Verdecker als Merkmal nutzt. Haben alle
-künstlichen Verdecker dieselben Kanten, Farben oder Schatten, kann das Modell
-genau diese Muster mit der Zielklasse verbinden, und der Verdecker wird selbst
-zur Signatur. Diese Arbeit vermutet deshalb, dass nicht nur die Menge der
+Verdecker muss dafür den richtigen Teil des Objekts abdecken und zugleich
+aussehen wie ein echtes Rohr, das vor dem Objekt liegt. Haben alle künstlichen
+Verdecker dieselben Kanten, Farben oder Schatten, kann das Modell genau diese
+Muster mit der Zielklasse verbinden, und der Verdecker wird selbst zur
+Signatur. Diese Arbeit vermutet deshalb, dass nicht nur die Menge der
 Verdeckung, sondern auch ihr Realismus die Übertragung auf reale Bilder
 beeinflusst. Ablation~B prüft diese Vermutung (Abschnitt~\ref{sec:ablationB}).
 
