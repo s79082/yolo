@@ -269,29 +269,16 @@ Annahme gekennzeichnet. Aus welcher Datei die verschiedenen Arten von
 Zahlenwerten stammen, zeigt Tabelle~\ref{tab:herkunft} im Anhang.
 
 Das dritte Ziel ist die experimentelle Bewertung (Kapitel~\ref{kap:auswertung}).
-Sie beruht auf zwei Ablationen. Die erste, Ablation~B
-(Abschnitt~\ref{sec:ablationB}), betrifft die aufwendigste Stufe der Pipeline,
-die Verdeckung. Ihre Verdecker sind Rohrstücke, die als Schaft hinter den
-Stirnflächen und als quer liegende Stange vor dem Stapel ins Bild gemalt
-werden. Dass es die Schäfte geben muss, ist durch die Datensichtung schon
-geklärt: Jede Stirnfläche ist das Ende eines Rohrs, hinter ihr führt also ein
-Schaft weg. Offen ist dagegen, woraus die Verdecker bestehen sollen.
-Die Pipeline verwendet dafür eine Bibliothek von Verdeckern, die aus
-Realaufnahmen ausgeschnitten wurden. Begründet wird das bisher nur mit einem
-Argument: Ein prozedural erzeugter Balken hätte eine andere Textur-, Rausch-
-und Glanzstatistik und könnte dem Netz dadurch selbst als Abkürzung dienen. Um
-das zu prüfen, werden drei Trainingssätze verglichen, die sich nur in den
-Pixelwerten der Verdecker unterscheiden. Der erste enthält photographische
-Verdecker, der zweite kalibrierte prozedurale und der dritte naiv gezeichnete.
-
-Die zweite Ablation, Ablation~C (Abschnitt~\ref{sec:ablationC}), prüft das
-Leitprinzip der Pipeline als Ganzes. Verglichen werden zwei Trainingssätze, die
-sich darin unterscheiden, ob die eingefügten Objekte in Helligkeit und Farbe,
-Schärfe, Rauschen und Kompression an ihre Umgebung angeglichen werden. Auf
-diesen Maßnahmen beruht die Pipeline im Kern. Gestützt waren sie bis dahin
-aber nur indirekt, durch den kleinen Sim-to-Real-Abstand des Referenzmodells.
-Zusätzlich wird die Inferenzauflösung bestimmt. Dazu wird dasselbe Modell bei
-verschiedenen Auflösungen ausgewertet, ohne neu zu trainieren.
+Sie beruht auf zwei Ablationen. Ablation~B (Abschnitt~\ref{sec:ablationB})
+prüft, woraus die Verdecker bestehen müssen, die die Pipeline als Rohrschäfte
+und quer liegende Stangen ins Bild malt. Dazu werden drei Trainingssätze mit
+photographischen, kalibrierten prozeduralen und naiv gezeichneten Verdeckern
+verglichen. Ablation~C (Abschnitt~\ref{sec:ablationC}) prüft das Leitprinzip
+der Pipeline als Ganzes und schaltet dazu ab, dass die eingefügten Objekte in
+Helligkeit und Farbe, Schärfe, Rauschen und Kompression an ihre Umgebung
+angeglichen werden. Zusätzlich wird die Inferenzauflösung bestimmt. Dazu wird
+dasselbe Modell bei verschiedenen Auflösungen ausgewertet, ohne neu zu
+trainieren.
 
 Der Beitrag der Arbeit liegt weniger in einer neuen Methode als darin, dass
 diese Begründungspflicht bei jedem Parameter eingehalten wird.
@@ -299,11 +286,9 @@ Copy-Paste-Synthese ist ein etabliertes Verfahren
 \parencite{dwibedi2017,dvornik2018,ghiasi2021}. Welche ihrer Bestandteile in
 einem konkreten industriellen Anwendungsfall tatsächlich wirken und welche
 nicht, wird in der Literatur aber selten so kleinteilig untersucht. Ablation~B
-geht dabei über eine übliche Datensatz-Ablation hinaus. Die drei Trainingssätze
-stammen aus demselben Seed und unterscheiden sich nur in den Pixelwerten der
-Verdecker, sodass ihre Labeldateien byte-identisch sind. Der Versuch ist damit
-gepaart, und ein Unterschied im Ergebnis kann nicht an einer anderen
-Objektverteilung liegen.
+ist dabei gepaart: Ihre drei Trainingssätze unterscheiden sich nur in den
+Pixelwerten der Verdecker, ein Unterschied im Ergebnis kann also nicht an einer
+anderen Objektverteilung liegen.
 
 \absatz{Aufbau der Arbeit.} Kapitel~\ref{kap:theorie} führt in die Grundlagen
 von Convolutional Neural Networks und in die Architektur von YOLO26 ein.

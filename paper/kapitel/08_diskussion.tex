@@ -80,22 +80,6 @@ experimentell belegt sind daraus zwei Punkte. Diese beiden sind allerdings
 nicht beliebig gewählt: Der eine ist die aufwendigste Einzelentscheidung der
 Pipeline, der andere ihr Leitprinzip.
 
-\absatz{Warum gerade diese beiden.} An der Okklusionsstufe stellen sich zwei
-Fragen: \emph{wie viel} verdeckt wird und \emph{woraus} die Verdecker bestehen.
-Die erste ist nur zum Teil vorgegeben: Dass hinter jeder Stirnfläche ein
-Rohrschaft wegführt, zeigen die Realbilder (Befund~8); die Anteile, sichtbarer
-Schaft bei 88\,\% der Instanzen und Querstangen in 58\,\% der Bilder, sind
-dagegen gesetzt.
-Die zweite war frei entschieden, am aufwendigsten umgesetzt und
-nur durch ein Argument gedeckt. Weil sich die Arme nur in den Pixelwerten
-innerhalb der Verdeckermasken unterscheiden, ist Ablation~B außerdem gepaart,
-was kaum eine Datensatz-Ablation bietet. Ablation~C prüft dagegen das
-Leitprinzip selbst, also die sechs Maßnahmen, mit denen die Pipeline das
-Einfügen gegen die Signaturen S1--S6 absichert. Sie machen den größten Teil des
-Entwurfsaufwands aus, waren bis dahin nur durch den kleinen Sim-to-Real-Abstand
-gestützt und lassen sich mit einem einzigen Schalter gemeinsam abschalten.
-Dafür ist dieser Versuch nicht gepaart (Abschnitt~\ref{sec:ablationC}).
-
 \absatz{Was Ablation~B ergeben hat.} Die Behauptung hinter der
 photographischen Bibliothek ist \emph{in der Sache} bestätigt und \emph{in
 ihrer starken Form} widerlegt. Ein naiv gezeichneter Verdecker kostet auf dem

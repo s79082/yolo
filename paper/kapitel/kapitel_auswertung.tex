@@ -237,37 +237,15 @@ Tabelle~\ref{tab:imgszvoll} im Anhang.}
 \section{Die Ablation: Woraus dürfen die Verdecker bestehen?}
 \label{sec:ablationB}
 
-\absatz{Warum diese Frage.} Die Okklusion ist die aufwendigste Stufe der
-Pipeline. Sie braucht die Okkluder-Bibliothek als eigene Verarbeitungsstufe,
-das Tiefenmodell und die exakte Sichtbarkeitsrechnung mit ihren
-Verwerfungsregeln. \emph{Dass} es Rohrschäfte geben muss, ist dabei keine
-Entscheidung, denn jede Stirnfläche ist das Ende eines Rohrs, hinter ihr führt
-also ein Schaft weg (Befund~8). Frei gewählt ist dagegen, \emph{woraus} die
-Verdecker
-bestehen, und gerade diese Entscheidung ist am aufwendigsten umgesetzt und am
-schwächsten belegt.
-
-\absatz{Die geprüfte Behauptung.} Abschnitt~\ref{sec:matting} begründet die
-photographische Okkluder-Bibliothek mit einem einzigen Argument: Ein prozedural
-\emph{gezeichneter} Balken hätte eine andere Textur-, Rausch- und
-Glanzstatistik als der Rest des Bildes, und das Netz könnte \enquote{Objekt
-liegt neben künstlichem Balken} lernen, eine Abkürzung der Art S2--S4
-(Tabelle~\ref{tab:signaturen}). Das ist plausibel, wurde aber nie gemessen.
-Folgenreich wäre es trotzdem, denn hinter 88\,\% aller gerenderten Instanzen
-steht ein solcher Schaft. Wäre er eine Abkürzung, hinge sie fast perfekt mit
-dem Label zusammen.
-
-\absatz{Budget.} Alle drei Arme sind unter identischen Bedingungen trainiert:
-\code{yolo26s-p2}, 3000 Bilder, 30 Epochen, Batch~8, Seed~0,
-\code{imgsz}=1024, identische Optimierer- und Augmentierungsparameter, Auswahl
-des besten Checkpoints über dasselbe reale \code{val}-Bild
-(Tabelle~\ref{tab:budgets}). Ausgewertet wird bei nativem Maßstab, damit die
-Zahlen nicht von einer nachträglichen Auflösungswahl abhängen. Die absolute
-Höhe dieser Zahlen ist mit dem Referenzmodell aus
-Abschnitt~\ref{sec:hauptergebnis} nicht vergleichbar, weil es das doppelte
-Datenvolumen und die doppelte Epochenzahl hat; untereinander sind die drei
-Arme dagegen exakt vergleichbar. Arm~B0 ist kein eigener Datensatz, sondern
-die Pipeline aus Kapitel~\ref{kap:pipeline} selbst, auf 3000 Bilder reduziert.
+Woraus die Verdecker bestehen, ist die am aufwendigsten umgesetzte und am
+schwächsten belegte Entscheidung der Pipeline: Abschnitt~\ref{sec:matting}
+stützt die photographische Bibliothek nur auf die Annahme, ein gezeichneter
+Balken könne dem Netz als Abkürzung der Art S2--S4 dienen. Weil hinter
+88\,\% aller gerenderten Instanzen ein solcher Schaft steht, hinge eine solche
+Abkürzung fast perfekt mit dem Label zusammen. Alle Arme sind mit dem
+reduzierten Budget aus Tabelle~\ref{tab:budgets} trainiert und deshalb nur
+untereinander vergleichbar; Arm~B0 ist die Pipeline aus
+Kapitel~\ref{kap:pipeline} selbst, auf 3000 Bilder reduziert.
 
 \absatz{Versuchsaufbau.} Die Bibliothek wird durch zwei prozedural erzeugte
 ersetzt, sonst nichts.
@@ -344,7 +322,7 @@ plausible Zylinder. In B2 sind sie als flache graue Balken sofort erkennbar.}
 
 \input{kapitel/tab_ablation_b}
 
-\absatz{Ergebnis.} Die Behauptung ist \textbf{in der Sache bestätigt und in
+\absatz{Ergebnis.} Die Annahme ist \textbf{in der Sache bestätigt und in
 ihrer starken Form widerlegt} (Tabelle~\ref{tab:ablationB}).
 
 \emph{(1) Ein naiv gezeichneter Balken kostet messbar Leistung.} Arm~B2 verliert auf dem
