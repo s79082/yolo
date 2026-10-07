@@ -80,59 +80,6 @@ experimentell belegt sind daraus zwei Punkte. Diese beiden sind allerdings
 nicht beliebig gewählt: Der eine ist die aufwendigste Einzelentscheidung der
 Pipeline, der andere ihr Leitprinzip.
 
-\absatz{Was Ablation~B ergeben hat.} Die Behauptung hinter der
-photographischen Bibliothek ist \emph{in der Sache} bestätigt und \emph{in
-ihrer starken Form} widerlegt. Ein naiv gezeichneter Verdecker kostet auf dem
-Testbild \zablBTestGap\PP{} \mAPfifty, und der Verlust entfällt fast vollständig
-auf das kleinste Drittel der Objekte, wo der Rückruf von \zBZeroTestRecKlein{}
-auf \zBTwoTestRecKlein{} fällt. Die Textur- und Rauschstatistik des Verdeckers
-ist also eine relevante Größe und kein Detail. Ein an fünf Kennwerten
-kalibriertes Zylindermodell erreicht aber auf \code{test} dieselbe Leistung wie
-die photographische Bibliothek, und die aufwendigste Vorstufe der Pipeline
-lässt sich durch rund vierzig Zeilen prozeduralen Code ersetzen. Übertragbar
-ist daraus die Aussage: \emph{Nicht die Herkunft der Pixel entscheidet, sondern
-ob ihre Statistik zur Umgebung passt.} Photographisches Material ist ein
-naheliegender Weg dorthin, aber kein notwendiger.
-
-Überraschend ist ein Detail, weil es der Erwartung aus
-Abschnitt~\ref{sec:sim2real} widerspricht: Der naive Verdecker erzeugt
-\emph{keine} zusätzlichen Falschpositiven, es bricht allein der Rückruf ein.
-Das Netz hat also nicht die Abkürzung \enquote{Objekt neben Balken} gelernt.
-In seinen Trainingsdaten kam der Übergang eines \emph{texturierten} Zylinders
-über eine Stirnfläche nicht vor, und an genau diesen Stellen scheitert es im
-Testbild. Für die Verdecker beschreibt die Signaturenliste S1--S6 damit nicht
-das richtige Fehlermuster. Es handelt sich um eine gewöhnliche Domänenlücke,
-die allerdings nicht das Objekt betrifft, sondern das Material davor.
-
-\absatz{Was Ablation~C ergeben hat.} Hier bestätigt sich die Erwartung
-deutlich. Ohne die Einbettungsmaßnahmen ändert sich \mAPfifty{} desselben
-Modells auf dem Testbild um $\zablCTestGap$\PP{} und auf \code{val} um
-$\zablCValGap$\PP. Das ist der größte Effekt, den diese Arbeit für einen
-Eingriff in die Trainingsdaten gemessen hat, und der einzige, der auf beiden
-Splits in dieselbe Richtung zeigt und ähnlich groß ist. Entscheidend ist aber
-das Muster: Auf seinem eigenen synthetischen Split ist der naive Arm vom
-Kontrollarm nicht zu unterscheiden ($\zablCSvalGap$\PP), während der
-Sim-to-Real-Abstand von \zgapCZeroTest{} auf \zgapCOneTest\PP{} wächst. Ob das
-Netz dabei die Einklebespur als Abkürzung nutzt oder schlicht ein zu enges
-Erscheinungsmodell gelernt hat, lässt der Versuch offen
-(Abschnitt~\ref{sec:ablationC}). Für die Praxis folgt daraus die unbequemste
-Einsicht dieser Arbeit: \emph{Eine synthetische Kennzahl hätte den Schaden
-nicht angezeigt.} Wer eine Copy-Paste-Pipeline nur an ihren eigenen Daten misst,
-übersieht einen Verlust von elf Prozentpunkten auf der Zieldomäne.
-
-\absatz{Bilanz der Effektgrößen.} Der größte gemessene Einzeleffekt ist
-\emph{keine} Augmentierungsentscheidung, sondern die Inferenzauflösung: Zwischen
-\code{imgsz}~640 und \zswValBestAt{} liegen \zswValGain\PP{} \mAPfifty, mehr als
-das Fünffache des stärksten Eingriffs in die Trainingsdaten. Danach folgen mit
-Abstand das Bündel der Einbettungsmaßnahmen ($\zablCTestGap$\PP) und die
-Herkunft der Okkluder ($-\zablBTestGap$\PP), jeweils als Verlust gegenüber dem
-Kontrollarm gelesen. Alle übrigen geprüften Größen bewegen sich im Bereich
-weniger Prozentpunkte und damit an der Grenze dessen, was sich hier entscheiden
-lässt. Das stellt den Aufwand der Pipeline nicht infrage, denn ohne sie gäbe es
-überhaupt keinen Trainingsdatensatz. Es ordnet aber die Prioritäten: Bei einer
-solchen Anwendung ist zuerst die Auflösung zu klären, dann die saubere
-Einbettung, und erst danach lohnen sich die Feinheiten der einzelnen Stufen.
-
 \absatz{Eine Größe verbindet fünf Entscheidungen.} Rückblickend steht eine
 einzige Kenngröße hinter dem größten Teil der Arbeit: die effektive Objektgröße
 $d_{\text{eff}} = d \cdot M/N$ aus Gleichung~\eqref{eq:deff}, bezogen auf den
