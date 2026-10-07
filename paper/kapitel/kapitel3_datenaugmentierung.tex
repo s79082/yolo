@@ -458,18 +458,15 @@ beschriftete reale Daten lässt sich $\lambda$ nicht schätzen.
 \absatz{Übertragung auf die Detektion.} Der Verlust $1-\IoU$ ist als
 Jaccard-Distanz eine Metrik \parencite{kosub2019jaccard}; für die
 Lokalisierung genau eines Objekts pro Bild gilt die Schranke also. Die mAP
-passt dagegen nicht in diesen Rahmen. Sie zählt eine Box als Treffer, wenn ihre
-IoU mit der Beschriftung eine Schwelle erreicht, und dieser Verlust, 0 für
-einen Treffer und 1 sonst, verletzt die Dreiecksungleichung: Liegen zwei
-20\px{} große Boxen 6\px{} links und rechts einer dritten, treffen beide diese
-bei der Schwelle 0,5 (IoU 0,54 nach Gleichung~\eqref{eq:ioushift}), einander
-aber nicht (IoU 0,25). Außerdem ist die mAP kein Mittelwert eines Verlusts pro
-Bild, sondern wird aus den nach Konfidenz sortierten Detektionen des ganzen
-Datensatzes berechnet, und die Zuordnung einer variablen Zahl von Detektionen
-zu den annotierten Boxen ist nicht abgedeckt. Für die gemessenen Werte liefert
-Gleichung~\eqref{eq:bendavid} deshalb keine beweisbare Grenze. Sie dient dazu,
-die Entwurfsentscheidungen der Pipeline danach zu ordnen, welchen der drei
-Terme sie verkleinern sollen.
+passt dagegen nicht in diesen Rahmen. Schon ihr Trefferkriterium verletzt als
+0/1-Verlust die Dreiecksungleichung, denn zwei 20\px{} große Boxen 6\px{}
+links und rechts einer dritten treffen diese bei der Schwelle 0,5 (IoU 0,54
+nach Gleichung~\eqref{eq:ioushift}), einander aber nicht (IoU 0,25). Außerdem
+ist die mAP kein Mittelwert eines Verlusts pro Bild, sondern wird aus den nach
+Konfidenz sortierten Detektionen des ganzen Datensatzes berechnet. Für die
+gemessenen Werte liefert Gleichung~\eqref{eq:bendavid} deshalb keine
+beweisbare Grenze. Sie dient dazu, die Entwurfsentscheidungen der Pipeline
+danach zu ordnen, welchen der drei Terme sie verkleinern sollen.
 
 \absatz{Sim-to-Real-Abstand.} Messen lässt sich der Unterschied
 $\Delta_{\mathrm{SR}} = \epsilon_T(h) - \epsilon_S(h)$ zwischen dem Fehler auf
@@ -504,32 +501,14 @@ werden absichtlich stärker variiert, als es in der Realität zu erwarten ist,
 damit sich das Modell nicht auf eine einzige Erscheinungsform verlässt
 \parencite{tobin2017}. Die strukturierte Variante beschränkt die Variation auf
 physikalisch plausible Bereiche \parencite{prakash2019}; dieser Richtung folgt
-auch Anforderung~A3. In dieser Arbeit werden Position, Orientierung und Größe
-der Objekte, der Hintergrund, Helligkeit und Kontrast, Rauschen, Unschärfe,
-Kompression und Verdeckung zufällig variiert (Tabelle~\ref{tab:parameter} im
-Anhang).
-
-Mit der Schranke lässt sich sagen, wann eine breitere Variation hilft.
-Widersprechen sich zwei Modelle aus $\Hcls$ auf einem Bereich $A$ von Bildern
-vollständig, also mit $L=1$, und stimmen außerhalb von $A$ überein, so ist
-$\epsilon_S(h,h')=P_S(A)$ und $\epsilon_T(h,h')=P_T(A)$, und aus der Definition
-folgt $\disc_L \geq P_T(A) - P_S(A)$. Liegen fast alle realen Bilder in $A$,
-ist der Distanzterm also mindestens ungefähr so groß wie der Anteil der
-synthetischen Bilder außerhalb von $A$. Randomisierung senkt diese Untergrenze
-nur, solange sie Masse dorthin verschiebt, wo reale Bilder liegen; geht sie
-über die reale Variation hinaus, steigt die Untergrenze wieder. Ihr Nutzen ist
-vor allem eine Absicherung: Weil die reale Verteilung nur unvollständig bekannt
-ist (Anforderung~A6), verhindert eine plausible Verbreiterung, dass die
-synthetische Verteilung den realen Bereich verfehlt. Das spricht für die
-strukturierte Variante. Bewusst unrealistische Beispiele begründet die Schranke
-nicht; wenn sie nützen, dann über die Frage, welches Modell das Training
-auswählt, und dazu sagt die Schranke nichts. Zugleich muss ein Modell bei
-breiterer Verteilung auf einem größeren Bereich gut sein, was $\epsilon_S(h)$
-und $\lambda$ erhöhen kann. Wie stark randomisiert werden sollte, folgt aus der
-Schranke deshalb nicht. Diese Arbeit legt die Bereiche anhand von Messungen,
-physikalischen Randbedingungen und ausgewiesenen Annahmen fest
-(Tabelle~\ref{tab:parameter}) und prüft ihre Breite nicht experimentell;
-Abschnitt~\ref{sec:grenzen} nennt das als nächsten Schritt.
+auch Anforderung~A3. Wie stark randomisiert werden sollte, folgt aus der
+Schranke nicht: Eine breitere Verteilung kann den Distanzterm verkleinern,
+solange sie den Bereich der realen Bilder besser abdeckt, verlangt aber ein
+Modell, das auf einem größeren Bereich gut ist, was $\epsilon_S(h)$ und
+$\lambda$ erhöhen kann. Diese Arbeit legt die Bereiche deshalb anhand von
+Messungen, physikalischen Randbedingungen und ausgewiesenen Annahmen fest
+(Tabelle~\ref{tab:parameter}) und prüft ihre Breite nicht experimentell
+(Abschnitt~\ref{sec:grenzen}).
 
 \absatz{Shortcut Learning.} Ein Modell kann seine Vorhersagen auf Merkmale
 stützen, die im Trainingsdatensatz mit der Zielklasse zusammenhängen, sie aber
