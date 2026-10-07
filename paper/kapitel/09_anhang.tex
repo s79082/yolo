@@ -1,22 +1,30 @@
 \chapter{Anhang}
 \label{kap:anhang}
 
-\section{Reproduktion}
+\section{Reproduktion und Herkunft der Zahlen}
 \label{sec:anhangrepro}
+
+Die folgenden Aufrufe erzeugen alle Datensätze, Läufe und Messwerte der Arbeit.
+Der Kommentar hinter einem Aufruf nennt, welche Zahlen er liefert.
 
 \begin{footnotesize}
 \begin{verbatim}
-# --- Stufen 0-3: unveraendert aus dem Bestand -------------------------------
-python src/analyze_data.py                      # Sichtung (Kapitel 4)
-python src/matting.py                           # Objektausschnitte freistellen
-python src/occluders.py                         # photographische Okkluder
+# --- Quellmaterial und Datensaetze -----------------------------------------
+python src/analyze_data.py          # reale Labels, Ausschnitte, Hintergruende
+                                    # -> docs/datensichtung.json
+python src/matting.py               # Freistellung: Ellipsen, Radien, Aufweitung
+python src/occluders.py             # photographische Okkluder; Rohrdurchmesser
+                                    # und Drehwinkel der Clean Plates
 python src/generate.py --out synth/train --n 6000 --seed 1 --preview 8
 python src/generate.py --out synth/sval  --n  400 --seed 99
+                                    # je Datensatz generation_report.json:
+                                    # Ist-Anteile, Labelzahlen, Sichtbarkeit
 python src/experiment.py ablation-data          # erzeugt u.a. abl_A1_baseline
                                                 # (= Arm B0 dieser Arbeit)
 
 # --- Stufe 2b: prozedurale Okkluder-Bibliotheken (Ablation B) ---------------
-python src/procedural_bars.py               # B1 und B2, an B0 kalibriert
+python src/procedural_bars.py       # B1 und B2, an B0 kalibriert; Kennwerte
+                                    # -> docs/bars_kennwerte.json
 
 # --- Datensaetze der Ablation B --------------------------------------------
 python src/generate_neu.py --out synth/abl_B1_proz_balken \
@@ -26,10 +34,12 @@ python src/generate_neu.py --out synth/abl_B2_proz_balken_naiv \
 
 # --- Datensaetze der Ablation C (Einbettung) -------------------------------
 python src/generate.py --out synth/C0_kontrolle   --n 3000 --seed 1
-python src/generate.py --out synth/C1_naive_paste --n 3000 --seed 1 \\
+python src/generate.py --out synth/C1_naive_paste --n 3000 --seed 1 \
     --naive-paste                               # S1-S5 und Schlagschatten aus
 
 # --- Training und Auswertung -----------------------------------------------
+# Trainingsverlauf und beste Epoche je Lauf -> runs/*/results.csv;
+# alle Metriken berechnet src/evaluate.py
 python src/experiment_neu.py data           # data/*.yaml, Datensatzkennwerte
 python src/experiment_neu.py check          # Nachweis der Paarung
 python src/experiment_neu.py train          # Arme, yolo26s-p2
@@ -38,18 +48,38 @@ python src/analyse_ablationB.py             # Rueckruf nach Objektgroesse
 python src/train_neu.py --name referenz \
     --data data/referenz.yaml --epochs 60   # Referenzmodell
 python src/experiment_neu.py main  --weights runs/referenz/weights/best.pt
+                                            # Hauptergebnis
 python src/experiment_neu.py sweep --weights runs/referenz/weights/best.pt
+                                            # Aufloesungssweep, Bootstrap
 python src/analyse_neu.py          --weights runs/referenz/weights/best.pt
+                                            # Boxversatz, Sensitivitaet
 python src/train_neu.py --name C0_kontrolle   --data data/C0_kontrolle.yaml
 python src/train_neu.py --name C1_naive_paste --data data/C1_naive_paste.yaml
 python src/eval_armC.py                     # Arme C0/C1, eigene Ergebnisdatei
 
 # --- Abbildungen und Tabellen ----------------------------------------------
-python src/report_neu.py
+python src/report_neu.py            # kapitel/zahlen.tex, kapitel/tab_*.tex
 python paper/tools/fig_stufen.py
 python paper/tools/abbildungen_vorbereiten.py
 \end{verbatim}
 \end{footnotesize}
+
+Drei Arten von Werten gibt kein Aufruf aus. \emph{Gesetzte} Werte, also die
+Parameterbereiche der Pipeline und die Trainingsparameter, stehen im Quelltext
+von \code{src/generate.py} und \code{src/train.py}; ihre Belegart nennen die
+Tabellen~\ref{tab:parameter} und~\ref{tab:trainaug}. Parameterzahl, GFLOPs
+sowie Gitter- und Positionszahlen der Modelle gibt die Werkzeugkette beim
+Netzaufbau aus, die Speicherbelegung stammt aus \code{nvidia-smi} während der
+Läufe. \emph{Abgeleitete} Werte wie IoU-Verläufe, effektive und kritische
+Objektgrößen sind mit der jeweils genannten Gleichung im Text nachrechenbar.
+Die Statistik der erzeugten Labels in Tabelle~\ref{tab:kalibrierung} liegt in
+\code{docs/experiments/synth\_layout.json}.
+
+Alle Metriken der Kapitel~\ref{kap:auswertung} und~\ref{kap:diskussion} stehen
+nicht als Ziffern im Quelltext der Arbeit, sondern als Makros in
+\code{paper/kapitel/zahlen.tex}. Diese Datei erzeugt \code{src/report\_neu.py}
+wie alle Ergebnistabellen unmittelbar aus den Ergebnisdateien; ein Wert, für den
+kein Lauf vorliegt, erscheint im übersetzten Dokument als \textbf{??}.
 
 Zwei Eigenheiten der Ausführungsumgebung erzwingen Trainingsparameter, die sonst
 anders zu setzen wären. Erstens blockiert in der verwendeten Kombination
@@ -221,134 +251,6 @@ Luminanzrauschen, also über alle drei Kanäle identisch; Bayer-Interpolation un
 die 4:2:0-Chroma-Unterabtastung von JPEG tiefpassfiltern den Farbanteil, und
 kanalunabhängiges Rauschen hätte allein durch das Korn eine Sättigung von rund
 55 statt der gemessenen 28,7 erzeugt.
-
-\section{Herkunft der Zahlenwerte}
-\label{sec:anhangherkunft}
-
-Jede Zahl im Fließtext, in einer Abbildung oder in einer Gleichung gehört zu
-genau einer der folgenden Klassen. Die Tabelle nennt für jede Klasse die Quelle
-und das Programm, das sie erzeugt; damit ist jeder Wert der Arbeit auf eine
-Datei zurückführbar.
-
-{\footnotesize
-\begin{longtable}{@{}L{0.27\textwidth}L{0.30\textwidth}L{0.33\textwidth}@{}}
-\caption[Herkunft der Zahlenwerte]{Herkunft aller Zahlenwerte der Arbeit.
-\emph{Gemessen} heißt: an den vorliegenden Dateien erhoben. \emph{Gesetzt}
-heißt: als Parameter gewählt -- die Belegart je Parameter steht in
-Tabelle~\ref{tab:parameter}. \emph{Abgeleitet} heißt: aus einer im Text
-angegebenen Gleichung berechnet und dort nachrechenbar.}
-\label{tab:herkunft}\\
-\toprule
-\textbf{Zahlenart} & \textbf{Quelle} & \textbf{erzeugt von} \\
-\midrule
-\endfirsthead
-\toprule
-\textbf{Zahlenart} & \textbf{Quelle} & \textbf{erzeugt von} \\
-\midrule
-\endhead
-Bildmaße und Objektzahlen der Bewertungsbilder &
-gemessen (Bild- und Labeldateien) &
-\code{data/val}, \code{data/test} \\
-\addlinespace
-Statistik der realen Labels: Durchmesser, Seiten\-verhältnis, NN-Abstand,
-Nachbarzahl, Randanteil (Tabelle~\ref{tab:statistik}) &
-gemessen an \code{val} und \code{test} &
-\code{src/analyze\_data.py}\newline $\to$ \code{docs/datensichtung.json} \\
-\addlinespace
-Kennwerte der Objektausschnitte und Hintergründe (Abschnitt~\ref{sec:quellmaterial}) &
-gemessen an den Quelldateien &
-\code{src/analyze\_data.py} \\
-\addlinespace
-Parameter und Messwerte der Freistellung (Abschnitt~\ref{sec:matting}) &
-Quelltext, Zwischenwerte gemessen &
-\code{src/matting.py} \\
-\addlinespace
-Rohrdurchmesser und Drehwinkel der Clean Plates &
-gemessen über den Struktur-Tensor &
-\code{src/occluders.py} \\
-\addlinespace
-Kennwerte der drei Okkluder-Bibliotheken
-(Tabelle~\ref{tab:balkenkennwerte}) &
-gemessen an den Bibliotheken; die Kalibrierfaktoren per Fixpunktiteration
-bestimmt &
-\code{src/procedural\_bars.py}\newline $\to$ \code{docs/bars\_kennwerte.json} \\
-\addlinespace
-Parameterbereiche der Pipeline: Anteile, Spannen, Wahrscheinlichkeiten
-(Abschnitt~\ref{sec:synthese}, Tabelle~\ref{tab:parameter}) &
-\textbf{gesetzt} -- Sollwerte aus dem Quelltext; die Belegart je Wert steht in
-der Spalte \emph{Art} &
-\code{src/generate.py} \\
-\addlinespace
-Gemessene Ist-Anteile derselben Transformationen &
-gezählt beim Erzeugen (Abschnitt~\ref{sec:anhangbericht}) &
-\code{generation\_report.json}\newline (je Datensatz) \\
-\addlinespace
-Kennzahlen des erzeugten Datensatzes: Bild-, Instanz- und Labelzahlen,
-Sichtbarkeit, verworfene Labels (Abschnitt~\ref{sec:datensatz}) &
-Erzeugungsbericht &
-\code{src/generate.py} \\
-\addlinespace
-Statistik der \emph{erzeugten} Labels: Durchmesser, NN-Abstand, Berührungsquote
-(Tabelle~\ref{tab:kalibrierung}) &
-gemessen an 1500 erzeugten Bildern mit 34\,027 Labeln &
-\code{src/report\_neu.py}\newline $\to$ \code{docs/experiments/}\newline
-\code{synth\_layout.json} \\
-\addlinespace
-Modellkennzahlen: Parameterzahl, GFLOPs, Schichten, Gitter- und Positionszahlen
-(Abschnitte~\ref{sec:p2kopf} und~\ref{sec:trainingsaufbau}) &
-Modellzusammenfassung der Werkzeugkette beim Netzaufbau; die Positionszahlen
-zusätzlich aus der Eingabegröße abzählbar &
-\code{ultralytics} \\
-\addlinespace
-Speicherbelegung und Laufzeiten &
-eigene Messung am jeweiligen Lauf (\code{nvidia-smi}, Logdatei) &
-\code{logs/} \\
-\addlinespace
-Trainingsparameter (Abschnitte~\ref{sec:trainingsaufbau}
-und~\ref{sec:trainparam}, Tabelle~\ref{tab:trainaug}) &
-\textbf{gesetzt} -- Quelltext, jeder Wert dort mit Begründung &
-\code{src/train.py},\newline \code{src/train\_neu.py} \\
-\addlinespace
-Epochenzahlen, beste Epoche, Trainingsverlauf
-(Abschnitt~\ref{sec:trainingsverlauf}) &
-Protokoll des Laufs &
-\code{runs/*/results.csv} \\
-\addlinespace
-Alle Metriken: \mAPfifty, \mAPseven, \mAPall, $F_1$, Precision, Rückruf,
-Betriebspunkt, Zählung, Treffer-IoU (Kapitel~\ref{kap:auswertung}) &
-eigenes Bewertungsframework, gegen die Referenzimplementierung geprüft
-(Abschnitt~\ref{sec:metriken}) &
-\code{src/evaluate.py},\newline \code{src/experiment\_neu.py} \\
-\addlinespace
-Bootstrap-Intervalle (Abschnitt~\ref{sec:bootstrap}) &
-räumlicher Block-Bootstrap, 400 Wiederholungen &
-\code{src/experiment.py} \\
-\addlinespace
-Boxgrößenversatz und Sensitivitätsrechnung
-(Abschnitt~\ref{sec:boxversatz}, Tabelle~\ref{tab:boxsens}) &
-eigene Analyse über alle eindeutig zugeordneten Paare &
-\code{src/analyse\_neu.py} \\
-\addlinespace
-Rückruf nach Objektgröße (Tabelle~\ref{tab:ablationBgroesse}) &
-eigene Analyse am $F_1$-optimalen Betriebspunkt &
-\code{src/analyse\_ablationB.py} \\
-\addlinespace
-Abgeleitete Größen: IoU-Verläufe, effektive Objektgröße, Kandidatenzellen,
-kritische Größe, effektive Größenspanne &
-\textbf{abgeleitet} -- aus den Gleichungen~\eqref{eq:iou},
-\eqref{eq:ioushift}, \eqref{eq:deff} und~\eqref{eq:gridcount} berechnet &
-im Text nachrechenbar \\
-\bottomrule
-\end{longtable}}
-
-\absatz{Wie die Ergebniszahlen in den Text kommen.} Sämtliche Metriken der
-Kapitel~\ref{kap:auswertung} und~\ref{kap:diskussion} stehen nicht als Ziffern
-im Quelltext der Arbeit, sondern als Makros in \code{paper/kapitel/zahlen.tex}.
-Diese Datei wird von \code{src/report\_neu.py} unmittelbar aus den
-Ergebnisdateien erzeugt, ebenso alle Ergebnistabellen. Text und Daten können
-damit nicht auseinanderlaufen: Wird ein Lauf wiederholt, genügt ein erneuter
-Aufruf des Skripts. Ein Wert, für den kein Lauf vorliegt, erscheint im
-übersetzten Dokument sichtbar als \textbf{??} und nicht als veraltete Zahl.
 
 \section{Tabellen zur Augmentierung}
 

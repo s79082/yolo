@@ -31,9 +31,9 @@ Eine Zahl, für die noch kein Lauf vorliegt, erscheint im PDF als **??**.
 
 ### Herkunft der Zahlenwerte
 
-Anhangabschnitt **A.4** (Tabelle A.4) nennt für jede Klasse von Zahlenwerten die
-Quelle und das Programm, das sie erzeugt — von der Objektstatistik über die
-Pipelineparameter und die Modellkennzahlen bis zu den Metriken. Als Prüfhilfe
+Anhangabschnitt **A.1** nennt hinter jedem Aufruf, welche Zahlenwerte er
+erzeugt, und darunter die Herkunft der Werte, die kein Aufruf ausgibt (gesetzte
+Parameter, Modellkennzahlen, abgeleitete Größen). Als Prüfhilfe
 beim Schreiben:
 
 ```bash
