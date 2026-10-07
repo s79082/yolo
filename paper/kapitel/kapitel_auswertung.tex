@@ -213,15 +213,10 @@ berichteten \zrefTestMap{}, auf \code{val} mit \zselValMap{} knapp darunter. Die
 berichteten Werte sind also keine Bestwerte, sondern folgen einer Konvention,
 die vor den Läufen feststand.
 
-Die übrigen Inferenzparameter sind unkritisch, und zwei entfallen bei diesem
-Modell ganz: Der NMS-Schwellwert greift nicht, weil \code{yolo26s-p2} NMS-frei
-arbeitet (Abschnitt~\ref{sec:yolo26}), und Test-Time-Augmentation ist nicht
-verfügbar; die Werkzeugkette lehnt \code{augment=True} für Ende-zu-Ende-
-Modelle ab und fällt stillschweigend auf einfache Inferenz zurück
-(\zttaVal\PP{} Unterschied), der Gewinn aus \parencite{shanmugam2021} ist hier
-also nicht erreichbar. Es bleiben \code{max\_det}, ab 100 gesättigt und bei 50
-deutlich verschlechternd, weil die Ausgabe hart abgeschnitten wird, sowie die
-Rechengenauigkeit: FP16 liefert identische Metrikwerte.
+Die übrigen Inferenzparameter sind unkritisch: NMS-Schwellwert und
+Test-Time-Augmentation wirken beim NMS-freien Ende-zu-Ende-Modell nicht
+(Abschnitt~\ref{sec:yolo26}), \code{max\_det} ist ab 100 gesättigt, und FP16
+liefert identische Metrikwerte.
 
 \begin{figure}[htbp]
 \centering
@@ -255,7 +250,8 @@ ersetzt, sonst nichts.
   die Bibliothek der Pipeline, also der Kontrollarm.
   \item[B1 prozedural, physikalisch] ein Zylindermodell aus Lambert-Term,
   Glanzlicht, Umgebungslicht, Längsvariation und Korn
-  (Gleichung~\eqref{eq:zylinder}). Es ist an B0 kalibriert: Grauwert, Kornstärke,
+  (Gleichung~\eqref{eq:zylinder} und Abbildung~\ref{abb:balken} im
+  Anhang~\ref{sec:anhangbalken}). Es ist an B0 kalibriert: Grauwert, Kornstärke,
   Farbsättigung, Längsvariation und Querschnittskontrast treffen die an der
   photographischen Bibliothek gemessenen Werte.
   \item[B2 prozedural, naiv] konstantes Grau in derselben Maske. Kein Verlauf,
@@ -268,23 +264,6 @@ Die drei Arme bilden damit eine \emph{Leiter zunehmenden Realismus} von B2
 zeigen, \emph{dass} ein Unterschied besteht. Die Leiter zeigt zusätzlich,
 \emph{wie weit} ein prozedurales Modell trägt und ob der letzte Schritt zur
 Photographie noch etwas bringt.
-
-Das Beleuchtungsmodell selbst -- Lambert-Term, Glanzlicht, Umgebungslicht,
-Längsvariation und Korn über einen Arc des Zylindermantels -- steht mit
-Gleichung~\eqref{eq:zylinder} in Abschnitt~\ref{sec:anhangbalken} des Anhangs;
-Abbildung~\ref{abb:balken} stellt die drei Bibliotheken mit ihren Kennwerten
-gegenüber.
-
-\begin{figure}[htbp]
-\centering
-\includegraphics[width=\textwidth]{abbildungen/neu_balken.png}
-\caption[Die drei Okkluder-Bibliotheken]{Die drei Okkluder-Bibliotheken. Links
-je vier Stangen (dreifach vergrößert, auf neutralem Grau), Mitte das über die
-Bibliothek gemittelte Querschnittsprofil, rechts die Kennwerte. B1 trifft alle
-fünf kalibrierten Größen; das \emph{gemittelte} Profil ist dennoch gewölbter als
-das photographische, weil die Glanzlichtlage in B0 stärker streut und das Mittel dadurch flacher wird; der Kontrast \emph{je Stange} stimmt überein.}
-\label{abb:balken}
-\end{figure}
 
 \absatz{Warum der Versuch gepaart ist.} Alle drei Bibliotheken enthalten genau
 56 Einträge; jede prozedurale Stange übernimmt von ihrem photographischen
@@ -541,13 +520,8 @@ trennen, weil das Abschalten der Einbettung zweierlei zugleich bewirkt: Es
 erzeugt die künstliche Kante \emph{und} verfälscht die Erscheinung des Objekts
 selbst. Belegt ist damit, \emph{dass} die Einbettung wirkt und dass ihr Fehlen
 an den synthetischen Daten nicht zu sehen ist, aber nicht, auf welchem der
-beiden Wege der Verlust entsteht.
-
-Entscheidbar wäre das durch eine Aufteilung des Bündels: ein Arm mit harter
-Kante, aber photometrisch angeglichenem Objekt gegen einen mit weicher Kante
-und unangeglichener Photometrie. Trägt der erste den größeren Teil des
-Verlusts, spricht das für die Abkürzung, denn die Kante gehört nicht zum
-Objekt; trägt der zweite ihn, für die Domänenlücke.
+beiden Wege der Verlust entsteht. Einen Versuch, der das trennt, nennt
+Abschnitt~\ref{sec:grenzen}.
 
 \absatz{Konsequenz für die Pipeline.} Die Einbettungsstufen sind damit die
 erste Gruppe von Maßnahmen, deren Nutzen nicht nur begründet, sondern deutlich
