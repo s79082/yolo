@@ -115,17 +115,7 @@ angenähert -- die größte verbleibende Domänenlücke, von der Fehleranalyse
 bestätigt. \emph{(3)} Reflect-Padding erzeugt Spiegelsymmetrie, wenn ein
 Hintergrund für den gewünschten Zoom zu klein ist; eine spiegelsymmetrische
 Bildhälfte ist selbst ein erkennbares Merkmal, die Maßnahme gegen Signatur~S1
-erzeugt damit eine schwächere neue Auffälligkeit. \emph{(4)} Fünfzehn Werte sind
-Annahmen (Dellen, Perspektive, Schlagschatten, vertikale Spiegelung, HSV je
-Instanz, globale Helligkeit/Kontrast, globale Farbtemperatur,
-Bewegungsunschärfe, Reflect-Padding, Vignettierung, der Zoombereich der
-Fremdszenen, die Angleichstärken des Farbangleichs, der Streufaktor des
-Rauschangleichs sowie Orientierung und Größe der Layoutcluster).
-\emph{(5)} Der Generator deckt 12--44\px{} ab,
-\code{test} enthält aber vier Objekte darunter; die Trainingsskalierung
-erreicht drei davon, das kleinste mit 6,4\px{} nicht. \emph{(6)} Die synthetischen Cluster sind dichter als
-real -- bewusst als Robustheitsreserve belassen; die umgekehrte Abweichung
-wäre problematisch. \emph{(7)} Die Schaftrichtung ist an der gemessenen
+erzeugt damit eine schwächere neue Auffälligkeit. \emph{(4)} Die Schaftrichtung ist an der gemessenen
 Säulenrichtung des Clusters kalibriert, nicht an der Rohrrichtung des
 Hintergrunds: Sie entsteht als Senkrechte zur Säulenrichtung mit einer
 Streuung von $55^\circ$ bis $125^\circ$, während die vier Clean Plates ihre
@@ -174,16 +164,10 @@ Kontrollarme B0 und C0, die dieselbe Pipeline abbilden und auf \code{test}
 1,3\PP{} auseinanderliegen; die Effekte von B2 und C1 sind groß genug, um
 dieser Einschränkung standzuhalten, die Aussage \enquote{B1 ist so gut wie B0}
 ist es nicht -- sie bleibt eine Nicht-Ablehnung. \emph{Drittens} ist
-Ablation~C \emph{nicht gepaart}: Die übersprungenen Stufen verschieben den
-Zufallsstrom des Generators, sodass C0 und C1 zwei Realisierungen derselben
-Layoutverteilung sind und nicht dieselbe Szene. Beheben ließe sich das, indem
-der Generator die Stufenparameter immer zieht und nur ihre Anwendung von
-$\pi_\nu$ abhängig macht (Gleichung~\eqref{eq:mischung}). \emph{Viertens} ist
-jede der beiden Ablationen ein
-\emph{Eingriff in eine Richtung}: Sie zeigt die Folgen einer Verschlechterung,
-nicht den Ertrag eines besseren Entwurfs derselben Stufe. Bei~C kommt hinzu,
-dass sechs Maßnahmen gemeinsam abgeschaltet werden -- welche davon wie viel
-trägt, bleibt offen. \emph{Fünftens} trifft die Kalibrierung von B1 fünf
+Ablation~C nicht gepaart (Abschnitt~\ref{sec:ablationC}). \emph{Viertens} ist
+jede der beiden Ablationen ein \emph{Eingriff in eine Richtung}: Sie zeigt die
+Folgen einer Verschlechterung, nicht den Ertrag eines besseren Entwurfs
+derselben Stufe. \emph{Fünftens} trifft die Kalibrierung von B1 fünf
 skalare Kennwerte, nicht die räumliche Korrelationsstruktur des Restsignals.
 B1 ist damit ein sorgfältig kalibriertes, nicht das bestmögliche prozedurale
 Modell; jede Aussage zugunsten der photographischen Bibliothek gilt gegen
@@ -216,8 +200,10 @@ nach erwartetem Nutzen geordnet:
   spricht das für die Abkürzung, denn die Kante gehört nicht zum Objekt, sonst
   für die Domänenlücke. Zielgröße wäre der Sim-to-Real-Abstand,
   der sich in Ablation~C als die empfindlichere Größe erwiesen hat. Zuvor
-  sollte der Generator so umgestellt sein, dass er seine Stufenparameter
-  immer zieht; dann sind auch diese Arme gepaart. Dazu gehört ferner der
+  sollte der Generator seine Stufenparameter immer ziehen und nur ihre
+  \emph{Anwendung} von $\pi_\nu$ abhängig machen
+  (Gleichung~\eqref{eq:mischung}); dann sind auch diese Arme gepaart. Dazu
+  gehört ferner der
   Verdeckungs\emph{grad}, dessen Arme im Repositorium bereits trainiert
   vorliegen (\code{runs/A0\_keine\_okklusion}, \code{A1\_baseline},
   \code{A2\_starke\_okklusion}), aber nicht Teil dieser Auswertung sind.
