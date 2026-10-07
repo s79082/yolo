@@ -415,11 +415,11 @@ problematisch. Die zweite betrifft die Objektgröße. Der Generator soll
 12--44\px{} abdecken, erreicht am oberen Ende wegen der Zoomdeckelung in
 Gleichung~\eqref{eq:zoom} aber nur gut 40\px{} (p95 der erzeugten Verteilung:
 40,4\px). Am unteren Ende enthält \code{test} vier Objekte unter 12\px{}
-(kleinstes 6,4\px). Diese Lücke schließt erst die Trainingsskalierung, die die
-Untergrenze nach Gleichung~\eqref{eq:effgroesse} auf $d_{\min}\,(1-a) =
-7{,}2$\px{} senkt (Abschnitt~\ref{sec:trainparam}). Auch dann liegen die vier
-kleinsten Objekte in \code{test} noch am unteren Rand der
-Trainingsverteilung.
+(kleinstes 6,4\px). Die Trainingsskalierung senkt die Untergrenze nach
+Gleichung~\eqref{eq:effgroesse} auf $d_{\min}\,(1-a) = 7{,}2$\px{}
+(Abschnitt~\ref{sec:trainparam}) und schließt diese Lücke damit nur zum Teil:
+Drei der vier Objekte liegen im unteren Bereich der Trainingsverteilung, das
+kleinste knapp darunter.
 
 \section{Nachweis der Anforderungen}
 \label{sec:nachweis}

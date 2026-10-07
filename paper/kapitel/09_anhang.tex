@@ -511,9 +511,11 @@ angeschnitten) und kombiniert Hintergründe. Boxen bleiben exakt. \\
 Abschalten in den letzten zehn Epochen: Vierfachkacheln sind eine Bildstatistik,
 die es zur Inferenzzeit nie gibt. \\
 \code{scale} & 0,4 &
-Skalierung $0{,}6$--$1{,}4$. Der Standardwert 0,5 wurde reduziert, weil er die
-kleinsten Objekte auf 6\px{} schrumpfen lässt -- unter der Auflösung von
-Stride~8 und damit reines Labelrauschen. \\
+Skalierung $0{,}6$--$1{,}4$, mit der Generatorspanne also Objektgrößen von
+7,2--61,6\px{} (Gleichung~\eqref{eq:effgroesse}). \textbf{Gesetzt}: Der
+Standardwert 0,5 ergäbe 6,0\px{} und läge ebenfalls über der kritischen Größe
+der P2-Ebene von 5,7\px{} (Gleichung~\eqref{eq:gridmiss}); ein Vorteil von 0,4
+ist nicht gemessen. \\
 \code{translate} & 0,1 &
 Standard; verhindert eine Positionsverzerrung zur Bildmitte. \\
 \code{fliplr} & 0,5 &

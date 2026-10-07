@@ -179,11 +179,12 @@ SPEC = {
                      "YOLO-Literatur gut belegter Gewinn."),
     "scale": (0.4,
               "Zufaellige Skalierung 0.6-1.4. Zusammen mit der Generatorspanne "
-              "12-44 px ergibt das effektiv 7-62 px und deckt damit alle "
-              "Inferenzaufloesungen des Experiments 1 ab. Der Ultralytics-"
-              "Standard 0.5 wurde reduziert, weil er die kleinsten Objekte auf "
-              "6 px schrumpfen laesst - unterhalb dessen, was Stride 8 aufloest, "
-              "und damit reines Labelrauschen."),
+              "12-44 px ergibt das effektiv 7.2-61.6 px. Gesetzt, nicht "
+              "gemessen: Der Ultralytics-Standard 0.5 ergaebe 6.0 px und laege "
+              "bei yolo26s-p2 ebenfalls ueber der kritischen Groesse der "
+              "P2-Ebene (4*sqrt(2) = 5.7 px). Die fruehere Begruendung (unter "
+              "Stride 8) galt fuer yolo11s ohne P2-Kopf. Das kleinste "
+              "test-Objekt (6.4 px) liegt unter der Untergrenze von 7.2 px."),
     "translate": (0.1, "Standard. Verschiebt das Mosaic-Zentrum, verhindert eine "
                        "Positionsverzerrung zur Bildmitte."),
     "degrees": (0.0,

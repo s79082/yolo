@@ -166,9 +166,10 @@ Training um einen Faktor aus $[1-a,\,1+a]$, so sieht das Netz Objektgrößen aus
 \end{equation}
 Mit $[d_{\min}, d_{\max}] = [12, 44]$\px{} (Gleichung~\eqref{eq:zoom},
 Abschnitt~\ref{sec:modellentscheidungen}) und $a = 0{,}4$ sind das
-$12 \cdot 0{,}6 = 7{,}2$ bis $44 \cdot 1{,}4 = 61{,}6$\px. Damit sind auch die
-vier Objekte unter 12\px{} abgedeckt, die \code{test} enthält und die der
-Generator selbst nicht erzeugt (Abschnitt~\ref{sec:valtest}). Nach oben reicht
+$12 \cdot 0{,}6 = 7{,}2$ bis $44 \cdot 1{,}4 = 61{,}6$\px. Von den vier
+Objekten unter 12\px, die \code{test} enthält und die der Generator selbst
+nicht erzeugt (Abschnitt~\ref{sec:valtest}), sind damit drei abgedeckt; das
+kleinste liegt mit 6,4\px{} knapp darunter. Nach oben reicht
 die Spanne auch für stark hochskalierte Bilder. Bei sehr niedriger
 Inferenzauflösung kommen die Objekte dagegen noch kleiner als 7,2\px{} im Netz
 an (Abschnitt~\ref{sec:imgsz}). Die Untergrenze von 7,2\px{} liegt über der
