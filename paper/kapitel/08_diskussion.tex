@@ -22,18 +22,14 @@ einen Größe unterscheiden.}
 \textbf{Belegstand} & \textbf{betrifft} & \textbf{Einschränkung} \\
 \midrule
 \textbf{abliert} (eigene Läufe) &
-\emph{Herkunft} der Okkluder (Abschnitt~\ref{sec:ablationB}) &
-Reduziertes Budget (3000 Bilder, 30 Epochen), ein Lauf je Arm; der Effekt des
-naiven Verdeckers übersteigt das Bootstrap-Intervall, die Gleichheit von
-kalibriert und photographisch ist dagegen eine Nicht-Ablehnung \\
-\addlinespace
-\textbf{abliert} (eigene Läufe) &
 das Bündel der Einbettungsmaßnahmen S1--S5 nebst Schlagschatten
 (Abschnitt~\ref{sec:ablationC}) &
-Dasselbe Budget; zusätzlich \emph{nicht} gepaart, weil der Zufallsstrom des
-Generators auseinanderläuft. Der Effekt ($\zablCTestGap$\PP) übersteigt den
-Abstand zweier gleichwertiger Kontrollarme um etwa das Neunfache; welche
-Einzelmaßnahme wie viel trägt, bleibt offen \\
+Reduziertes Budget (3000 Bilder, 30 Epochen), ein Lauf je Arm; zusätzlich
+\emph{nicht} gepaart, weil der Zufallsstrom des Generators auseinanderläuft.
+Der Effekt ($\zablCTestGap$\PP) ist fast viermal so groß wie die Halbbreite
+des Bootstrap-Intervalls und etwa neunmal so groß wie die Streuung zweier
+Trainingsläufe auf praktisch demselben Datensatz; welche Einzelmaßnahme wie
+viel trägt, bleibt offen \\
 \addlinespace
 \textbf{gemessen ohne Neutraining} &
 Inferenzauflösung, NMS-Schwelle, \code{max\_det}, Test-Time-Augmentation &
@@ -55,7 +51,8 @@ Der Sim-to-Real-Abstand von \zsimRealVal\,Prozentpunkten (\code{val}) bzw.\
 für die einzelne Maßnahme bleibt er ohne Aussage \\
 \addlinespace
 \textbf{begründet, nicht belegt} &
-Matting-Schwelle, Farb-, Unschärfe- und Rauschangleich, JPEG-Requantisierung,
+\emph{Herkunft} der Okkluder (photographische Bibliothek), Matting-Schwelle,
+Farb-, Unschärfe- und Rauschangleich, JPEG-Requantisierung,
 Schlagschatten, Gamma, HSV, Mulde, globale Bildstufe, Negativbildanteil,
 Dellen- und Perspektivanteil & --- \\
 \bottomrule
@@ -73,12 +70,11 @@ Annahmen. Diese Bilanz ist nicht nebensächlich: Bei rein synthetischen Training
 ist die Liste dieser 44 Werte die vollständige Beschreibung der
 Trainingsverteilung.
 
-Kontrolliert \emph{abliert} sind davon \textbf{zwei}: die Herkunft der
-Okkluder (Ablation~B) und das Bündel der Einbettungsmaßnahmen (Ablation~C).
-Gemessen an 44 Werten ist das wenig. Die Begründungen tragen den Entwurf,
-experimentell belegt sind daraus zwei Punkte. Diese beiden sind allerdings
-nicht beliebig gewählt: Der eine ist die aufwendigste Einzelentscheidung der
-Pipeline, der andere ihr Leitprinzip.
+Kontrolliert \emph{abliert} ist davon \textbf{ein} Bündel: die
+Einbettungsmaßnahmen, gemeinsam abgeschaltet. Gemessen an 44 Werten ist das
+wenig. Die Begründungen tragen den Entwurf, experimentell belegt ist daraus ein
+Punkt. Er ist allerdings nicht beliebig gewählt, denn er betrifft das
+Leitprinzip der Pipeline.
 
 \absatz{Eine Größe verbindet fünf Entscheidungen.} Rückblickend steht eine
 einzige Kenngröße hinter dem größten Teil der Arbeit: die effektive Objektgröße
@@ -150,31 +146,24 @@ Inferenzauflösung. \code{test} ist damit ein sauberer Endtest, \code{val} aber
 kein unabhängiger Bewertungssplit mehr; die belastbaren Zahlen sind die
 \code{test}-Zahlen.
 
-\absatz{Grenzen der Ablationen.} Sechs Vorbehalte bleiben. \emph{Erstens} das
+\absatz{Grenzen der Ablation.} Vier Vorbehalte bleiben. \emph{Erstens} das
 reduzierte Budget: 3000 Bilder und 30 Epochen sind aus der Rechenzeit gewählt,
-nicht aus einem Konvergenzkriterium. Es ist für alle fünf Arme gleich und kann
+nicht aus einem Konvergenzkriterium. Es ist für beide Arme gleich und kann
 den Vergleich deshalb nicht verzerren, begrenzt aber die absolute Höhe der
 Zahlen; ein Effekt, der sich erst nach 60 Epochen zeigte, bliebe unentdeckt.
 \emph{Zweitens} je ein Lauf pro Arm: Ohne Wiederholung mit verschiedenen
 Trainings-Seeds ist die Streuung des Trainings selbst unbekannt und von der
 Wirkung des Datensatzes nicht zu trennen. Das ist die gewichtigste
 Einschränkung, und sie ist mit Rechenzeit behebbar: Drei Seeds je Arm wären
-fünfzehn statt fünf Läufen. Einen Anhaltspunkt liefern immerhin die beiden
-Kontrollarme B0 und C0, die dieselbe Pipeline abbilden und auf \code{test}
-1,3\PP{} auseinanderliegen; die Effekte von B2 und C1 sind groß genug, um
-dieser Einschränkung standzuhalten, die Aussage \enquote{B1 ist so gut wie B0}
-ist es nicht -- sie bleibt eine Nicht-Ablehnung. \emph{Drittens} ist
-Ablation~C nicht gepaart (Abschnitt~\ref{sec:ablationC}). \emph{Viertens} ist
-jede der beiden Ablationen ein \emph{Eingriff in eine Richtung}: Sie zeigt die
-Folgen einer Verschlechterung, nicht den Ertrag eines besseren Entwurfs
-derselben Stufe. \emph{Fünftens} trifft die Kalibrierung von B1 fünf
-skalare Kennwerte, nicht die räumliche Korrelationsstruktur des Restsignals.
-B1 ist damit ein sorgfältig kalibriertes, nicht das bestmögliche prozedurale
-Modell; jede Aussage zugunsten der photographischen Bibliothek gilt gegen
-\emph{diese} Modellklasse, nicht gegen prozedurale Okkluder schlechthin.
-\emph{Sechstens} ist die Aufschlüsselung nach Objektgröße nur ein
-Stellvertreter für die Stapeltiefe; die realen Bilder tragen keine Verdeckungsannotation, der
-Verdeckungsgrad je Objekt ist also nicht direkt messbar.
+sechs statt zwei Läufen. Einen Anhaltspunkt liefert immerhin der
+Wiederholungslauf der Kontrolle, der auf praktisch demselben Datensatz
+1,3\PP{} neben C0 liegt; der Effekt von C1 ist groß genug, um dieser
+Einschränkung standzuhalten. \emph{Drittens} ist die Ablation nicht gepaart
+(Abschnitt~\ref{sec:ablationC}), und wie weit zwei verschiedene
+Szenenrealisierungen derselben Pipeline auseinanderliegen, ist nicht gemessen.
+\emph{Viertens} ist die Ablation ein \emph{Eingriff in eine Richtung}: Sie
+zeigt die Folgen einer Verschlechterung, nicht den Ertrag eines besseren
+Entwurfs derselben Stufen.
 
 \absatz{Nächste Schritte.} Jede der genannten Grenzen hat eine Gegenmaßnahme;
 nach erwartetem Nutzen geordnet:
@@ -189,7 +178,7 @@ nach erwartetem Nutzen geordnet:
   trennen zusätzlich die Streuung des Trainings von der Wirkung des Datensatzes.
   Zusammen sind das die beiden Punkte, die aus einem Hinweis einen Nachweis
   machen.
-  \item \textbf{Das Bündel aus Ablation~C auflösen.} Dass die
+  \item \textbf{Das Bündel der Ablation auflösen.} Dass die
   Einbettungsmaßnahmen \emph{zusammen} tragen, ist gemessen; wie sich der
   Effekt auf sie verteilt, nicht. Je ein Lauf mit abgeschaltetem Farb-,
   Rausch- und Unschärfeangleich, ohne weiche Alphakante und ohne
@@ -199,14 +188,17 @@ nach erwartetem Nutzen geordnet:
   Kante, einer nur ohne photometrischen Angleich: Verliert der erste mehr,
   spricht das für die Abkürzung, denn die Kante gehört nicht zum Objekt, sonst
   für die Domänenlücke. Zielgröße wäre der Sim-to-Real-Abstand,
-  der sich in Ablation~C als die empfindlichere Größe erwiesen hat. Zuvor
+  der sich in der Ablation als die empfindlichere Größe erwiesen hat. Zuvor
   sollte der Generator seine Stufenparameter immer ziehen und nur ihre
   \emph{Anwendung} von $\pi_\nu$ abhängig machen
   (Gleichung~\eqref{eq:mischung}); dann sind auch diese Arme gepaart. Dazu
-  gehört ferner der
-  Verdeckungs\emph{grad}, dessen Arme im Repositorium bereits trainiert
-  vorliegen (\code{runs/A0\_keine\_okklusion}, \code{A1\_baseline},
-  \code{A2\_starke\_okklusion}), aber nicht Teil dieser Auswertung sind.
+  gehören ferner zwei Fragen, deren Arme im Repositorium bereits trainiert
+  vorliegen, aber nicht Teil dieser Auswertung sind: der
+  Verdeckungs\emph{grad} (\code{runs/A0\_keine\_okklusion},
+  \code{A1\_baseline}, \code{A2\_starke\_okklusion}) und die \emph{Herkunft}
+  der Okkluder, also ob sich die photographische Bibliothek durch prozedural
+  erzeugte Stangen ersetzen lässt (\code{runs/B1\_prozedural},
+  \code{B2\_prozedural\_naiv}).
   \item \textbf{Breiteres Quellmaterial.} Zusätzliche Clean Plates bei harter
   Sonne, Gegenlicht und Nässe gegen die verbleibende Domänenlücke; die Fehleranalyse weist sie als den Fehlertyp aus, der nicht auf Objektgröße
   zurückgeht.
@@ -222,7 +214,7 @@ auf \code{test}, das Training und Modellauswahl nie berührt, liegt von
 eine Anwendung, für die kein einziges handannotiertes Trainingsbild existiert,
 ist das ein tragfähiges Ergebnis.
 
-Methodisch tragen vier Einsichten:
+Methodisch tragen drei Einsichten:
 
 \begin{enumerate}[itemsep=3pt]
   \item \textbf{Bei rein synthetischen Trainingsdaten ist die Pipeline die
@@ -232,16 +224,6 @@ Methodisch tragen vier Einsichten:
   ist deshalb keine Formalität, sondern das eigentliche Handwerk. Sie hat
   zudem einen Nebeneffekt, den diese Arbeit nutzt: Wer jede Begründung
   ausschreibt, macht sichtbar, welche davon noch nie geprüft wurde.
-  \item \textbf{Nicht die Herkunft der eingefügten Pixel entscheidet, sondern
-  ihre Statistik -- und das gilt auch für alles, was vor dem Objekt liegt.} Der
-  aufwendigste Baustein der Pipeline, eine aus Realaufnahmen extrahierte
-  Okkluder-Bibliothek, lässt sich durch ein an fünf Kennwerten kalibriertes
-  prozedurales Modell ersetzen, ohne messbaren Verlust. Weglassen lässt sich die
-  Kalibrierung dagegen nicht: Ein flächig grauer Balken kostet
-  \zablBTestGap\PP{} \mAPfifty{} auf dem Testbild. Der Verlust zeigt sich nicht
-  als Falschpositive, sondern als eingebrochener Rückruf bei den kleinsten Objekten, also genau dort, wo im Zielbild tatsächlich verdeckt wird. Wer
-  Copy-Paste-Synthese betreibt, muss die Realismusanforderungen, die er an das
-  Objekt stellt, auch an die Verdecker stellen.
   \item \textbf{Sorgfalt beim Einfügen ist kein Feinschliff, und keine
   synthetische Kennzahl zeigt an, wenn sie fehlt.} Werden die Maßnahmen gegen
   die Signaturen S1--S5 abgeschaltet, ändert sich \mAPfifty{} auf dem
@@ -253,8 +235,8 @@ Methodisch tragen vier Einsichten:
   es ein einziges Bild.
   \item \textbf{Auflösung dominiert, und die Labelkonvention ist Teil des
   Messinstruments.} Zwischen \code{imgsz}~640 und dem Optimum liegen
-  \zswValGain\PP{} \mAPfifty, mehr als das Fünffache des stärksten Eingriffs
-  in die Trainingsdaten. Ein systematischer Größenversatz von rund zwei Pixeln
+  \zswValGain\PP{} \mAPfifty, mehr als das Fünffache des Effekts der
+  Einbettung. Ein systematischer Größenversatz von rund zwei Pixeln
   zwischen Generatorlabel und Handannotation verschiebt außerdem \mAPseven{}
   auf dem Testbild von \zsensTestMapSOrig{} auf \zsensTestMapSNeu, ohne dass
   sich am Modell etwas ändert. Wer Lokalisierungsmetriken bei 20\px-Objekten berichtet, muss beide

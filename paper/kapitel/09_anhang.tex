@@ -20,21 +20,11 @@ python src/generate.py --out synth/sval  --n  400 --seed 99
                                     # je Datensatz generation_report.json:
                                     # Ist-Anteile, Labelzahlen, Sichtbarkeit
 python src/experiment.py ablation-data          # erzeugt u.a. abl_A1_baseline
-                                                # (= Arm B0 dieser Arbeit)
+                                                # (Wiederholungslauf von C0)
 python src/synth_layout.py          # Layoutstatistik der erzeugten Labels
                                     # -> docs/experiments/synth_layout.json
 
-# --- Stufe 2b: prozedurale Okkluder-Bibliotheken (Ablation B) ---------------
-python src/procedural_bars.py       # B1 und B2, an B0 kalibriert; Kennwerte
-                                    # -> docs/bars_kennwerte.json
-
-# --- Datensaetze der Ablation B --------------------------------------------
-python src/generate_neu.py --out synth/abl_B1_proz_balken \
-    --n 3000 --seed 1 --bars-dir assets/bars_proc
-python src/generate_neu.py --out synth/abl_B2_proz_balken_naiv \
-    --n 3000 --seed 1 --bars-dir assets/bars_proc_naiv
-
-# --- Datensaetze der Ablation C (Einbettung) -------------------------------
+# --- Datensaetze der Ablation (Einbettung) ---------------------------------
 python src/generate.py --out synth/C0_kontrolle   --n 3000 --seed 1
 python src/generate.py --out synth/C1_naive_paste --n 3000 --seed 1 \
     --naive-paste                               # S1-S5 und Schlagschatten aus
@@ -42,11 +32,6 @@ python src/generate.py --out synth/C1_naive_paste --n 3000 --seed 1 \
 # --- Training und Auswertung -----------------------------------------------
 # Trainingsverlauf und beste Epoche je Lauf -> runs/*/results.csv;
 # alle Metriken berechnet src/evaluate.py
-python src/experiment_neu.py data           # data/*.yaml, Datensatzkennwerte
-python src/experiment_neu.py check          # Nachweis der Paarung
-python src/experiment_neu.py train          # Arme, yolo26s-p2
-python src/experiment_neu.py eval           # Auswertung der Arme
-python src/analyse_ablationB.py             # Rueckruf nach Objektgroesse
 python src/train_neu.py --name referenz \
     --data data/referenz.yaml --epochs 60   # Referenzmodell
 python src/experiment_neu.py main  --weights runs/referenz/weights/best.pt
@@ -58,6 +43,8 @@ python src/analyse_neu.py          --weights runs/referenz/weights/best.pt
 python src/train_neu.py --name C0_kontrolle   --data data/C0_kontrolle.yaml
 python src/train_neu.py --name C1_naive_paste --data data/C1_naive_paste.yaml
 python src/eval_armC.py                     # Arme C0/C1, eigene Ergebnisdatei
+python src/train_neu.py --name A1_baseline  --data data/A1_baseline.yaml
+python src/experiment_neu.py eval           # Wiederholungslauf der Kontrolle
 
 # --- Abbildungen und Tabellen ----------------------------------------------
 python src/report_neu.py            # kapitel/zahlen.tex, kapitel/tab_*.tex
@@ -165,92 +152,6 @@ werden um den gemessenen medianen Fehlbetrag je Seite aufgeweitet
 neu ausgewertet.
 
 \input{kapitel/tab_sensitivitaet}
-
-\section{Kalibrierung der prozeduralen Okkluder-Bibliothek}
-\label{sec:anhangbalken}
-
-Die prozedurale Bibliothek~B1 aus Abschnitt~\ref{sec:ablationB} soll sich von der
-photographischen \emph{nur} in der Mikrotextur unterscheiden. Dazu werden drei
-Skalenfaktoren -- für Querschnittskontrast, Kornstärke und Farbsättigung -- per
-Fixpunktiteration so bestimmt, dass die erzeugte Bibliothek die an
-\code{assets/bars/} gemessenen Kennwerte trifft. Die Iteration ist nötig, weil
-das Beleuchtungsmodell systematisch verzerrt: Der Lambert-Term erzeugt mehr
-Querschnittskontrast als real gemessen, und die Hochpassschätzung
-(Abschnitt~\ref{sec:modellentscheidungen}) unterschätzt weißes Rauschen
-gegenüber korrelierter Sensortextur. Ohne Angleich unterschieden sich die Bibliotheken nicht nur in der
-Mikrotextur, sondern auch in Kontrast, Korn und Farbe -- ein Ergebnis wäre dann
-nicht zuzuordnen.
-
-Der Grauwert einer Stange folgt dabei
-\begin{equation}
-I(u) \;=\; \mu \cdot
-\underbrace{\Big[k_{\text{amb}} + (1-k_{\text{amb}})\max\big(0, \cos(\varphi - \varphi_L)\big)
-+ k_s\,e^{-\left(\frac{\varphi - \varphi_L/2}{\sigma_s}\right)^{2}}\Big]}_{\text{Zylinderschattierung}}
-\cdot \big(1 - k_e u^2\big),
-\label{eq:zylinder}
-\end{equation}
-mit der Querkoordinate $u \in [-1, 1]$ über die Streifenhöhe und
-$\varphi(u) = \varphi_c + u\,\Delta\varphi$. Der Streifen zeigt bewusst nur einen
-\emph{Arc} des Zylindermantels -- er deckt $2\Delta\varphi$ des Umfangs ab, mit
-$\Delta\varphi \in [0{,}85;\,1{,}30]$\,rad aus \code{src/procedural\_bars.py}
-also $97$--$149^\circ$ statt der vollen $180^\circ$ --, weil benachbarte Rohre
-im Stapel einander verdecken, bevor der Blick den Streifwinkel erreicht. Der
-Versatz $\varphi_c$ bildet ab, dass die Achsdetektion der Vorstufe den Streifen
-nicht exakt auf die Rohrachse zentriert. Abbildung~\ref{abb:balken} zeigt
-Stangen und gemittelte Querschnittsprofile der drei Bibliotheken,
-Tabelle~\ref{tab:balkenkennwerte} ihre Kennwerte.
-
-\begin{figure}[htbp]
-\centering
-\includegraphics[width=\textwidth]{abbildungen/neu_balken.png}
-\caption[Die drei Okkluder-Bibliotheken]{Die drei Okkluder-Bibliotheken. Links
-je vier Stangen (dreifach vergrößert, auf neutralem Grau), Mitte das über die
-Bibliothek gemittelte Querschnittsprofil, rechts die Kennwerte. B1 trifft alle
-fünf kalibrierten Größen; das \emph{gemittelte} Profil ist dennoch gewölbter als
-das photographische, weil die Glanzlichtlage in B0 stärker streut und das
-Mittel dadurch flacher wird; der Kontrast \emph{je Stange} stimmt überein.}
-\label{abb:balken}
-\end{figure}
-
-\begin{table}[htbp]
-\centering
-\caption[Kennwerte der drei Okkluder-Bibliotheken]{Kennwerte der drei
-Okkluder-Bibliotheken (je 56 Stangen). Der Kontrast ist das Verhältnis p90/p10
-des Querschnittsprofils, \emph{je Stange} gemessen und dann gemittelt; das
-Kanalverhältnis ist auf den Mittelwert der drei Kanäle normiert. Die drei
-Kalibrierfaktoren betragen 1,20 (Kontrast), 1,09 (Korn) und 2,02 (Chroma).}
-\label{tab:balkenkennwerte}
-\footnotesize
-\begin{tabular}{@{}lrrr@{}}
-\toprule
-\textbf{Kennwert} & \textbf{B0 photogr.} & \textbf{B1 prozedural} &
-\textbf{B2 naiv} \\
-\midrule
-mittlerer Grauwert           & 100,7 & 98,9 & 96,0 \\
-Korn $\hat\sigma$ (Hochpass) & 8,01 & \textbf{8,01} & 0,00 \\
-HSV-Sättigung                & 28,7 & \textbf{28,3} & 0,0 \\
-Längsvariation (rel.)        & 0,100 & \textbf{0,096} & 0,000 \\
-Querschnittskontrast p90/p10 & 3,13 & \textbf{3,13} & 1,00 \\
-Glanzlichtlage (Mittel $\pm$ Streuung) & $0{,}46 \pm 0{,}33$ &
-$0{,}52 \pm 0{,}29$ & -- \\
-Kanalverhältnis B/G/R & 1,026 / 1,007 / 0,967 & 1,020 / 1,012 / 0,968 &
-1 / 1 / 1 \\
-\midrule
-Pixelgröße je Stange & \multicolumn{3}{c}{identisch (von B0 übernommen)} \\
-Alphamaske & \multicolumn{3}{c}{identisch (dieselbe Kapselfunktion)} \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-Zwei Kennwerte weichen bewusst ab. Der \emph{Farbstich} wird nicht frei
-variiert, sondern aus dem gemessenen Kanalverhältnis gezogen: Verzinkter Stahl
-unter bedecktem Himmel ist fast neutral mit leichtem Blaustich. Ein
-gleichverteilter Farbton hätte rosa und grün gefärbte Stangen erzeugt -- ein
-Unterschied, den die Ablation nicht messen soll. Das \emph{Korn} ist überwiegend
-Luminanzrauschen, also über alle drei Kanäle identisch; Bayer-Interpolation und
-die 4:2:0-Chroma-Unterabtastung von JPEG tiefpassfiltern den Farbanteil, und
-kanalunabhängiges Rauschen hätte allein durch das Korn eine Sättigung von rund
-55 statt der gemessenen 28,7 erzeugt.
 
 \section{Tabellen zur Augmentierung}
 
@@ -368,7 +269,7 @@ gescherte Gitterpackung, 1--3 Cluster, Gl.~\eqref{eq:layout} & 100\,\% & Kalibri
 abgedunkelte Mulde je Cluster & 0,87 je Bild & Die Stirnflächen liegen vor dem verschatteten Stapelinneren -- das ist die physikalische Randbedingung; ohne Abdunklung stünden die dunklen Bohrungen im Kontrast zu isoliert. \textbf{Häufigkeit und Stärke sind gesetzt.} & P/A \\
 \addlinespace
 \multicolumn{4}{@{}l}{\textbf{T5 -- Rohrschaft} \hfill\emph{je Instanz}}\\
-echter Rohrschaft dahinter, Länge 2--24\,\Oe & 88,0\,\% & \textbf{Wichtigste Einzelentscheidung} (Befund~8): Ein dunkler Kreis mitten auf einem durchgehenden Rohr ist physikalisch unmöglich. Lange Schäfte, weil real jedes Rohr aus dem Ausschnitt herausläuft; kurze Stummel wären ein erkennbares Muster. Die Randbedingung begründet \emph{jede} Instanz; \textbf{der Anteil von 88\,\% und der Längenbereich sind gesetzt} -- die verbleibenden 12\,\% halten den Schaft als Merkmal davon ab, mit der Stirnfläche vollständig zusammenzufallen. Ob der Schaft aus einer \emph{photographischen} Bibliothek stammen muss, prüft Ablation~B (Abschnitt~\ref{sec:ablationB}): Eine daran kalibrierte prozedurale Bibliothek ist von ihr nicht messbar zu unterscheiden, ein flächig grauer Balken kostet Rückruf. & P/A \\
+echter Rohrschaft dahinter, Länge 2--24\,\Oe & 88,0\,\% & \textbf{Wichtigste Einzelentscheidung} (Befund~8): Ein dunkler Kreis mitten auf einem durchgehenden Rohr ist physikalisch unmöglich. Lange Schäfte, weil real jedes Rohr aus dem Ausschnitt herausläuft; kurze Stummel wären ein erkennbares Muster. Die Randbedingung begründet \emph{jede} Instanz; \textbf{der Anteil von 88\,\% und der Längenbereich sind gesetzt} -- die verbleibenden 12\,\% halten den Schaft als Merkmal davon ab, mit der Stirnfläche vollständig zusammenzufallen. Dass der Schaft aus der \emph{photographischen} Bibliothek stammt, ist begründet (Abschnitt~\ref{sec:matting}), aber nicht abliert. & P/A \\
 Schaftrichtung je Cluster parallel, $\pm11^\circ$ & 100\,\% & Alle Rohre eines Stapels liegen parallel; die Randbedingung begründet damit die Parallelität, nicht die Streuung: \textbf{die $\pm11^\circ$ sind am optischen Eindruck kalibriert}, weil $\pm18^\circ$ einen sternförmigen Fächer erzeugte, den es real nicht gibt. Die Bedingung gilt \emph{innerhalb} eines Clusters; gegen die
 Rohrrichtung des Hintergrunds ist sie nicht erzwungen
 (Abschnitt~\ref{sec:grenzen}). & P/A \\
@@ -376,7 +277,7 @@ Helligkeitsangleich des Schafts, $\kappa$ 0,35--0,75 & 100\,\% & Die Bibliothek 
 Tiefenmodell: 75\,\% ganz hinten, 25\,\% eingereiht & -- & An der erzeugten Statistik kalibriert: Mit zufälliger Tiefenordnung stieg der synthetische NN-Abstand auf $1{,}55\,\Oe$, rund 40\,\% über dem realen Wert; mit 75/25 liegt er bei $1{,}17\,\Oe$. & M \\
 \addlinespace
 \multicolumn{4}{@{}l}{\textbf{T6 -- Okklusion} \hfill\emph{Anteile je Bild}}\\
-quer liegende echte Rohrstangen, 1--6 Stück & 58,4\,\% & Rohre vor dem Stapel, Breite $0{,}55$--$1{,}35\,\Oe$; zu 80\,\% durch ein Cluster gelegt statt ins Leere, weil eine Verdeckung ohne getroffenes Objekt keinen Trainingsnutzen hat. Das Phänomen ist in den Realbildern belegt, \textbf{die Rate ist gesetzt} und nicht abliert; geprüft ist die \emph{Herkunft} der Stangen (Abschnitt~\ref{sec:ablationB}). & M/A \\
+quer liegende echte Rohrstangen, 1--6 Stück & 58,4\,\% & Rohre vor dem Stapel, Breite $0{,}55$--$1{,}35\,\Oe$; zu 80\,\% durch ein Cluster gelegt statt ins Leere, weil eine Verdeckung ohne getroffenes Objekt keinen Trainingsnutzen hat. Das Phänomen ist in den Realbildern belegt, \textbf{die Rate ist gesetzt} und ebenso wenig abliert wie die \emph{Herkunft} der Stangen. & M/A \\
 Fremdkörper (Laub, Draht, Schnee), 1--4 Stück & 31,6\,\% & Aus den Hintergründen selbst geschnitten, mit weicher Maske aus geglättetem Rauschen -- gleiches Quellmaterial, also gleiche Sensorsignatur. Das begründet das \emph{Verfahren}; \textbf{der Anteil ist gesetzt}. & M/A \\
 \addlinespace
 \multicolumn{4}{@{}l}{\textbf{T8 -- Globale Bildstufe} \hfill\emph{Anteile je Bild}}\\

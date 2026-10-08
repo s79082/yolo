@@ -10,6 +10,7 @@ src/procedural_bars.py und erzeugt daraus
     docs/fig_ablation_b.png      Ablation B -- Herkunft der Okkluder
     docs/fig_imgsz.png           Inferenzaufloesung, yolo26s-p2
     docs/fig_training.png        Lernkurven aller fuenf Arme
+    docs/fig_training_c.png      Lernkurven der Arme C0/C1
     paper/kapitel/tab_*.tex      Tabellen zum Einbinden
 
 Alle Abbildungen werden zusaetzlich nach paper/abbildungen/neu_* kopiert.
@@ -262,7 +263,8 @@ def fig_training(arme=None, datei="fig_training.png", titel=None):
     alle = arme or (A_ARME + [b for b in B_ARME if b[0] != "A1_baseline"])
     farben = {"A0_keine_okklusion": "#9467bd", "A1_baseline": "#2ca02c",
               "A2_starke_okklusion": "#8c564b", "B1_prozedural": "#ff7f0e",
-              "B2_prozedural_naiv": "#17becf"}
+              "B2_prozedural_naiv": "#17becf", "C0_kontrolle": "#2ca02c",
+              "C1_naive_paste": "#d62728"}
     fig, ax = plt.subplots(1, 3, figsize=(13.5, 3.8))
     for arm, lab in alle:
         p = os.path.join(RUNS, arm, "results.csv")
@@ -449,8 +451,8 @@ def tab_ablation_c():
         return None if r is None else r[key]
 
     L = [r"\begin{table}[htbp]", r"\centering",
-         r"\caption[Ablation C: Einbettung der eingefügten Objekte]{Ablation~C"
-         r" -- Einbettung. \code{C0} ist die vollständige Pipeline, \code{C1}"
+         r"\caption[Ablation: Einbettung der eingefügten Objekte]{Ablation zur"
+         r" Einbettung. \code{C0} ist die vollständige Pipeline, \code{C1}"
          r" dieselbe Pipeline ohne die Gegenmaßnahmen gegen die Signaturen"
          r" S1--S5 und ohne Schlagschatten; beide Datensätze ziehen aus"
          r" derselben Layoutverteilung, sind aber \emph{nicht} gepaart."
@@ -1085,6 +1087,9 @@ if __name__ == "__main__":
         fig_training()
         fig_training(B_ARME, "fig_training_b.png",
                      "Lernkurven der drei Arme "
+                     "(yolo26s-p2, 3000 Bilder, 30 Epochen)")
+        fig_training(C_ARME, "fig_training_c.png",
+                     "Lernkurven der beiden Arme "
                      "(yolo26s-p2, 3000 Bilder, 30 Epochen)")
     tabellen()
     tab_ablation_c()

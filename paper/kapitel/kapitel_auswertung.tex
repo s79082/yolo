@@ -13,6 +13,8 @@
 %   - Inferenzparameter-Absatz, Zylindermodell-Erlaeuterung,
 %     Schranken-Gegenprobe und die beiden Einschraenkungsabsaetze
 %     der Ablation zusammengefuehrt und gekuerzt
+%   - Ablation B (Herkunft der Okkluder) gestrichen; die Einbettung ist die
+%     einzige Ablation, runs/A1_baseline nur noch Wiederholungslauf von C0
 %
 %  Mit "% PRUEFEN" markierte Stellen brauchen eine Entscheidung.
 % ======================================================================
@@ -53,7 +55,7 @@ anderes steht, beim \textbf{nativen Maßstab} ausgewertet: \code{imgsz} gleich
 der längsten Bildkante, auf ein Vielfaches von 32 aufgerundet, also 2464 für
 \code{val} (native Breite 2459\px) und 1600 für \code{test}. Das ist der
 einzige Wert, der ohne eine Auswahlentscheidung feststeht; jede andere Wahl
-müsste erst begründet werden und würde die Ablationen von einer nachgelagerten
+müsste erst begründet werden und würde die Ablation von einer nachgelagerten
 Optimierung abhängig machen. \emph{Zweitens} umfassen die Bewertungsdaten
 98 (\code{val}) und 89 (\code{test}) Objekte (Abschnitt~\ref{sec:valtest}).
 
@@ -114,7 +116,7 @@ wäre es auf \code{sval} zwar ebenso gut, auf den realen Bildern aber deutlich
 schlechter.
 
 Was \enquote{klein} hier heißt, lässt sich auf zwei Arten einordnen. Den ersten
-Vergleich liefert Ablation~C (Abschnitt~\ref{sec:ablationC}). Werden dort die
+Vergleich liefert die Ablation (Abschnitt~\ref{sec:ablationC}). Werden dort die
 Einbettungsmaßnahmen abgeschaltet, wächst der Abstand unter sonst gleichen
 Bedingungen auf das Drei- bis Vierfache, während die Leistung auf den
 synthetischen Bildern praktisch gleich bleibt. Den zweiten Vergleich liefert die
@@ -212,177 +214,22 @@ Tabelle~\ref{tab:imgszvoll} im Anhang.}
 \label{abb:imgsz}
 \end{figure}
 
-\section{Die Ablation: Woraus dürfen die Verdecker bestehen?}
-\label{sec:ablationB}
-
-Woraus die Verdecker bestehen, ist die am aufwendigsten umgesetzte und am
-schwächsten belegte Entscheidung der Pipeline: Abschnitt~\ref{sec:matting}
-stützt die photographische Bibliothek nur auf die Annahme, ein gezeichneter
-Balken könne dem Netz als Abkürzung der Art S2--S4 dienen. Weil hinter
-88\,\% aller gerenderten Instanzen ein solcher Schaft steht, hinge eine solche
-Abkürzung fast perfekt mit dem Label zusammen. Alle Arme sind mit dem
-reduzierten Budget aus Tabelle~\ref{tab:budgets} trainiert und deshalb nur
-untereinander vergleichbar; Arm~B0 ist die Pipeline aus
-Kapitel~\ref{kap:pipeline} selbst, auf 3000 Bilder reduziert.
-
-\absatz{Versuchsaufbau.} Die Bibliothek wird durch zwei prozedural erzeugte
-ersetzt, sonst nichts.
-
-\begin{description}[leftmargin=1.4em,itemsep=2pt,font=\normalfont\bfseries]
-  \item[B0 photographisch] die 56 aus den Clean Plates geschnittenen Stangen --
-  die Bibliothek der Pipeline, also der Kontrollarm.
-  \item[B1 prozedural, physikalisch] ein Zylindermodell aus Lambert-Term,
-  Glanzlicht, Umgebungslicht, Längsvariation und Korn
-  (Gleichung~\eqref{eq:zylinder} und Abbildung~\ref{abb:balken} im
-  Anhang~\ref{sec:anhangbalken}). Es ist an B0 kalibriert: Grauwert, Kornstärke,
-  Farbsättigung, Längsvariation und Querschnittskontrast treffen die an der
-  photographischen Bibliothek gemessenen Werte.
-  \item[B2 prozedural, naiv] konstantes Grau in derselben Maske. Kein Verlauf,
-  kein Glanzlicht, kein Korn, keine Farbe -- der \enquote{gezeichnete Balken},
-  vor dem die Pipeline warnt.
-\end{description}
-
-Die drei Arme bilden damit eine \emph{Leiter zunehmenden Realismus} von B2
-über B1 zu B0. Ein bloßer Vergleich \enquote{echt gegen gezeichnet} könnte nur
-zeigen, \emph{dass} ein Unterschied besteht. Die Leiter zeigt zusätzlich,
-\emph{wie weit} ein prozedurales Modell trägt und ob der letzte Schritt zur
-Photographie noch etwas bringt.
-
-\absatz{Warum der Versuch gepaart ist.} Alle drei Bibliotheken enthalten genau
-56 Einträge; jede prozedurale Stange übernimmt von ihrem photographischen
-Gegenstück die exakte Pixelgröße und die exakte Alphamaske. Weil der Generator
-seine Stange über \code{rng.integers(0, 56)} zieht, ist die Zufallsfolge in
-allen drei Läufen identisch, und weil die Alphamasken identisch sind, ist es
-auch die Sichtbarkeitsrechnung. Die Folge ist überprüfbar: Die
-Labelverzeichnisse der drei Datensätze sind \textbf{byte-identisch} (SHA-256,
-gekürzt auf 16 Stellen: \code{951f6e23e65486f1}), die Bildverzeichnisse
-paarweise verschieden. Objektpositionen, Objektgrößen, Verdeckungsgrade,
-Labelzahl (68\,281), mittlere Sichtbarkeit (0,901) und Anteil teilverdeckter
-Objekte (29,9\,\%) stimmen exakt überein; Abbildung~\ref{abb:balkenszene}
-zeigt denselben Bildausschnitt in allen drei Armen.
-
-Damit ist ausgeschlossen, was eine gewöhnliche Datensatz-Ablation offenlassen
-müsste: dass ein Unterschied im Ergebnis von einer anderen Objektverteilung,
-einer anderen Labelzahl oder einem anderen Verdeckungsgrad herrührt. Es bleibt
-genau eine Variable, nämlich die RGB-Werte innerhalb der Stangenmasken. Nicht
-kontrolliert ist die räumliche Struktur des Restsignals: Das Korn von B1 ist
-weißes Rauschen, das von B0 enthält Kratzer, Rostflecken und die Blockstruktur
-der JPEG-Kompression. Das ist gewollt, denn gerade diese Mikrotextur fehlt einem
-prozeduralen Modell.
-
-\begin{figure}[htbp]
-\centering
-\includegraphics[width=\textwidth]{abbildungen/neu_balken_szene.png}
-\caption[Dieselbe Szene mit drei Okkluder-Bibliotheken]{Derselbe Ausschnitt
-desselben synthetischen Bildes (Seed~1, Bild~15) in den drei Armen, dreifach
-vergrößert; grün die Labels, die in allen drei Armen exakt dieselben sind. Die
-horizontalen Rohre gehören zum Hintergrund (Clean Plate), die diagonalen sind
-eingefügte Okkluder. In B0 sind beide nicht zu unterscheiden; sie stammen aus derselben Aufnahme. In B1 wirken die eingefügten Rohre glatter, bleiben aber
-plausible Zylinder. In B2 sind sie als flache graue Balken sofort erkennbar.}
-\label{abb:balkenszene}
-\end{figure}
-
-\input{kapitel/tab_ablation_b}
-
-\absatz{Ergebnis.} Die Annahme ist \textbf{in der Sache bestätigt und in
-ihrer starken Form widerlegt} (Tabelle~\ref{tab:ablationB}).
-
-\emph{(1) Ein naiv gezeichneter Balken kostet messbar Leistung.} Arm~B2 verliert auf dem
-unberührten \code{test} gegenüber B0 \textbf{\zablBTestGap\PP{} \mAPfifty}
-(\zBTwoTestMap{} gegen \zBZeroTestMap), \zablBTestGapFf\PP{} $F_1$ und
-$10{,}1$\PP{} Rückruf; die Zählung fällt von \zBZeroTestCnt{} auf
-\zBTwoTestCnt{} von 89 Objekten. Auf \code{val} zeigt derselbe Arm dieselbe
-Richtung, wenn auch schwächer ($-\zablBValGap$\PP{} \mAPfifty,
-$-2{,}2$\PP{} $F_1$, $-4{,}1$\PP{} Rückruf). Der Effekt auf \code{test}
-übersteigt die Halbbreite des 95\,\%-Bootstrap-Intervalls auf \code{test}
-($[\zbootTestLo;\,\zbootTestHi]$, also rund 3\PP) um rund die Hälfte; nur
-der Eingriff in die Einbettung (Abschnitt~\ref{sec:ablationC}) fällt in dieser
-Arbeit noch stärker aus.
-
-\emph{(2) Photographisches Material ist dennoch nicht erforderlich.} Arm~B1
-(das kalibrierte Zylindermodell) ist auf \code{test} von B0 nicht zu
-unterscheiden (\zBOneTestMap{} gegen \zBZeroTestMap{} \mAPfifty, $F_1$ sogar
-leicht höher) und liegt auf \code{val} um $\zablBValGapEins$\PP{} \mAPfifty{}
-darunter. Die beiden Splits widersprechen sich in der Richtung; die Differenz
-ist damit nicht entscheidbar. Was bleibt, ist ein schwacher Hinweis über den
-Rückruf, der auf beiden Splits leicht unter dem von B0 liegt ($-2{,}2$ auf
-\code{test} und $-4{,}1$\PP{} auf \code{val}; dort verfehlen B1 und B2
-dieselbe Zahl von Objekten, weshalb der Wert für beide Arme gleich ausfällt).
-
-Zu diesem Ergebnis gehören zwei Vorbehalte. \emph{Zum einen} schlägt auf
-\code{val} der \emph{naive} Arm den kalibrierten (\zBTwoValMap{} gegen
-\zBOneValMap{} \mAPfifty, $F_1$ \zBTwoValFf{} gegen \zBOneValFf); die Leiter
-B2~$<$~B1~$<$~B0 ist also nur auf \code{test} vollständig. \emph{Zum anderen}
-liegen die hier verglichenen Differenzen von 0,2 bis 3,0 Prozentpunkten in
-derselben Größenordnung wie die Abweichung zwischen der eigenen und der
-Referenzimplementierung der Metrik (\zxcMaxDiff\,Prozentpunkte,
-Abschnitt~\ref{sec:metriken}). Unterschiede dieser Größe lassen sich mit dem
-vorliegenden Messaufbau in keine Richtung entscheiden. Belastbar ist an dieser
-Ablation nur der B2-Effekt, der beide Größenordnungen deutlich übersteigt.
-
-\input{kapitel/tab_ablation_b_groesse}
-
-\emph{(3) Der Verlust sitzt bei den kleinsten Objekten.}
-Tabelle~\ref{tab:ablationBgroesse} trennt den Rückruf nach Objektgröße, und dort
-wird der Befund deutlich. Auf dem kleinsten Drittel von \code{test} (Objekte bis
-\zgrenzeTest\px, \znKleinTest{} Stück) fällt der Rückruf von
-\zBZeroTestRecKlein{} (B0) über \zBOneTestRecKlein{} (B1) auf
-\zBTwoTestRecKlein{} (B2) -- ein Verlust von 23\,Prozentpunkten gegenüber nur
-$3{,}4$\PP{} bei den größeren zwei Dritteln. Die Reihenfolge B0 $>$ B1 $>$ B2
-ist dabei nur auf \code{test} monoton, in beiden Größenklassen; auf \code{val}
-liegt B2 in beiden Klassen über B1 -- dieselbe Umkehr wie bei \mAPfifty{}. Was
-über beide Splits und beide Größenklassen hinweg gilt, ist allein die Stellung
-von B0 an der Spitze. Die Gesamtzahl der Falsch-Negativen widerspricht dem in
-keinem Fall (\code{test} \zBZeroTestFn{} / \zBOneTestFn{} / \zBTwoTestFn,
-\code{val} \zBZeroValFn{} / \zBOneValFn{} / \zBTwoValFn).
-
-Das entspricht der Erwartung: Kleine Stirnflächen liegen tief im Stapel, und
-dort kreuzen die Rohre einander. Ein Modell, dessen Trainingsdaten nur flache
-graue Balken als Verdecker enthalten, hat den Übergang eines \emph{texturierten}
-Zylinders über eine Stirnfläche nie beobachtet; es scheitert an eben den
-Objekten, bei denen dieser Fall im Testbild auftritt. Bemerkenswert ist, dass
-die Precision darunter nicht leidet (\zBTwoTestPrec{} bei B2 gegen
-\zBZeroTestPrec{} bei B0). Der naive Okkluder führt also nicht zu mehr
-Falschpositiven, er kostet Rückruf. Das Netz hat demnach nicht \enquote{Balken}
-statt \enquote{Rohrende} gelernt. Ob es auf den künstlichen Balken angewiesen
-ist oder texturierte Verdecker schlicht nie gesehen hat, trennt der Versuch so
-wenig wie Ablation~C (Abschnitt~\ref{sec:ablationC}).
-
-\absatz{Ein Nebenbefund zum Trainingsverlauf.} Der beste Checkpoint liegt bei
-B2 in Epoche~\zBTwoEpoche{} von 30, bei B1 in Epoche~\zBOneEpoche{} und bei B0
-in Epoche~\zBZeroEpoche. Der Arm mit dem naiven Okkluder ist also deutlich
-früher austrainiert als der mit dem photographischen, und sein
-Trainingsverlust liegt zugleich niedriger (Abbildung~\ref{abb:training}).
-Beides sagt dasselbe: Der Trainingssatz stellt eine leichtere Aufgabe, und die
-verbleibenden Epochen tragen nichts mehr bei.
-
-\absatz{Konsequenz für die Pipeline.} Nach diesem Ergebnis ist der Aufwand der
-photographischen Bibliothek, also eine eigene Verarbeitungsstufe und die Bindung
-an die vier vorhandenen Clean Plates, \emph{nicht} nötig. Ein
-Beleuchtungsmodell aus rund vierzig Zeilen Code, das an fünf messbaren
-Kennwerten kalibriert ist, liefert dieselbe Leistung und lässt sich in
-beliebiger Zahl, Größe und Form erzeugen. Auf die Kalibrierung kann man dagegen
-\emph{nicht} verzichten, denn B1 und B2 unterscheiden sich allein darin, ob der
-Balken Schattierung, Glanzlicht, Korn und den Farbstich der Umgebung trägt. Die
-Begründung in \code{src/occluders.py} nennt damit die richtige Größe, die
-Textur- und Rauschstatistik des Verdeckers. Zu stark ist nur der Schluss, diese
-Statistik müsse aus echten Aufnahmen stammen.
-
-\section{Die zweite Ablation: Wie viel trägt die Einbettung?}
+\section{Die Ablation: Wie viel trägt die Einbettung?}
 \label{sec:ablationC}
 
-\absatz{Warum diese Frage.} Ablation~B prüft eine einzelne Stufe, das Material
-der Verdecker. Das Leitprinzip der Pipeline (Abschnitt~\ref{sec:leitprinzip})
-betrifft aber das Einfügen selbst. Jede Stufe, die gegen eine der Signaturen
+\absatz{Warum diese Frage.} Die Ablation prüft keine einzelne Stufe, sondern
+das Leitprinzip der Pipeline (Abschnitt~\ref{sec:leitprinzip}), das das
+Einfügen selbst betrifft. Jede Stufe, die gegen eine der Signaturen
 S1--S6 gerichtet ist, kostet Rechenzeit und wird mit demselben Argument
 begründet: Ein eingefügtes Objekt, das sich statistisch von seiner Umgebung
 unterscheidet, könnte als Abkürzung dienen. Gestützt war dieses Argument bisher
 nur \emph{indirekt} durch den kleinen Sim-to-Real-Abstand des Referenzmodells
-(Abschnitt~\ref{sec:hauptergebnis}), also durch ein Indiz. Ablation~C prüft es
-direkt, indem sie alle diese Maßnahmen zusammen abschaltet.
+(Abschnitt~\ref{sec:hauptergebnis}), also durch ein Indiz. Die Ablation prüft
+es direkt, indem sie alle diese Maßnahmen zusammen abschaltet.
 
-\absatz{Versuchsaufbau.} Zwei Arme, im Budget identisch zu
-Ablation~B (\code{yolo26s-p2}, 3000~Bilder, 30~Epochen, Batch~8, Seed~0,
+\absatz{Versuchsaufbau.} Zwei Arme, beide mit dem reduzierten Budget aus
+Tabelle~\ref{tab:budgets} trainiert und deshalb nur untereinander vergleichbar
+(\code{yolo26s-p2}, 3000~Bilder, 30~Epochen, Batch~8, Seed~0,
 \code{imgsz}=1024, Auswahl über dasselbe reale \code{val}-Bild):
 
 \begin{description}[leftmargin=1.4em,itemsep=2pt,font=\normalfont\bfseries]
@@ -408,14 +255,15 @@ dieselbe Verteilung der Szenen, nur ohne Einbettung
 übersprungen, entfallen auch ihre inneren Ziehungen -- die Angleichstärken aus
 Gleichung~\eqref{eq:harmonize}, die Unschärfe- und Rauschbeträge --, und der
 Zufallsstrom des Generators läuft auseinander. C0 und C1 sind deshalb zwei
-\emph{unabhängige Realisierungen} derselben Layoutverteilung und nicht,
-wie bei Ablation~B, dasselbe Bild mit anderen Pixeln: Über die ersten 200
+\emph{unabhängige Realisierungen} derselben Layoutverteilung und nicht
+dasselbe Bild mit anderen Pixeln: Über die ersten 200
 Bilder findet nur etwa ein Sechstel der Boxen im jeweils anderen Arm einen
 Partner näher als ein Pixel. Die Verteilungen stimmen dabei eng überein --
 beide Arme rendern 86\,617 Instanzen und labeln \zCZeroLabels{} gegenüber
 \zCOneLabels{} Objekten, ein Unterschied von \zablCLabelDiffProz\,\% --, die
-Einzelszenen aber nicht. Ablation~C ist damit eine gewöhnliche
-Datensatz-Ablation ohne den methodischen Vorteil von Ablation~B.
+Einzelszenen aber nicht. Die Ablation ist damit eine gewöhnliche
+Datensatz-Ablation, bei der ein Unterschied im Ergebnis grundsätzlich auch von
+der anderen Szenenrealisierung herrühren kann.
 
 \emph{Zweitens} lässt sich das Bündel nicht auflösen. Sechs Maßnahmen werden
 gemeinsam abgeschaltet, und welche davon wie viel beiträgt, sagt der Versuch
@@ -445,23 +293,29 @@ Abkürzung verwenden kann. Erzeugt mit \code{src/report\_neu.py}.}
 \mAPfifty{} um \textbf{$\zablCTestGap$\PP} (\zCOneTestMap{} gegen
 \zCZeroTestMap), $F_1$ um $\zablCTestGapFf$\PP{} und der Rückruf um
 $\zablCTestGapRec$\PP; auf \code{val} sind es $\zablCValGap$, $\zablCValGapFf$
-und $\zablCValGapRec$\PP{} (Tabelle~\ref{tab:ablationC}). Anders als bei
-Ablation~B zeigen \emph{beide} Splits in dieselbe Richtung und in
-vergleichbarer Größenordnung. Der Effekt ist zugleich der größte, den diese
-Arbeit über einen Eingriff in die Trainingsdaten gemessen hat -- gut das
-Doppelte des naiven Verdeckers aus Abschnitt~\ref{sec:ablationB}.
+und $\zablCValGapRec$\PP{} (Tabelle~\ref{tab:ablationC}). Beide Splits
+zeigen in dieselbe Richtung und in vergleichbarer Größenordnung. Auf
+\code{test} ist der Effekt fast viermal so groß wie die Halbbreite des
+95\,\%-Bootstrap-Intervalls ($[\zbootTestLo;\,\zbootTestHi]$, also rund
+3\PP; Abschnitt~\ref{sec:bootstrap}), auf \code{val} rund doppelt so groß
+($[\zbootValLo;\,\zbootValHi]$).
 
 \absatz{Warum das Ergebnis trotz fehlender Paarung hält.} Gegen eine ungepaarte
-Ablation lässt sich einwenden, der Unterschied könne von der anderen
-Szenenrealisierung stammen. Dagegen sprechen zwei Beobachtungen. Die erste
-betrifft die Größenordnung. Die Arme~B0 und C0 sind zwei gleichwertige
-Kontrollen derselben Pipeline und liegen auf \code{test} 1,3\PP{} \mAPfifty{}
-auseinander (\zBZeroTestMap{} gegen \zCZeroTestMap). Das ist die beste
-verfügbare Schätzung dafür, wie weit zwei Läufe dieser Pipeline voneinander
-abweichen, ohne dass sich etwas geändert hat. Der C1-Effekt ist rund neunmal so
-groß.
+Ablation lässt sich einwenden, der Unterschied könne schlicht von der Streuung
+des Trainings oder von der anderen Szenenrealisierung stammen. Für die Streuung
+des Trainings gibt es einen Anhaltspunkt. Rund einen Monat vor C0 wurde die
+vollständige Pipeline schon einmal mit demselben Budget und Seed erzeugt und
+trainiert (\code{runs/A1\_baseline}). Der Datensatz ist praktisch derselbe: Von
+seinen 68\,281 Boxen finden alle bis auf fünf in C0 einen Partner näher als ein
+Pixel, und die Bilder weichen im Mittel um rund einen halben Grauwert ab.
+Trotzdem liegen die beiden Läufe
+auf \code{test} 1,3\PP{} \mAPfifty{} auseinander (\zBZeroTestMap{} gegen
+\zCZeroTestMap). So weit streut also das Training allein, wenn sich am
+Datensatz nichts Wesentliches ändert; der C1-Effekt ist rund neunmal so groß.
+Wie weit zwei \emph{verschiedene} Szenenrealisierungen auseinanderliegen,
+misst dieser Vergleich dagegen nicht.
 
-Die zweite Beobachtung wiegt schwerer, weil sie nur Vergleiche innerhalb
+Schwerer wiegt eine zweite Beobachtung, weil sie nur Vergleiche innerhalb
 desselben Arms verwendet. Auf seinem \emph{eigenen} synthetischen
 Validierungssplit ist C1 von C0 praktisch nicht zu unterscheiden (\zCOneSval{}
 gegen \zCZeroSval{} \mAPfifty, $\zablCSvalGap$\PP). Der naiv eingeklebte
@@ -522,18 +376,16 @@ $[\zbootValLo;\,\zbootValHi]$ (\zbootValN{} Kacheln) und \code{test}
 $\zbootTestMean \pm \zbootTestStd$ mit $[\zbootTestLo;\,\zbootTestHi]$
 (\zbootTestN{} Kacheln).
 
-An dieser Größenordnung sind die Ablationen zu messen: Kleinere
+An dieser Größenordnung ist die Ablation zu messen: Kleinere
 Einzeldifferenzen sind Hinweise, keine Nachweise. Belastbar wird eine Aussage
-erst, wenn sie \emph{konsistent} ist, also über mehrere Arme, mehrere Metriken
-und beide Splits in dieselbe Richtung zeigt, was bei reinem Rauschen
-unwahrscheinlich wäre. Der Auflösungseffekt von \zswValGain\PP{} übersteigt das
+erst, wenn sie \emph{konsistent} ist, also über mehrere Metriken und beide
+Splits in dieselbe Richtung zeigt, was bei reinem Rauschen unwahrscheinlich
+wäre. Der Auflösungseffekt von \zswValGain\PP{} übersteigt das
 Intervall dagegen um ein Vielfaches.
 
 \absatz{Falsch-Negative.} Am $F_1$-optimalen Betriebspunkt bleiben auf
 \code{test} \zfnTest{} Objekte unentdeckt, auf \code{val} \zfnVal. Auf
-\code{test} sind \zfnKleinTest{} davon kleiner als 18\px{} -- die feste
-Klassengrenze der Fehleranalyse, nicht die datenabhängige Drittelgrenze von
-\zgrenzeTest\px{} aus Tabelle~\ref{tab:ablationBgroesse}. Die Fehler treten
+\code{test} sind \zfnKleinTest{} davon kleiner als 18\px. Die Fehler treten
 also ganz überwiegend bei den kleinsten Objekten der Aufnahme auf, am linken
 Bildrand und am oberen Stapelrand. Der zweite wiederkehrende Fehlertyp sind
 Enden ohne sichtbaren hellen Kranz; das ist der Anteil, der auf die

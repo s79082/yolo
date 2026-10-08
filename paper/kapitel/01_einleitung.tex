@@ -269,14 +269,10 @@ Annahme gekennzeichnet. Welches Programm welche Zahlenwerte erzeugt, nennt
 Abschnitt~\ref{sec:anhangrepro} im Anhang.
 
 Das dritte Ziel ist die experimentelle Bewertung (Kapitel~\ref{kap:auswertung}).
-Sie beruht auf zwei Ablationen. Ablation~B (Abschnitt~\ref{sec:ablationB})
-prüft, woraus die Verdecker bestehen müssen, die die Pipeline als Rohrschäfte
-und quer liegende Stangen ins Bild malt. Dazu werden drei Trainingssätze mit
-photographischen, kalibrierten prozeduralen und naiv gezeichneten Verdeckern
-verglichen. Ablation~C (Abschnitt~\ref{sec:ablationC}) prüft das Leitprinzip
-der Pipeline als Ganzes und schaltet dazu ab, dass die eingefügten Objekte in
-Helligkeit und Farbe, Schärfe, Rauschen und Kompression an ihre Umgebung
-angeglichen werden. Zusätzlich wird die Inferenzauflösung bestimmt. Dazu wird
+Sie beruht auf einer Ablation (Abschnitt~\ref{sec:ablationC}). Diese prüft das
+Leitprinzip der Pipeline als Ganzes und schaltet dazu ab, dass die eingefügten
+Objekte in Helligkeit und Farbe, Schärfe, Rauschen und Kompression an ihre
+Umgebung angeglichen werden. Zusätzlich wird die Inferenzauflösung bestimmt. Dazu wird
 dasselbe Modell bei verschiedenen Auflösungen ausgewertet, ohne neu zu
 trainieren.
 
@@ -285,10 +281,7 @@ diese Begründungspflicht bei jedem Parameter eingehalten wird.
 Copy-Paste-Synthese ist ein etabliertes Verfahren
 \parencite{dwibedi2017,dvornik2018,ghiasi2021}. Welche ihrer Bestandteile in
 einem konkreten industriellen Anwendungsfall tatsächlich wirken und welche
-nicht, wird in der Literatur aber selten so kleinteilig untersucht. Ablation~B
-ist dabei gepaart: Ihre drei Trainingssätze unterscheiden sich nur in den
-Pixelwerten der Verdecker, ein Unterschied im Ergebnis kann also nicht an einer
-anderen Objektverteilung liegen.
+nicht, wird in der Literatur aber selten so kleinteilig untersucht.
 
 \absatz{Aufbau der Arbeit.} Kapitel~\ref{kap:theorie} führt in die Grundlagen
 von Convolutional Neural Networks und in die Architektur von YOLO26 ein.

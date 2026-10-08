@@ -204,7 +204,7 @@ den Speicherbedarf in den eigenen Läufen bei \code{imgsz}=1024 und Batch~8 von
 etwa 6 auf etwa 12~GB.
 
 Der P2-Kopf ist in allen Läufen gleich und wird selbst nicht untersucht. Wie in
-der Zielsetzung begründet, sollen die Ablationen den Einfluss der
+der Zielsetzung begründet, soll die Ablation den Einfluss der
 Trainingsdaten messen und nicht eine Auflösungsschwäche des Detektors, die
 bessere Daten nur zum Teil ausgleichen könnten.
 
@@ -234,9 +234,7 @@ benachbarte, teilweise verdeckte Objekte weiterhin auseinanderhalten.
 \absatz{Verdeckung.} Verkippte Zäune verdecken benachbarte Stirnflächen
 teilweise, und Gitterknoten, Maschenöffnungen und Schattenspalten sehen einer
 Stirnfläche ähnlich. Verdeckung gehört damit zur Zieldomäne, und die
-Trainingsdaten müssen sie realistisch abbilden. Dabei ist zu unterscheiden, wie
-\emph{viel} verdeckt wird und wie \emph{echt} die Verdeckung aussieht. Um die
-zweite Frage geht es in Ablation~B (Abschnitt~\ref{sec:ablationB}).
+Trainingsdaten müssen sie realistisch abbilden.
 
 Die Architektur bleibt in allen Läufen gleich. Die Datenerzeugung muss deshalb
 ihre räumlichen Grenzen berücksichtigen, denn bessere Trainingsdaten gleichen

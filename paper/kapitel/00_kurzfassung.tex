@@ -14,14 +14,11 @@ als Annahme ausgewiesen. Auf einem realen Testbild, das weder Training noch
 Modellauswahl berührt, erreicht der Detektor ein \mAPfifty{} von
 \textbf{\zrefTestMap}.
 
-Zwei kontrollierte Ablationen zeigen, worauf es bei der Synthese ankommt.
-Prozedurale Verdecker ersetzen die aus Realaufnahmen geschnittenen ohne
-messbaren Verlust, wenn ihre Statistik an diesen kalibriert ist; ein naiv
-gezeichneter grauer Balken senkt dagegen den Rückruf, vor allem bei den
-kleinsten Objekten. Ohne Einbettung, also ohne Angleich der eingefügten Objekte
-an ihre Umgebung, ist der Verlust größer als bei jedem anderen gemessenen
-Eingriff in die Trainingsdaten -- auf synthetischen Validierungsbildern ist
-davon kaum etwas zu sehen. Den größten Einzeleffekt hat keine
+Eine kontrollierte Ablation zeigt, worauf es bei der Synthese ankommt: Ohne
+Einbettung, also ohne Angleich der eingefügten Objekte an ihre Umgebung,
+verliert der Detektor auf den realen Bildern acht bis elf Prozentpunkte
+\mAPfifty{} -- auf synthetischen Validierungsbildern ist davon kaum etwas zu
+sehen. Den größten Einzeleffekt hat keine
 Augmentierungsentscheidung, sondern die Inferenzauflösung, die festlegt, wie
 groß die Objekte beim Netz ankommen. Die niedrigen Werte bei strengeren
 IoU-Schwellen gehen großenteils auf einen systematischen Größenversatz zurück:

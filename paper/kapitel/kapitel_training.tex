@@ -50,7 +50,7 @@ Verlustgewichte, Trainingszeit-Augmentierung, Seed, Validierungssplit.}
 \footnotesize
 \begin{tabular}{@{}lcc@{}}
 \toprule
- & \textbf{Referenzmodell} & \textbf{Ablationsarme (3$\times$)} \\
+ & \textbf{Referenzmodell} & \textbf{Ablationsarme (2$\times$)} \\
 \midrule
 Trainingsbilder & 6000 & 3000 \\
 Epochenbudget & 60 (\code{patience}~20) & 30 (\code{patience}~20) \\
@@ -183,11 +183,12 @@ Gitterposition.
 \section{Trainingsverlauf}
 \label{sec:trainingsverlauf}
 
-Abbildung~\ref{abb:training} zeigt die Lernkurven der drei Ablationsarme.
+Abbildung~\ref{abb:training} zeigt die Lernkurven der beiden Ablationsarme.
 Drei Beobachtungen sind unabhängig vom Ausgang der Ablation.
 
-\emph{Erstens} fällt der Trainingsverlust über alle 30 Epochen monoton, während
-die Metrik auf dem realen \code{val}-Bild deutlich früher flach wird. Das ist der
+\emph{Erstens} fällt der Trainingsverlust bis zur letzten Epoche, von kleinen
+Schwankungen abgesehen, während die Metrik auf dem realen \code{val}-Bild
+deutlich früher flach wird. Das ist der
 Sim-to-Real-Abstand in zeitlicher Form: Ab dem Knick verbessert das Modell
 überwiegend seine Anpassung an Eigenschaften der synthetischen Daten, die in der
 Zieldomäne nicht gelten. Deshalb ist es methodisch notwendig, das beste
@@ -195,12 +196,13 @@ Modell über den \emph{realen} Validierungssplit auszuwählen; eine synthetische
 Validierung wählte das Modell aus der letzten Epoche und damit das am stärksten
 überangepasste.
 
-\emph{Zweitens} liegt der Trainingsverlust des Arms mit dem naiven Verdecker
-(B2) unter dem der beiden anderen, obwohl alle drei exakt dieselben Objekte an
-denselben Stellen enthalten. Das ist für sich genommen kein Qualitätsurteil --
-ein niedriger Trainingsverlust auf synthetischen Daten sagt nichts über die
-Zieldomäne --, aber es zeigt, dass der Eingriff gewirkt hat: Ein flächig grauer
-Verdecker macht dieselbe Szene messbar leichter.
+\emph{Zweitens} liegt der Trainingsverlust des naiv eingeklebten Arms (C1)
+in jeder Epoche unter dem der Kontrolle (C0), obwohl beide Arme aus derselben
+Layoutverteilung ziehen und fast gleich viele Objekte labeln. Das ist für sich
+genommen kein Qualitätsurteil -- ein niedriger Trainingsverlust auf
+synthetischen Daten sagt nichts über die Zieldomäne --, aber es zeigt, dass der
+Eingriff gewirkt hat: Ohne Einbettung heben sich die eingefügten Objekte
+deutlicher von ihrer Umgebung ab, und dieselbe Aufgabe wird leichter.
 
 \emph{Drittens} verläuft die Kurve auf dem realen Bild deutlich unruhiger als der
 Trainingsverlust. Das ist kein Trainingsproblem, sondern eine Folge der
@@ -211,8 +213,8 @@ einen Prozentpunkt. Auf dieser Streuung beruht das großzügige
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=\textwidth]{abbildungen/neu_training_b.png}
-\caption[Lernkurven der Ablationsarme]{Lernkurven der drei Ablationsarme
+\includegraphics[width=\textwidth]{abbildungen/neu_training_c.png}
+\caption[Lernkurven der Ablationsarme]{Lernkurven der beiden Ablationsarme
 (\code{yolo26s-p2}, 3000 Bilder, 30 Epochen, Batch~8). Links der
 Box-Trainingsverlust auf den synthetischen Daten, Mitte und rechts \mAPfifty{}
 und \mAPall{} auf dem realen \code{val}-Bild nach jeder Epoche -- gemessen bei
