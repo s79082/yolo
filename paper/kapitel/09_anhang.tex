@@ -21,6 +21,8 @@ python src/generate.py --out synth/sval  --n  400 --seed 99
                                     # Ist-Anteile, Labelzahlen, Sichtbarkeit
 python src/experiment.py ablation-data          # erzeugt u.a. abl_A1_baseline
                                                 # (= Arm B0 dieser Arbeit)
+python src/synth_layout.py          # Layoutstatistik der erzeugten Labels
+                                    # -> docs/experiments/synth_layout.json
 
 # --- Stufe 2b: prozedurale Okkluder-Bibliotheken (Ablation B) ---------------
 python src/procedural_bars.py       # B1 und B2, an B0 kalibriert; Kennwerte
@@ -72,8 +74,6 @@ sowie Gitter- und Positionszahlen der Modelle gibt die Werkzeugkette beim
 Netzaufbau aus, die Speicherbelegung stammt aus \code{nvidia-smi} während der
 Läufe. \emph{Abgeleitete} Werte wie IoU-Verläufe, effektive und kritische
 Objektgrößen sind mit der jeweils genannten Gleichung im Text nachrechenbar.
-Die Statistik der erzeugten Labels in Tabelle~\ref{tab:kalibrierung} liegt in
-\code{docs/experiments/synth\_layout.json}.
 
 Alle Metriken der Kapitel~\ref{kap:auswertung} und~\ref{kap:diskussion} stehen
 nicht als Ziffern im Quelltext der Arbeit, sondern als Makros in
