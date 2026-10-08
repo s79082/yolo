@@ -34,36 +34,21 @@ Die Schrittweiten hintereinanderliegender Stufen multiplizieren sich. Nach
 $\ell$ halbierenden Stufen liegen benachbarte Positionen der Merkmalskarte
 deshalb $S = 2^{\ell}$ Bildpixel auseinander. Diese Gesamtschrittweite wird
 ebenfalls als \emph{Stride} der Merkmalsebene bezeichnet. Ein Objekt mit
-Durchmesser $d$ überspannt auf einer solchen Ebene nur etwa $d/S$ Positionen. Je
-kleiner dieses Verhältnis ist, desto weniger Positionen hat der Detektor, um das
-Objekt zu lokalisieren und ihm im Training positive Beispiele zuzuweisen. Wo
-genau die Grenze liegt, hängt zusätzlich vom Zuweisungsverfahren und von der
-Lage des Objekts zum Gitter ab. Für sehr kleine Objekte wird dieser Verlust an
-Ortsinformation kritisch. Deshalb arbeiten moderne Detektoren mit mehreren
-Detektionsebenen, und deshalb steht dieses Verhältnis im Mittelpunkt der
-weiteren Überlegungen; berechnet wird es in
-Abschnitt~\ref{subsec:kleine-objekte}.
+Durchmesser $d$ überspannt auf einer solchen Ebene nur etwa $d/S$ Positionen;
+je kleiner dieses Verhältnis ist, desto weniger Positionen hat der Detektor, um
+das Objekt zu lokalisieren. Dieses Verhältnis steht im Mittelpunkt der weiteren
+Überlegungen und wird in Abschnitt~\ref{subsec:kleine-objekte} berechnet.
 
 \section{YOLO26}
 \label{sec:yolo26}
 
 \absatz{Einordnung.} Die YOLO-Familie (\enquote{You Only Look Once}) wurde als
 einstufiger Echtzeitdetektor eingeführt \parencite{redmon2016};
-Abschnitt~\ref{sec:vorarbeiten} ordnet sie in die übrigen Verfahren ein. Die
-heutigen YOLO-Köpfe sind ankerfrei und entkoppelt. Diesen Aufbau hat YOLOX in
-die Familie gebracht \parencite{ge2021yolox}, und Ultralytics verwendet ihn seit
-YOLOv8 \parencite{terven2023}; was die beiden Begriffe bedeuten, wird unten
-beim Aufbau des Kopfes erklärt. YOLO26 wurde im September 2025 vorgestellt und
-bringt gegenüber früheren Versionen mehrere Änderungen mit: einen zweiten
-Detektionskopf für NMS-freie Inferenz (Dual-Head-Design), den Wegfall der
-Distribution Focal Loss, ProgLoss zusammen mit Small-Target-Aware Label
-Assignment (STAL) und den Optimierer MuSGD
-\parencite{jocher2026yolo26,sapkota2025}.
-
-Für diese Arbeit sind vor allem die Änderungen wichtig, die kleine und dicht
-gepackte Objekte betreffen. STAL soll dafür sorgen, dass auch kleine Objekte im
-Training genügend positive Positionen erhalten, und die NMS-freie Inferenz macht
-das nachträgliche Aussortieren überlappender Vorhersagen überflüssig
+Abschnitt~\ref{sec:vorarbeiten} ordnet sie in die übrigen Verfahren ein. YOLO26
+wurde im September 2025 vorgestellt. Von seinen Neuerungen ist für diese Arbeit
+vor allem eine wichtig: Ein zweiter Detektionskopf mit Eins-zu-eins-Zuordnung
+(Dual-Head-Design) macht die Inferenz NMS-frei, sodass überlappende Vorhersagen
+nicht mehr nachträglich aussortiert werden müssen
 \parencite{jocher2026yolo26,sapkota2025}.
 
 \absatz{Aufbau.}\label{sec:neck} YOLO26 besteht wie die meisten aktuellen
@@ -93,42 +78,27 @@ sondern der kleinere Stride, mit dem kleine Objekte feiner abgetastet werden.
 
 Der Head besteht nur aus Faltungen und sagt an jeder Position jeder Ebene zwei
 Dinge vorher: eine Klassenkonfidenz, hier also, wie wahrscheinlich an dieser
-Stelle eine Stirnfläche liegt, und die Lage der zugehörigen Box. Wie er das
-tut, bestimmen zwei Eigenschaften.
-
-\absatz{Entkoppelt.} In einem \emph{gekoppelten} Kopf, wie ihn etwa YOLOv3
-verwendet, berechnet eine gemeinsame Faltung aus denselben Merkmalen einen
-einzigen Ausgabevektor mit Boxkoordinaten, Objektkonfidenz und Klassenwerten
-\parencite{redmon2018yolov3}. Ein \emph{entkoppelter} Kopf berechnet
-Klassifikation und Boxregression dagegen in zwei getrennten Zweigen mit eigenen
-Gewichten; nur die Eingangsmerkmale sind gemeinsam. Der Grund ist ein bekannter
-Konflikt zwischen beiden Aufgaben \parencite{song2020sibling,wu2020rethinking}.
-Die Klassifikation soll möglichst unabhängig davon sein, wo genau das Objekt im
-betrachteten Ausschnitt liegt, die Boxregression braucht genau diese
-Lageinformation. Lernen beide aus denselben Merkmalen, arbeiten sie
-gegeneinander. YOLOX berichtet für den entkoppelten Kopf eine deutlich
-schnellere Konvergenz und zugleich eine höhere Genauigkeit
-\parencite{ge2021yolox}.
-
-\absatz{Ankerfrei.} Die Boxregression braucht einen Bezugspunkt.
-Ankerbasierte Detektoren verwenden dafür die in
-Abschnitt~\ref{sec:vorarbeiten} beschriebenen Ankerboxen, bei Faster R-CNN
-etwa neun je Position \parencite{ren2015}. Welche Anker im Training als positiv
-gelten, entscheidet ihre Überlappung mit den annotierten Boxen, und ihre Größen
-und Seitenverhältnisse müssen zu den Objekten des Datensatzes passen. YOLOv2
-bestimmt sie deshalb durch Clustering der Trainingsboxen
-\parencite{redmon2017yolo9000}. Ein \emph{ankerfreier} Detektor verzichtet auf
-solche Referenzboxen: Jede Gitterposition sagt direkt die Abstände von ihrem
-Mittelpunkt zu den vier Rändern der Box vorher
+Stelle eine Stirnfläche liegt, und die Lage der zugehörigen Box. Beides
+berechnet er in getrennten Zweigen mit eigenen Gewichten, er ist also
+\emph{entkoppelt} \parencite{ge2021yolox}. Außerdem ist er \emph{ankerfrei}:
+Statt Korrekturen zu vorgegebenen Ankerboxen sagt jede Gitterposition direkt die
+Abstände von ihrem Mittelpunkt zu den vier Rändern der Box vorher
 \parencite{tian2019fcos}.\footnote{Die Ultralytics-Implementierung nennt diese
 Gitterpositionen dennoch \code{anchor points}; \enquote{ankerfrei} bezieht sich
 auf das Fehlen vorgegebener Referenz\emph{boxen}.} Je Position gibt es damit
-genau eine Vorhersage, und die Hyperparameter der Anker entfallen. Wie viele
-Vorhersagen für ein Objekt in Frage kommen, hängt dann nur noch vom Gitter der
-Merkmalsebene ab, in erster Näherung von der Zahl der Gitterpositionen, die in
-das Objekt fallen. Diese Zahl hängt über den Stride von der Objektgröße ab
-(Abschnitt~\ref{sec:cnn}) und wird in Abschnitt~\ref{subsec:kleine-objekte}
-berechnet.
+genau eine Vorhersage. Wie viele Vorhersagen für ein Objekt in Frage kommen,
+hängt dann nur noch vom Gitter der Merkmalsebene ab, in erster Näherung von der
+Zahl der Gitterpositionen, die in das Objekt fallen. Diese Zahl hängt über den
+Stride von der Objektgröße ab (Abschnitt~\ref{sec:cnn}) und wird in
+Abschnitt~\ref{subsec:kleine-objekte} berechnet.
+
+\absatz{Die P2-Ebene.}\label{sec:p2kopf} Alle Modelle dieser Arbeit verwenden
+die Konfiguration \code{yolo26s-p2}. Bei ihr führt der Neck den Weg zu den
+feineren Ebenen bis P2 statt nur bis P3 fort. Der Kopf arbeitet dadurch auf
+vier statt drei Ebenen, und die feinste hat mit $S=4$ die doppelte räumliche
+Auflösung. Was das für kleine Objekte bedeutet, rechnet
+Abschnitt~\ref{subsec:kleine-objekte} vor, was es an Rechenaufwand und Speicher
+kostet, Abschnitt~\ref{sec:trainingsaufbau}.
 
 \begin{figure}[htbp]
 \centering
@@ -164,65 +134,27 @@ berechnet.
   \draw[-{Latex[length=1.6mm]},gray!60!black] (10.35,2.3) -- (10.35,1.6);
 \end{tikzpicture}
 \caption[Merkmalsebenen des Detektionskopfes]{Merkmalsebenen des
-Detektionskopfes bei einer Eingabe von $1024\times1024$ Pixeln. Die
+Detektionskopfes bei einer Eingabe von $1024\times1024$ Pixeln; die
 Seitenlänge der Quadrate ist proportional zur Gittergröße. Jede Zelle einer
-Ebene mit Schrittweite $S$ entspricht einem Bildbereich von $S \times S$ Pixeln
-und sagt Boxkoordinaten sowie Klassen-Scores vorher. Die Standardkonfiguration
-nutzt \textbf{P3--P5}; die hier trainierten Modelle verwenden zusätzlich die
-links rot gestrichelt eingezeichnete Ebene \textbf{P2} mit Schrittweite~4. Die
-Abbildung zeigt zugleich, warum diese eine Ebene so stark ins Gewicht fällt: P2
-allein enthält mehr Prädiktionspositionen als P3, P4 und P5 zusammen. Diese
-Abhängigkeit von der Schrittweite untersucht
-Abschnitt~\ref{subsec:kleine-objekte} als Kern des Auflösungsproblems.}
+Ebene mit Schrittweite $S$ entspricht einem Bildbereich von $S \times S$
+Pixeln. Die Standardkonfiguration nutzt \textbf{P3--P5}, die hier trainierten
+Modelle zusätzlich die rot gestrichelte Ebene \textbf{P2} mit Schrittweite~4.}
 \label{abb:pyramide}
 \end{figure}
 
 
-\section{Der P2-Detektionskopf}
-\label{sec:p2kopf}
-
-Alle Modelle dieser Arbeit verwenden die Konfiguration \code{yolo26s-p2}. Bei
-ihr führt der Neck den Weg zu den feineren Ebenen bis P2 statt nur bis P3 fort.
-Der Kopf arbeitet dadurch auf vier statt drei Ebenen, und die feinste hat mit
-$S=4$ die doppelte räumliche Auflösung.
-
-Wie viel das bringt, lässt sich mit Gleichung~\eqref{eq:gridcount} aus
-Abschnitt~\ref{subsec:kleine-objekte} abschätzen. Die erwartete Zahl der
-Gitterpositionen in einem kreisförmigen Objekt wächst mit
-$(d_{\mathrm{eff}}/S)^2$, eine Halbierung des Strides vervierfacht sie also. Ein
-Objekt von 12,0\px{} ist das 5\,\%-Quantil der Objektgrößen im erzeugten
-Datensatz, dessen Bilder unskaliert ins Netz gehen. Es enthält auf P3 im Mittel
-1,8 Gitterpositionen, auf P2 dagegen 7,1. In ungünstiger Lage ist es auf P3 nur
-eine einzige. Ganz ohne Gitterposition kann ein Objekt auf P3 erst unterhalb von
-11,3\px{} bleiben (Gleichung~\eqref{eq:gridmiss}).
-
-Mehr Parameter braucht das Modell dafür nicht: \code{yolo26s-p2} hat mit
-9\,663\,464 Parametern sogar 2,9\,\% weniger als die Basiskonfiguration, und der
-Rechenaufwand steigt bei $640\times640$ nur von 22,7 auf 26,6~GFLOPs. Teurer
-wird der Speicher. Die P2-Karte hat viermal so viele Positionen wie P3 und hob
-den Speicherbedarf in den eigenen Läufen bei \code{imgsz}=1024 und Batch~8 von
-etwa 6 auf etwa 12~GB.
-
-Der P2-Kopf ist in allen Läufen gleich und wird selbst nicht untersucht. Wie in
-der Zielsetzung begründet, soll die Ablation den Einfluss der
-Trainingsdaten messen und nicht eine Auflösungsschwäche des Detektors, die
-bessere Daten nur zum Teil ausgleichen könnten.
-
 \section{Anwendung auf gestapelte Bauzaunprofile}
 \label{sec:anwendung}
 
-In dieser Arbeit wird ein YOLO-Modell ausgehend von vortrainierten Gewichten
-auf eine einzige Klasse feinabgestimmt, die Stirnflächen der Rahmenrohre
-\parencite{yosinski2014}. Von vielen üblichen Detektionsaufgaben unterscheidet
-sich diese Aufgabe durch drei Eigenschaften, die jeweils einen anderen Teil der
-Untersuchung bestimmen.
+Detektiert wird eine einzige Klasse, die Stirnflächen der Rahmenrohre. Von
+vielen üblichen Detektionsaufgaben unterscheidet sich diese Aufgabe durch drei
+Eigenschaften, die jeweils einen anderen Teil der Untersuchung bestimmen.
 
-\absatz{Kleine Objekte.} Die Stirnflächen sind nur wenige Pixel groß.
-Entscheidend ist deshalb, wie groß sie nach dem Skalieren auf die Netzeingabe
-noch sind (Gleichung~\eqref{eq:deff}, Abschnitt~\ref{subsec:kleine-objekte}).
-Der P2-Kopf und die später untersuchte Inferenzauflösung setzen am selben
-Verhältnis $d_{\mathrm{eff}}/S$ an: Der P2-Kopf verkleinert den Nenner, eine
-höhere Auflösung vergrößert den Zähler.
+\absatz{Kleine Objekte.} Die Stirnflächen sind nur wenige Pixel groß. Der
+P2-Kopf und die später untersuchte Inferenzauflösung setzen deshalb am selben
+Verhältnis $d_{\mathrm{eff}}/S$ an (Abschnitt~\ref{subsec:kleine-objekte}):
+Der P2-Kopf verkleinert den Nenner, eine höhere Auflösung vergrößert den
+Zähler.
 
 \absatz{Hohe Objektdichte.} Die Profile liegen dicht nebeneinander, und ihre
 Boxen überlappen entsprechend stark. Für klassische NMS ist das ein Dilemma: Ein
@@ -235,9 +167,3 @@ benachbarte, teilweise verdeckte Objekte weiterhin auseinanderhalten.
 teilweise, und Gitterknoten, Maschenöffnungen und Schattenspalten sehen einer
 Stirnfläche ähnlich. Verdeckung gehört damit zur Zieldomäne, und die
 Trainingsdaten müssen sie realistisch abbilden.
-
-Die Architektur bleibt in allen Läufen gleich. Die Datenerzeugung muss deshalb
-ihre räumlichen Grenzen berücksichtigen, denn bessere Trainingsdaten gleichen
-eine zu geringe Auflösung nicht aus. Das Verhältnis von Objektgröße und Stride
-ist damit auch die Grundlage für die Anforderungen an die Datenerzeugung in
-Kapitel~\ref{kap:augtheorie}.

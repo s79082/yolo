@@ -315,7 +315,11 @@ $Z$ quadratisch mit der Objektgröße und fällt quadratisch mit dem Stride. Wir
 der Stride von 8 auf 4 halbiert, liegen also viermal so viele Gitterpositionen
 im Objekt. Darin liegt der Nutzen der zusätzlichen P2-Ebene mit $S=4$, die in
 der Werkzeugkette ausdrücklich für kleine Objekte vorgesehen ist
-\parencite{ultralyticsdocs} (Abschnitt~\ref{sec:p2kopf}).
+\parencite{ultralyticsdocs} (Abschnitt~\ref{sec:p2kopf}). Für ein Objekt von
+12\px, das 5\,\%-Quantil der erzeugten Objektgrößen
+(Tabelle~\ref{tab:kalibrierung}), sind das auf P3 im Mittel 1,8 und auf P2 7,1
+Gitterpositionen; die erzeugten Bilder erreichen das Netz unskaliert
+(Abschnitt~\ref{sec:trainingsaufbau}), sodass hier $d_{\mathrm{eff}} = d$ gilt.
 
 Ob ein Objekt überhaupt ein Gitterzentrum enthält, hängt außerdem von seiner
 Lage ab. Am ungünstigsten ist es, wenn der Objektmittelpunkt genau in der Mitte
@@ -327,11 +331,29 @@ einziges Zentrum im Objekt. Das kann also vorkommen, sobald
   d_{\mathrm{eff}} < S\sqrt{2}.
   \label{eq:gridmiss}
 \end{equation}
-Diese kritische Größe ist keine harte Detektionsgrenze. Sie gibt nur an, ab
-wann eine Gitterposition im Objekt fehlen kann. Ob ein reales Modell ein solches
-Objekt tatsächlich übersieht, hängt zusätzlich davon ab, wie es Merkmale
-berechnet und Trainingspositionen zuweist; die Zuweisung bei sehr kleinen
-Objekten ist ein eigenes Forschungsthema \parencite{zhang2020atss,xu2022rfla}.
+Für P3 beträgt diese kritische Größe 11,3\px, für P2 5,7\px; das 12-px-Objekt
+von oben liegt auf P3 also nur knapp darüber. Die kritische Größe ist keine
+harte Detektionsgrenze. Sie gibt nur an, ab wann eine Gitterposition im Objekt
+fehlen kann. Ob ein reales Modell ein solches Objekt tatsächlich übersieht,
+hängt zusätzlich davon ab, wie es Merkmale berechnet und Trainingspositionen
+zuweist; die Zuweisung bei sehr kleinen Objekten ist ein eigenes
+Forschungsthema \parencite{zhang2020atss,xu2022rfla}.
+
+Für die verwendete Werkzeugkette lässt sich das genauer sagen, und es schwächt
+die Rechnung ab. Ihre Labelzuweisung prüft nicht, ob ein Gitterzentrum im
+kreisförmigen Objekt liegt, sondern ob es in dessen Box liegt; ein
+achsenparalleles Quadrat kann damit erst unterhalb von $S$ statt $S\sqrt{2}$
+ohne Gitterzentrum bleiben. Zudem streckt sie jede Box, deren Breite oder Höhe
+unter dem kleinsten Stride des Modells liegt, für diese Prüfung in der
+betreffenden Richtung auf den zweitkleinsten Stride
+(\code{select\_candidates\_in\_gts} in \code{ultralytics/utils/tal.py},
+Version~8.4.117); das gilt für beide Köpfe des Ende-zu-Ende-Modells
+(Abschnitt~\ref{sec:yolo26}). Ohne P2-Ebene würde ein Objekt unter 8\px{} also
+für die Zuweisung auf 16\px{} gestreckt und erhielte trotzdem Kandidaten auf
+P3. Dass ein Objekt im Training ganz ohne Position bleibt, verhindert die
+P2-Ebene deshalb nur im idealisierten Modell. Was tatsächlich bleibt, ist der
+Faktor vier aus Gleichung~\eqref{eq:gridcount}, also eine deutlich feinere
+Abtastung.
 
 Unabhängig vom Gitter macht eine geringe Objektgröße auch die Bewertung
 empfindlicher. Wird eine quadratische Box der Kantenlänge $d$ um $\delta$ Pixel
@@ -422,7 +444,7 @@ $h\in\Hcls$ gilt dann
   \label{eq:bendavid}
 \end{equation}
 Der erste Term, $\epsilon_S(h)$, ist der Fehler auf synthetischen Bildern, also
-genau die Größe, die das Training klein macht. Der zweite, im Folgenden
+genau die Größe, die das Training minimiert. Der zweite, im Folgenden
 Distanzterm genannt, ist die Discrepancy-Distanz
 \[
   \disc_L\bigl(\Dom{S}^{X},\,\Dom{T}^{X}\bigr)

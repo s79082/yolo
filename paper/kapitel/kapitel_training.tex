@@ -66,7 +66,7 @@ ist nicht gewählt, sondern erzwungen: Mit Batch~16 überschritt die
 $256\times256$ große P2-Merkmalskarte bei \code{imgsz}=1024 wiederholt den
 freien Speicher der verwendeten Karte, und der Ausweichpfad auf die CPU macht
 die Läufe von der momentanen Fremdlast abhängig und damit unvergleichbar
-(Speicherwerte in Abschnitt~\ref{sec:anhangbericht}).
+(Belegung der Karte in Abschnitt~\ref{sec:anhangrepro}).
 
 \absatz{Modellwahl.} Durchgängig verwendet wird \code{yolo26s-p2} mit
 9,66~Millionen Parametern. Die \emph{Größe} \enquote{s} folgt aus der Datenlage:
@@ -75,12 +75,18 @@ die Formvielfalt und damit die nötige Modellkapazität sind also klein. Die
 \enquote{nano}-Variante verliert bei 12--40\px{} großen Objekten Rückruf,
 größere Varianten würden die synthetischen Eigenheiten eher auswendig lernen
 \parencite{zhang2017rethinking}. Der \emph{P2-Kopf} folgt aus der
-Auflösungsrechnung in Abschnitt~\ref{sec:p2kopf}. Er halbiert den Stride der
-feinsten Detektionsebene von 8 auf 4 und senkt damit die kritische Größe
+Auflösungsrechnung in Abschnitt~\ref{subsec:kleine-objekte}. Er halbiert den
+Stride der feinsten Detektionsebene von 8 auf 4 und senkt damit die kritische Größe
 $S\sqrt{2}$ aus Gleichung~\eqref{eq:gridmiss} von 11,3 auf 5,7\px. Beim nativen
 Maßstab liegt sie damit unter allen Objektgrößen in \code{val} und \code{test}.
-Parameter kostet der P2-Kopf nicht, die \code{-p2}-Variante hat sogar 2,9\,\%
-weniger als das Basismodell; teurer wird nur der Speicher.
+Entscheidend ist dabei der Faktor vier in der Zahl der Gitterpositionen je
+Objekt; dass ein Objekt ganz ohne Position bleibt, verhindert die
+Labelzuweisung der Werkzeugkette auch ohne P2-Kopf
+(Abschnitt~\ref{subsec:kleine-objekte}). Parameter kostet der P2-Kopf nicht, die \code{-p2}-Variante hat sogar 2,9\,\%
+weniger als das Basismodell, und der Rechenaufwand steigt bei $640\times640$ nur
+von 22,7 auf 26,6~GFLOPs. Teurer wird der Speicher: Die P2-Karte hat viermal so
+viele Positionen wie P3 und hob den Speicherbedarf in den eigenen Läufen bei
+\code{imgsz}=1024 und Batch~8 von etwa 6 auf etwa 12~GB.
 
 Ausgangspunkt sind COCO-vortrainierte Gewichte. Die vortrainierten Filter der
 ersten Schichten sind weitgehend domänenunabhängig \parencite{yosinski2014},
@@ -178,7 +184,8 @@ kritischen Größe $S\sqrt{2}$ der P2-Ebene von 5,7\px{}
 für P3 gälten. Erst mit dem P2-Kopf erhalten also auch die kleinsten
 Trainingsobjekte nach der idealisierten Rechnung aus
 Abschnitt~\ref{subsec:kleine-objekte} in jeder Lage mindestens eine
-Gitterposition.
+Gitterposition; wie die Labelzuweisung der Werkzeugkette diesen Fall auch ohne
+P2-Kopf abfängt, beschreibt derselbe Abschnitt.
 
 \section{Trainingsverlauf}
 \label{sec:trainingsverlauf}
