@@ -50,9 +50,8 @@ os.chdir(ROOT)
 sys.path.insert(0, os.path.join(ROOT, "src"))
 from evaluate import evaluate_split, summary_line       # noqa: E402
 
-NEU = os.path.join(ROOT, "neu")
-OUT = os.path.join(NEU, "docs", "experiments")
-RUNS = os.path.join(NEU, "runs")
+OUT = os.path.join(ROOT, "docs", "experiments")
+RUNS = os.path.join(ROOT, "runs")
 EPOCHS = 30
 
 # (Laufname, Datensatz, Kurzbeschreibung)
@@ -78,11 +77,11 @@ B_ALIAS = {"A1_baseline": "B0_photographisch"}
 # ---------------------------------------------------------------------------
 def cmd_data():
     """data/*.yaml schreiben und die Kennwerte der fuenf Datensaetze sammeln."""
-    os.makedirs(os.path.join(NEU, "data"), exist_ok=True)
+    os.makedirs(os.path.join(ROOT, "data"), exist_ok=True)
     os.makedirs(OUT, exist_ok=True)
     tbl = {}
     for name, ds, desc in ARME:
-        yml = os.path.join(NEU, "data", f"{name}.yaml")
+        yml = os.path.join(ROOT, "data", f"{name}.yaml")
         with open(yml, "w") as f:
             f.write(f"# {desc}\npath: {ROOT}\n"
                     f"train: {ds}/images\nval: data/val/images\n"
@@ -143,7 +142,7 @@ def cmd_check():
 
 
 def cmd_train(cache="disk", epochs=EPOCHS, batch=8):
-    os.makedirs(os.path.join(NEU, "logs"), exist_ok=True)
+    os.makedirs(os.path.join(ROOT, "logs"), exist_ok=True)
     for name, _ds, _desc in ARME:
         w = os.path.join(RUNS, name, "weights", "best.pt")
         if os.path.exists(w):
@@ -155,7 +154,7 @@ def cmd_train(cache="disk", epochs=EPOCHS, batch=8):
                "--batch", str(batch)]
         print(" ".join(cmd), flush=True)
         t0 = time.time()
-        log = os.path.join(NEU, "logs", f"train_{name}.log")
+        log = os.path.join(ROOT, "logs", f"train_{name}.log")
         env = dict(os.environ,
                    PYTORCH_CUDA_ALLOC_CONF="expandable_segments:True")
         with open(log, "w") as fh:

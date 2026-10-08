@@ -274,7 +274,7 @@ def crosscheck(model):
     for s, imgsz in (("val", 2464), ("test", 1600)):
         m = model.val(data="data/pipes.yaml", split=s, imgsz=imgsz, conf=0.001,
                       iou=0.7, max_det=1000, device="0", verbose=False,
-                      plots=False, project=os.path.join(ROOT, "neu", "runs"),
+                      plots=False, project=os.path.join(ROOT, "runs"),
                       name=f"xcheck_{s}", exist_ok=True)
         res[s] = dict(ultralytics_mAP50=float(m.box.map50),
                       ultralytics_mAP50_95=float(m.box.map))
