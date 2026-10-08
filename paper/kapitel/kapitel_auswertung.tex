@@ -120,15 +120,14 @@ Bedingungen auf das Drei- bis Vierfache, während die Leistung auf den
 synthetischen Bildern praktisch gleich bleibt. Den zweiten Vergleich liefert die
 Stichprobenunsicherheit aus Abschnitt~\ref{sec:bootstrap}. Der Wert
 \zrefSvalMap{} auf \code{sval} liegt über dem 95\,\%-Intervall von \code{val},
-$[\zbootValLo;\,\zbootValHi]$, aber innerhalb des Intervalls von \code{test},
-$[\zbootTestLo;\,\zbootTestHi]$. Nur auf \code{val} ist der Abstand also größer
-als die Messunsicherheit. Nach Abschnitt~\ref{sec:sim2real} zeigt er dort, dass
-sich die Domänen unterscheiden, aber nicht, ob in den Bildern oder in den
-Beschriftungen. Auf \code{test} ist der Abstand nicht von null zu
-unterscheiden, was nach demselben Abschnitt aber nicht bedeutet, dass die
-Domänen gleich sind. Die Unsicherheit von \code{sval} selbst ist dabei nicht
-berücksichtigt; gemessen wurde sie nicht, bei 400 Bildern dürfte sie aber
-deutlich kleiner sein als die eines einzelnen Realbilds.
+$[\zbootValLo;\,\zbootValHi]$, und knapp über dem von \code{test},
+$[\zbootTestLo;\,\zbootTestHi]$. Deutlich größer als die Messunsicherheit ist
+der Abstand also nur auf \code{val}. Nach Abschnitt~\ref{sec:sim2real} zeigt er
+dort, dass sich die Domänen unterscheiden, aber nicht, ob in den Bildern oder
+in den Beschriftungen. Auf \code{test} trägt der knappe Abstand diesen Schluss
+nicht, zumal die Unsicherheit von \code{sval} selbst nicht berücksichtigt ist;
+gemessen wurde sie nicht, bei 400 Bildern dürfte sie aber deutlich kleiner sein
+als die eines einzelnen Realbilds.
 
 \section{Die Inferenzauflösung}
 \label{sec:imgsz}
@@ -296,7 +295,7 @@ $10{,}1$\PP{} Rückruf; die Zählung fällt von \zBZeroTestCnt{} auf
 Richtung, wenn auch schwächer ($-\zablBValGap$\PP{} \mAPfifty,
 $-2{,}2$\PP{} $F_1$, $-4{,}1$\PP{} Rückruf). Der Effekt auf \code{test}
 übersteigt die Halbbreite des 95\,\%-Bootstrap-Intervalls auf \code{test}
-($[\zbootTestLo;\,\zbootTestHi]$, also rund 2,2\PP) um gut das Doppelte; nur
+($[\zbootTestLo;\,\zbootTestHi]$, also rund 3\PP) um rund die Hälfte; nur
 der Eingriff in die Einbettung (Abschnitt~\ref{sec:ablationC}) fällt in dieser
 Arbeit noch stärker aus.
 

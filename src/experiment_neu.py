@@ -271,10 +271,14 @@ def cmd_sweep():
             rep["tta"].append(r)
             print(f"  {tag:5s}", summary_line(r), flush=True)
 
+    # Bootstrap beim nativen Massstab, nicht bei `best`: Alle berichteten
+    # Zahlen stehen beim nativen Massstab, und an diesem Intervall werden sie
+    # gemessen. Bei imgsz=1920 waeren die Intervalle deutlich enger
+    # (Breite val 0,042 statt 0,078, test 0,044 statt 0,062).
     sys.path.insert(0, os.path.join(ROOT, "src"))
     from experiment import bootstrap_map50               # noqa: E402
     for s in ("val", "test"):
-        b = bootstrap_map50(model, s, {**base, "imgsz": best})
+        b = bootstrap_map50(model, s, {**base, "imgsz": "native"})
         rep["bootstrap"][s] = b
         print(f"  bootstrap {s}: mAP50 {b['mean']:.4f} +- {b['std']:.4f} "
               f"95%-CI [{b['ci95'][0]:.4f}, {b['ci95'][1]:.4f}]", flush=True)
