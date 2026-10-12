@@ -7,57 +7,24 @@
 Kapitel~\ref{kap:pipeline} hat gezeigt, dass die Pipeline die Anforderungen A1
 --A6 erfüllt. Das ist eine Aussage über den Entwurf, nicht über die Wirkung.
 Für eine belastbare Bilanz ist zwischen Entscheidungen zu unterscheiden, deren
-Nutzen \emph{gemessen} wurde, und solchen, die lediglich \emph{begründet} sind
-(Tabelle~\ref{tab:belegstand}).
+Nutzen \emph{gemessen} wurde, und solchen, die lediglich \emph{begründet} sind.
+Von stark nach schwach geordnet ergeben sich vier Stufen.
 
-\begin{table}[htbp]
-\centering
-\caption[Belegstand der Entscheidungen]{Belegstand der Entscheidungen dieser
-Arbeit. \enquote{Abliert} heißt: eigene Trainingsläufe, die sich nur in dieser
-einen Größe unterscheiden.}
-\label{tab:belegstand}
-\footnotesize
-\begin{tabularx}{\textwidth}{@{}L{0.22\textwidth}L{0.30\textwidth}X@{}}
-\toprule
-\textbf{Belegstand} & \textbf{betrifft} & \textbf{Einschränkung} \\
-\midrule
-\textbf{abliert} (eigene Läufe) &
-das Bündel der Einbettungsmaßnahmen S1--S5 nebst Schlagschatten
-(Abschnitt~\ref{sec:ablationC}) &
-Reduziertes Budget (3000 Bilder, 30 Epochen), ein Lauf je Arm; zusätzlich
-\emph{nicht} gepaart, weil der Zufallsstrom des Generators auseinanderläuft.
-Der Effekt ($\zablCTestGap$\PP) ist fast viermal so groß wie die Halbbreite
-des Bootstrap-Intervalls und etwa neunmal so groß wie die Streuung zweier
-Trainingsläufe auf praktisch demselben Datensatz; welche Einzelmaßnahme wie
-viel trägt, bleibt offen \\
-\addlinespace
-\textbf{gemessen ohne Neutraining} &
-Inferenzauflösung, NMS-Schwelle, \code{max\_det}, Test-Time-Augmentation &
-Nur der Auflösungseffekt (\zswValGain\PP) übersteigt das Bootstrap-Intervall
-deutlich. Bei NMS-Schwelle und Test-Time-Augmentation ist der Effekt nicht
-klein, sondern es fehlt der Mechanismus: Der Ende-zu-Ende-Kopf lässt beide
-Parameter wirkungslos (Abschnitt~\ref{sec:imgsz}) \\
-\addlinespace
-\textbf{kalibriert an der erzeugten Verteilung} &
-Objektgrößenbereich, Ovalisierungsanteil, Gitterabstände, eine Basisgröße je
-Cluster, Tiefenmodell 75/25, Randregel &
-Die erzeugte Statistik trifft die reale (Tabelle~\ref{tab:kalibrierung}); der
-Nutzen für die Detektionsgüte ist damit \emph{nicht} gemessen \\
-\addlinespace
-\textbf{indirekt gestützt} &
-die Einzelmaßnahmen innerhalb dieses Bündels &
-Der Sim-to-Real-Abstand von \zsimRealVal\,Prozentpunkten (\code{val}) bzw.\
-\zsimRealTest\PP{} (\code{test}) ist ein Indiz für das Bündel als Ganzes;
-für die einzelne Maßnahme bleibt er ohne Aussage \\
-\addlinespace
-\textbf{begründet, nicht belegt} &
-\emph{Herkunft} der Okkluder (photographische Bibliothek), Matting-Schwelle,
-Farb-, Unschärfe- und Rauschangleich, JPEG-Requantisierung,
-Schlagschatten, Gamma, HSV, Mulde, globale Bildstufe, Negativbildanteil,
-Dellen- und Perspektivanteil & --- \\
-\bottomrule
-\end{tabularx}
-\end{table}
+\textbf{Abliert}, also in eigenen Trainingsläufen geprüft, die sich nur in
+dieser einen Größe unterscheiden, ist allein das Bündel der
+Einbettungsmaßnahmen gegen S1--S5 samt Schlagschatten
+(Abschnitt~\ref{sec:ablationC}); welche Einzelmaßnahme darin wie viel trägt,
+ist offen. \textbf{Ohne Neutraining gemessen} sind die Inferenzparameter
+(Abschnitt~\ref{sec:imgsz}). Nur die Auflösung zeigt dabei einen Effekt über
+dem Bootstrap-Intervall; NMS-Schwelle und Test-Time-Augmentation bleiben beim
+Ende-zu-Ende-Kopf wirkungslos, und \code{max\_det} ist ab 100 gesättigt.
+\textbf{An der erzeugten Verteilung kalibriert} sind Objektgrößenbereich,
+Ovalisierungsanteil, Gitterabstände, die Basisgröße je Cluster, das
+Tiefenmodell 75/25 und die Randregel: Die erzeugte Statistik trifft die reale
+(Tabelle~\ref{tab:kalibrierung}), ihr Nutzen für die Detektion ist damit aber
+nicht gemessen. \textbf{Nur begründet} sind alle übrigen Entscheidungen,
+darunter die Herkunft der Okkluder, die Matting-Schwelle, Gamma, HSV, Mulde,
+globale Bildstufe, Negativbildanteil sowie Dellen- und Perspektivanteil.
 
 \absatz{Bilanz der Begründungen.} Die Zielsetzung hatte drei zulässige Quellen
 festgelegt und für alles andere die Kennzeichnung als Annahme verlangt.
@@ -70,9 +37,8 @@ Annahmen. Diese Bilanz ist nicht nebensächlich: Bei rein synthetischen Training
 ist die Liste dieser 44 Werte die vollständige Beschreibung der
 Trainingsverteilung.
 
-Kontrolliert \emph{abliert} ist davon \textbf{ein} Bündel: die
-Einbettungsmaßnahmen, gemeinsam abgeschaltet. Gemessen an 44 Werten ist das
-wenig. Die Begründungen tragen den Entwurf, experimentell belegt ist daraus ein
+Gemessen an diesen 44 Werten ist ein einziges abliertes Bündel wenig. Die
+Begründungen tragen den Entwurf, experimentell belegt ist daraus ein
 Punkt. Er ist allerdings nicht beliebig gewählt, denn er betrifft das
 Leitprinzip der Pipeline.
 
