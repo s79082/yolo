@@ -42,7 +42,7 @@ Wahrscheinlichkeitsverteilungen.
 
 Gegeben sei ein Trainingsdatensatz $D=\{(x_i,y_i)\}_{i=1}^{n}$ aus Bildern $x_i$
 und Beschriftungen $y_i$; bei der Objektdetektion ist $y_i$ eine Menge von Boxen
-mit Klassenangabe. Ein Modell $f$ bildet ein Bild auf eine Vorhersage ab, und
+mit Klassenangabe. Ein Modell $h$ bildet ein Bild auf eine Vorhersage ab, und
 eine Verlustfunktion $L$ misst, wie weit die Vorhersage von der Beschriftung
 abweicht. Augmentiert wird mit Transformationen $t$ aus einer Menge $T$, die
 nach einer Verteilung $p(t)$ gezogen werden. Zu jedem $t$ gehört eine passende
@@ -50,12 +50,12 @@ Transformation $\tau_t$ der Beschriftung; wird zum Beispiel das Bild verschoben,
 verschiebt $\tau_t$ die Boxen mit. Das empirische Risiko mit Augmentierung
 lautet dann
 \begin{equation}
-  \hat R_{\mathrm{aug}}(f)
+  \hat R_{\mathrm{aug}}(h)
   =
   \frac{1}{n}\sum_{i=1}^{n}
   \mathbb{E}_{t\sim p(t)}
   \Bigl[
-    L\bigl(f(t(x_i)),\,\tau_t(y_i)\bigr)
+    L\bigl(h(t(x_i)),\,\tau_t(y_i)\bigr)
   \Bigr].
   \label{eq:risk-aug}
 \end{equation}

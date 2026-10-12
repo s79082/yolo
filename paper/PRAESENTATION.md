@@ -93,7 +93,7 @@ Ziehungen aus p(t)*.
 
 Statt des empirischen Risikos minimiert das Training das **augmentierte Risiko**
 
-    R̂_aug(f) = (1/n) Σᵢ E_{t∼p(t)} [ L( f(t(xᵢ)), τ_t(yᵢ) ) ]
+    R̂_aug(h) = (1/n) Σᵢ E_{t∼p(t)} [ L( h(t(xᵢ)), τ_t(yᵢ) ) ]
 
 — die Vicinal Risk Minimization von Chapelle. Der Unterschied liegt allein im
 Erwartungswert: Statt jedes Beispiel genau in der Form zu sehen, in der es
