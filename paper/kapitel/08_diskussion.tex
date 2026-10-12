@@ -153,8 +153,9 @@ nach erwartetem Nutzen geordnet:
 Ein ausschließlich auf synthetischen Bildern trainierter Detektor erreicht auf
 zwei echten Aufnahmen \mAPfifty{} von \textbf{\zrefValMap} und
 \textbf{\zrefTestMap} bei einem besten $F_1$ von \zrefValFf{} und \zrefTestFf;
-auf \code{test}, das Training und Modellauswahl nie berührt, liegt von
-\znPredTest{} Detektionen \zfpTest{} nicht auf einem annotierten Objekt. Für
+auf \code{test}, das Training und Modellauswahl nie berührt, zählen von
+\znPredTest{} Detektionen nur \zfpTest{} als falsch-positiv, und auch diese
+sind zweite Boxen auf bereits erkannten Stirnflächen. Für
 eine Anwendung, für die kein einziges handannotiertes Trainingsbild existiert,
 ist das ein tragfähiges Ergebnis.
 

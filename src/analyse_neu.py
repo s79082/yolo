@@ -136,10 +136,25 @@ def boxversatz(preds, split):
     return res
 
 
+def fp_art(M, i, hit, thr=0.5):
+    """Ursache des Falsch-Positiven i: 'zweitbox', 'teil' oder 'ohne'.
+
+    Zweitbox: die Box trifft eine Stirnflaeche mit IoU >= thr, die aber schon
+    eine konfidentere Box belegt; nach der COCO-Regel (jede GT nur einmal)
+    zaehlt sie als FP. Bei diesem Modell kann sie nicht wegfallen: der Kopf
+    ist Ende-zu-Ende, es laeuft keine NMS, der Parameter iou bleibt
+    wirkungslos. 'teil' ueberdeckt eine Annotation nur mit IoU < thr (Versatz
+    oder falsche Groesse), 'ohne' ueberlappt keine Annotation.
+    """
+    if M.shape[1] == 0 or M[i].max() <= 0.0:
+        return "ohne"
+    j = int(np.argmax(M[i]))
+    return "zweitbox" if M[i, j] >= thr and j in hit else "teil"
+
+
 def fehleranalyse(preds, split, conf):
     fp, fn, gesamt_pred = 0, 0, 0
-    fp_ohne_overlap = 0
-    fp_doppel = 0
+    art = dict(zweitbox=0, teil=0, ohne=0)
     fn_groessen = []
     for _, p, c, g in preds:
         keep = c >= conf
@@ -148,27 +163,18 @@ def fehleranalyse(preds, split, conf):
         tp, _, gidx, _ = match(pk, ck, g, 0.5)
         fp += int((~tp).sum())
         hit = set(gidx[tp].tolist())
-        # Zweitbox auf einer bereits getroffenen Stirnflaeche. Sie zaehlt nach
-        # der COCO-Regel als FP, sitzt aber auf einem echten Rohr. Bei diesem
-        # Modell kann sie nicht wegfallen: der Kopf ist Ende-zu-Ende, es laeuft
-        # keine NMS, der Parameter iou bleibt wirkungslos.
-        if len(g):
-            Mg = iou_matrix(pk, g)
-            for i in np.where(~tp)[0]:
-                j = int(np.argmax(Mg[i]))
-                if Mg[i, j] > 0 and j in hit:
-                    fp_doppel += 1
+        M = iou_matrix(pk, g)
+        for i in np.where(~tp)[0]:
+            art[fp_art(M, i, hit)] += 1
         fehl = [j for j in range(len(g)) if j not in hit]
         fn += len(fehl)
         for j in fehl:
             fn_groessen.append(float(np.sqrt((g[j, 2] - g[j, 0]) *
                                              (g[j, 3] - g[j, 1]))))
-        if len(g) and (~tp).sum():
-            M = iou_matrix(pk[~tp], g)
-            fp_ohne_overlap += int((M.max(axis=1) <= 0.0).sum())
     return dict(split=split, conf=round(conf, 4), n_pred=gesamt_pred,
-                falsch_positiv=fp, davon_ohne_ueberlappung=fp_ohne_overlap,
-                davon_doppeldetektion=fp_doppel,
+                falsch_positiv=fp, davon_ohne_ueberlappung=art["ohne"],
+                davon_doppeldetektion=art["zweitbox"],
+                davon_teilueberlappung=art["teil"],
                 falsch_negativ=fn,
                 fn_durchmesser=[round(v, 1) for v in sorted(fn_groessen)])
 
@@ -176,13 +182,15 @@ def fehleranalyse(preds, split, conf):
 def qualbild(preds, split, conf):
     """Qualitativbild am F1-optimalen Betriebspunkt.
 
-    Die Falsch-Positiven werden nach Ursache eingefaerbt. Grund: die Mehrzahl
-    von ihnen sitzt auf einer echten, bereits getroffenen Stirnflaeche und ist
-    keine Fehldetektion im Wortsinn. Der YOLO26-Kopf arbeitet Ende-zu-Ende
-    (end2end=True), es laeuft also keine NMS - der Inferenzparameter 'iou'
-    bleibt wirkungslos. Zweitboxen auf demselben Rohr ueberleben deshalb und
-    zaehlen nach der COCO-Regel (jede GT nur einmal) als FP. Eine einfarbige
-    Darstellung legt dem Betrachter nahe, das Modell habe dort etwas erfunden.
+    Die Falsch-Positiven werden nach Ursache eingefaerbt. Grund: auf test ist
+    jede von ihnen eine Zweitbox auf einer echten, bereits getroffenen
+    Stirnflaeche und keine Fehldetektion im Wortsinn. Der YOLO26-Kopf arbeitet
+    Ende-zu-Ende (end2end=True), es laeuft also keine NMS - der
+    Inferenzparameter 'iou' bleibt wirkungslos. Zweitboxen auf demselben Rohr
+    ueberleben deshalb und zaehlen nach der COCO-Regel (jede GT nur einmal) als
+    FP. Eine einfarbige Darstellung legt dem Betrachter nahe, das Modell habe
+    dort etwas erfunden. Die Zweitbox wird nach der Trefferbox gezeichnet und
+    verdeckt sie, weil beide fast deckungsgleich sind.
     """
     for f, p, c, g in preds[:1]:
         keep = c >= conf
@@ -202,8 +210,7 @@ def qualbild(preds, split, conf):
             if tp[i]:
                 col = (0, 220, 0)                          # Treffer gruen
             else:
-                j = int(np.argmax(M[i])) if len(g) else -1
-                if j >= 0 and M[i, j] > 0 and j in hit:
+                if fp_art(M, i, hit) == "zweitbox":
                     col = (255, 0, 255)                    # Doppeldetektion magenta
                     n_dop += 1
                 else:

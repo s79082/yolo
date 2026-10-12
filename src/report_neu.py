@@ -900,6 +900,8 @@ def zahlen():
                                   else r["davon_ohne_ueberlappung"])
             if "davon_doppeldetektion" in r:
                 M[f"fpDoppel{S}"] = str(r["davon_doppeldetektion"])
+            if "davon_teilueberlappung" in r:
+                M[f"fpTeil{S}"] = str(r["davon_teilueberlappung"])
             M[f"fn{S}"] = str(r["falsch_negativ"])
             M[f"nPred{S}"] = str(r["n_pred"])
             if r["fn_durchmesser"]:

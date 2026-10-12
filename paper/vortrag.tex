@@ -633,8 +633,9 @@ Am $F_1$-optimalen Betriebspunkt: bestes $F_1$ \zrefValFf{} bzw.\
 \zrefTestFf, Rückruf \zrefValRec{} / \zrefTestRec{} bei Precision
 \zrefValPrec{} / \zrefTestPrec.
 
-Konkret auf \code{test}: \znPredTest{} Detektionen, davon \zfpTest{} nicht auf
-einem annotierten Objekt, und \zfnTest{} der 89 Stirnflächen übersehen.
+Konkret auf \code{test}: \znPredTest{} Detektionen, davon \zfpTest{}
+falsch-positiv -- allesamt zweite Boxen auf einer bereits erkannten
+Stirnfläche --, und \zfnTest{} der 89 Stirnflächen übersehen.
 
 Wichtig für die Einordnung: \code{test} ist der \emph{schwierigere} der beiden
 Splits -- kleinere Objekte (Median 17,0 gegen 26,8\px), lockerere Packung,
@@ -1507,10 +1508,12 @@ denn alle vier Clean Plates sind bei diffusem Licht aufgenommen.
 \smallskip
 
 \textbf{Falsch-Positive} sind selten: \zfpTest{} auf \code{test} bei
-\znPredTest{} Detektionen und \zfpVal{} auf \code{val} bei \znPredVal. Sie
-entstehen an dunklen Löchern im Maschendraht und an Schattenspalten zwischen
-Rohren -- genau die Strukturen, gegen die die Negativbilder (9{,}7\,\%)
-gerichtet sind.
+\znPredTest{} Detektionen und \zfpVal{} auf \code{val} bei \znPredVal. Auf
+\code{test} sind alle \textbf{Zweitboxen}: Sie treffen ein bereits erkanntes
+Rohrende mit IoU $\geq 0{,}50$, zählen aber nach der COCO-Regel als Fehler --
+der NMS-freie Kopf sortiert sie nicht aus. Auf \code{val} gilt das für
+\zfpDoppelVal; \zfpTeilVal{} überdecken eine Stirnfläche nur teilweise,
+\zfpOhneVal{} überlappt keine Annotation.
 \end{frame}
 
 \begin{frame}{Z8 -- Ablation B, vollständig}
@@ -2136,8 +2139,8 @@ genähert.}
 \end{columns}
 \smallskip
 Am $F_1$-optimalen Betriebspunkt. Auf \code{test}: \znPredTest{}
-Detektionen, \zfpTest{} nicht auf einem annotierten Objekt, \zfnTest{}
-übersehen.
+Detektionen, \zfpTest{} davon Zweitboxen (magenta), \zfnTest{} übersehen
+(blau).
 \end{frame}
 
 \end{document}

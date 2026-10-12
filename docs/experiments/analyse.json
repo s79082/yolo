@@ -1,5 +1,5 @@
 {
-  "weights": "neu/runs/referenz/weights/best.pt",
+  "weights": "runs/referenz/weights/best.pt",
   "crosscheck": {
     "val": {
       "ultralytics_mAP50": 0.9556273819125508,
@@ -96,7 +96,8 @@
       "n_pred": 91,
       "falsch_positiv": 5,
       "davon_ohne_ueberlappung": 1,
-      "davon_doppeldetektion": 3,
+      "davon_doppeldetektion": 1,
+      "davon_teilueberlappung": 3,
       "falsch_negativ": 12,
       "fn_durchmesser": [
         12.2,
@@ -120,6 +121,7 @@
       "falsch_positiv": 3,
       "davon_ohne_ueberlappung": 0,
       "davon_doppeldetektion": 3,
+      "davon_teilueberlappung": 0,
       "falsch_negativ": 8,
       "fn_durchmesser": [
         7.3,

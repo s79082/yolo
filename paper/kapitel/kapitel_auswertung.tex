@@ -71,8 +71,8 @@ ist die Antwort auf die Aufgabenstellung (Tabelle~\ref{tab:hauptergebnis}). Am
 $F_1$-optimalen Betriebspunkt erreicht es einen Rückruf von \zrefValRec{}
 (\code{val}) bzw.\ \zrefTestRec{} (\code{test}) bei einer Precision von
 \zrefValPrec{} und \zrefTestPrec: Auf \code{test} liefert es \znPredTest{}
-Detektionen, von denen \zfpTest{} nicht auf einem annotierten Objekt liegt,
-und übersieht \zfnTest{} der 89 Stirnflächen.
+Detektionen, von denen nur \zfpTest{} falsch-positiv sind, alle auf schon
+erkannten Stirnflächen, und übersieht \zfnTest{} der 89 Stirnflächen.
 
 Der auffällige Unterschied zwischen den Splits -- \mAPseven{} \zrefValMapS{}
 auf \code{val}, aber nur \zrefTestMapS{} auf \code{test} bei \emph{höherem}
@@ -384,13 +384,15 @@ verbleibende Domänenlücke zurückgeht, denn alle vier Clean Plates sind bei
 diffusem Licht aufgenommen.
 
 \absatz{Falsch-Positive.} Sie sind selten: \zfpTest{} auf \code{test} bei
-\znPredTest{} Detektionen und \zfpVal{} auf \code{val} bei \znPredVal. Die
-Mehrzahl dieser Boxen umschließt ein echtes Rohrende: Die Zuordnungsregel lässt je annotierter Fläche nur einen
-Treffer zu \parencite{lin2014coco}, sodass eine zweite Box auf derselben
-Stirnfläche zwangsläufig als Fehler zählt; auf \code{test} betrifft das alle
-\zfpTest, auf \code{val} \zfpDoppelVal{} von \zfpVal. Nur die übrigen beiden
-liegen an dunklen Löchern im Maschendraht und an Schattenspalten zwischen
-Rohren, also an den Strukturen, gegen die die Negativbilder gerichtet sind.
+\znPredTest{} Detektionen und \zfpVal{} auf \code{val} bei \znPredVal. Auf
+\code{test} ist jede eine \emph{Zweitbox}: Sie trifft ein schon erkanntes
+Rohrende mit $\mathrm{IoU} \geq 0{,}50$, zählt aber als Fehler, weil die
+Zuordnungsregel je annotierter Fläche nur einen Treffer zulässt
+\parencite{lin2014coco}, und bleibt stehen, weil der NMS-freie Kopf
+(Abschnitt~\ref{sec:yolo26}) Duplikate nicht nachträglich aussortiert. Auf
+\code{val} ist nur \zfpDoppelVal{} der \zfpVal{} eine Zweitbox; \zfpTeilVal{}
+überdecken eine annotierte Stirnfläche mit einer IoU unter 0{,}50,
+\zfpOhneVal{} überlappt keine Annotation.
 
 \section{Ein systematischer Größenversatz der Boxen}
 \label{sec:boxversatz}

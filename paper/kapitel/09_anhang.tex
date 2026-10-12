@@ -420,17 +420,19 @@ entstehen. Erzeugt mit \code{paper/tools/fig\_stufen.py}.}
 \caption[Qualitatives Ergebnis]{Qualitatives Ergebnis des Referenzmodells bei
 der berichteten Zuordnungsschwelle $\mathrm{IoU} \geq 0{,}50$
 \parencite{everingham2010,lin2014coco} und am $F_1$-optimalen Betriebspunkt.
-Grün = Treffer, blau = Falsch-Negativ, magenta = Zweitbox auf einer bereits
-getroffenen Stirnfläche, rot = Falsch-Positiv ohne gültige Zuordnung.
+Grün = Treffer, blau = Falsch-Negativ, magenta = Zweitbox, die eine bereits
+getroffene Stirnfläche ebenfalls mit $\mathrm{IoU} \geq 0{,}50$ trifft, rot =
+übrige Falsch-Positive. Zweitbox und Trefferbox sind fast deckungsgleich, die
+Zweitbox verdeckt die Trefferbox deshalb im Bild.
 \emph{Oben} \code{test} ($c^* = \zrefTestConf$): \zfnTest{} Falsch-Negative,
 \zfpTest{} Falsch-Positive bei 89 annotierten Stirnflächen, davon
 \zfpDoppelTest{} Zweitboxen. \emph{Unten} \code{val} ($c^* = \zrefValConf$):
 \zfnVal{} Falsch-Negative, \zfpVal{} Falsch-Positive bei 98 annotierten
-Stirnflächen, davon \zfpDoppelVal{} Zweitboxen. Die getrennte Einfärbung ist
-nötig, weil die Mehrzahl der Falsch-Positiven auf einem echten Rohr sitzt: Der
-YOLO26-Kopf arbeitet Ende-zu-Ende, es läuft keine NMS -- der Inferenzparameter
-\code{iou} bleibt damit ohne Wirkung --, und nach der COCO-Regel darf jede
-Stirnfläche nur einmal getroffen werden. Erzeugt mit
+Stirnflächen, davon \zfpDoppelVal{} Zweitbox. Die getrennte Einfärbung ist
+nötig, weil auf \code{test} alle Falsch-Positiven auf einem echten Rohr sitzen:
+Der YOLO26-Kopf arbeitet Ende-zu-Ende, es läuft keine NMS -- der
+Inferenzparameter \code{iou} bleibt damit ohne Wirkung --, und nach der
+COCO-Regel darf jede Stirnfläche nur einmal getroffen werden. Erzeugt mit
 \code{src/analyse\_neu.py}.}
 \label{abb:qualitativ}
 \end{figure}
