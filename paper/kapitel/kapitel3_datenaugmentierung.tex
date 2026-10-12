@@ -274,11 +274,10 @@ Schon bei $2^{\circ}$ sinkt die IoU auf 0,935, bei $10^{\circ}$ auf 0,745 und
 bei $45^{\circ}$ auf 0,5. Ein Modell, das mit solchen Labels trainiert wird,
 lernt systematisch zu große Boxen.
 
-Im Generator tritt dieses Problem nicht auf. Dort wird jedes Rohrprofil vor dem
-Einfügen gedreht, und seine Box wird anschließend direkt aus der gedrehten
-Objektmaske bestimmt. Geometrische Veränderungen, die sich im Generator exakt
-umsetzen lassen, werden deshalb dort erzeugt und nicht zusätzlich als
-bildweite Augmentierung im Training.
+Im Generator tritt dieses Problem nicht auf, weil er die Box nach der Drehung
+direkt aus der gedrehten Objektmaske bestimmt; welche Transformationen deshalb
+im Generator und welche im Training liegen, regelt
+Abschnitt~\ref{sec:leitprinzip}.
 
 \absatz{Kleine Objekte, Auflösung und Labelzuweisung.}\label{subsec:kleine-objekte}
 Wie viele Positionen einer Merkmalsebene auf ein Objekt fallen, hängt davon ab,
@@ -394,9 +393,7 @@ sodass ein Trainingsbeispiel mehrere Hintergründe und Objektanordnungen zugleic
 enthält. Durch die anschließende Skalierung können die Objekte dabei aber
 deutlich kleiner werden. Bei Stirnflächen, die ohnehin nur wenige Pixel groß
 sind, steht mehr Szenenvielfalt also gegen eine geringere effektive
-Objektgröße. Ob Mosaic nützt, lässt sich deshalb nur zusammen mit der
-Größenverteilung beurteilen, die am Ende beim Netz ankommt
-(Abschnitt~\ref{sec:trainparam}).
+Objektgröße.
 
 
 % ----------------------------------------------------------------------

@@ -77,20 +77,13 @@ angenähert -- die größte verbleibende Domänenlücke, von der Fehleranalyse
 bestätigt. \emph{(3)} Reflect-Padding erzeugt Spiegelsymmetrie, wenn ein
 Hintergrund für den gewünschten Zoom zu klein ist; eine spiegelsymmetrische
 Bildhälfte ist selbst ein erkennbares Merkmal, die Maßnahme gegen Signatur~S1
-erzeugt damit eine schwächere neue Auffälligkeit. \emph{(4)} Die Schaftrichtung ist an der gemessenen
+erzeugt damit eine schwächere neue Auffälligkeit. \emph{(4)} Die Schaftrichtung ist an der
 Säulenrichtung des Clusters kalibriert, nicht an der Rohrrichtung des
-Hintergrunds: Sie entsteht als Senkrechte zur Säulenrichtung mit einer
-Streuung von $55^\circ$ bis $125^\circ$, während die vier Clean Plates ihre
-Rohre zwischen $-1{,}6^\circ$ und $+6{,}6^\circ$ zur Waagerechten haben
-(Struktur-Tensor, \code{src/occluders.py}). In 19,1\,\% der Cluster kreuzt der
-Schaft die Hintergrundrohre deshalb unter mehr als $60^\circ$; betroffen sind
-21,6\,\% aller erzeugten Bilder. Weil alle Rohre eines Stapels parallel
-liegen, ist das dieselbe Unstimmigkeit, gegen die die enge Streuung von
-$\pm11^\circ$ \emph{innerhalb} eines Clusters gesetzt ist -- zwischen Cluster
-und Hintergrund wird sie nicht erzwungen. Auch hier geht die Abweichung in
-Richtung mehr Variation, ihr Nutzen ist aber nicht geprüft; ein Angleich wäre
+Hintergrunds. In 19,1\,\% der Cluster kreuzt der Schaft die Hintergrundrohre
+deshalb unter mehr als $60^\circ$, betroffen sind 21,6\,\% der erzeugten
+Bilder, obwohl real alle Rohre eines Stapels parallel liegen. Ein Angleich wäre
 mit geringem Aufwand möglich, weil die dominante Hintergrundrichtung gemessen
-vorliegt.
+vorliegt (\code{src/occluders.py}).
 
 \absatz{Grenzen der Bewertung.} Die schwerwiegendste methodische Schwäche liegt
 nicht in der Pipeline, sondern in der Bewertung: \emph{je ein Bild} pro Split.
@@ -99,12 +92,7 @@ Daraus folgen breite Konfidenzintervalle: $[\zbootValLo;\,\zbootValHi]$ auf
 vier Prozentpunkte Halbbreite -- Unterschiede unterhalb dieser Größe sind nicht
 entscheidbar; beide Bilder zeigen dieselbe Objektart bei ähnlichem
 Wetter, die Ergebnisse sagen also nichts über andere Zaunhersteller,
-Rohrdurchmesser oder Lichtsituationen. Hinzu kommt der in Abschnitt~\ref{sec:boxversatz} gemessene
-Größenversatz zwischen Generatorlabel und Handannotation von \zboxValOff{} bis
-\zboxTestOff\px: Er macht \mAPseven{} und \mAPall{} auf \code{test} zu einem
-erheblichen Teil zu einem Maß für die Labelkonvention statt für die
-Lokalisierungsgüte -- eine Sensitivitätsrechnung hebt \mAPseven{} von
-\zsensTestMapSOrig{} auf \zsensTestMapSNeu. Schließlich wird \code{val} doppelt
+Rohrdurchmesser oder Lichtsituationen. Schließlich wird \code{val} doppelt
 verwendet -- für die Modellauswahl \emph{und} für die Wahl der
 Inferenzauflösung. \code{test} ist damit ein sauberer Endtest, \code{val} aber
 kein unabhängiger Bewertungssplit mehr; die belastbaren Zahlen sind die
@@ -142,27 +130,19 @@ nach erwartetem Nutzen geordnet:
   trennen zusätzlich die Streuung des Trainings von der Wirkung des Datensatzes.
   Zusammen sind das die beiden Punkte, die aus einem Hinweis einen Nachweis
   machen.
-  \item \textbf{Das Bündel der Ablation auflösen.} Dass die
-  Einbettungsmaßnahmen \emph{zusammen} tragen, ist gemessen; wie sich der
-  Effekt auf sie verteilt, nicht. Je ein Lauf mit abgeschaltetem Farb-,
-  Rausch- und Unschärfeangleich, ohne weiche Alphakante und ohne
-  JPEG-Durchlauf schlüsselt ihn auf -- vier bis fünf Läufe für die Frage, wo
-  der Aufwand tatsächlich hingehört. Abkürzung und Domänenlücke
-  (Abschnitt~\ref{sec:ablationC}) trennen schon zwei Arme, einer nur mit harter
-  Kante, einer nur ohne photometrischen Angleich: Verliert der erste mehr,
-  spricht das für die Abkürzung, denn die Kante gehört nicht zum Objekt, sonst
-  für die Domänenlücke. Zielgröße wäre der Sim-to-Real-Abstand,
-  der sich in der Ablation als die empfindlichere Größe erwiesen hat. Zuvor
-  sollte der Generator seine Stufenparameter immer ziehen und nur ihre
-  \emph{Anwendung} von $\pi_\nu$ abhängig machen
-  (Gleichung~\eqref{eq:mischung}); dann sind auch diese Arme gepaart. Dazu
-  gehören ferner zwei Fragen, deren Arme im Repositorium bereits trainiert
-  vorliegen, aber nicht Teil dieser Auswertung sind: der
-  Verdeckungs\emph{grad} (\code{runs/A0\_keine\_okklusion},
-  \code{A1\_baseline}, \code{A2\_starke\_okklusion}) und die \emph{Herkunft}
-  der Okkluder, also ob sich die photographische Bibliothek durch prozedural
-  erzeugte Stangen ersetzen lässt (\code{runs/B1\_prozedural},
-  \code{B2\_prozedural\_naiv}).
+  \item \textbf{Das Bündel der Ablation auflösen.} Wie sich der Effekt auf die
+  einzelnen Einbettungsmaßnahmen verteilt, ist offen. Je ein Lauf ohne Farb-,
+  Rausch- und Unschärfeangleich, ohne weiche Alphakante und ohne JPEG-Durchlauf
+  schlüsselt ihn auf, mit dem Sim-to-Real-Abstand als Zielgröße. Schon zwei Arme
+  trennen Abkürzung und Domänenlücke (Abschnitt~\ref{sec:ablationC}): Verliert
+  der Arm nur mit harter Kante mehr als der nur ohne photometrischen Angleich,
+  spricht das für die Abkürzung. Gepaart sind solche Arme erst, wenn der
+  Generator seine Stufenparameter immer zieht und nur ihre \emph{Anwendung} von
+  $\pi_\nu$ abhängig macht (Gleichung~\eqref{eq:mischung}). Bereits trainiert,
+  aber nicht ausgewertet sind außerdem Arme zum Verdeckungs\emph{grad}
+  (\code{runs/A0\_keine\_okklusion}, \code{A1\_baseline},
+  \code{A2\_starke\_okklusion}) und zur \emph{Herkunft} der Okkluder
+  (\code{runs/B1\_prozedural}, \code{B2\_prozedural\_naiv}).
   \item \textbf{Breiteres Quellmaterial.} Zusätzliche Clean Plates bei harter
   Sonne, Gegenlicht und Nässe gegen die verbleibende Domänenlücke; die Fehleranalyse weist sie als den Fehlertyp aus, der nicht auf Objektgröße
   zurückgeht.

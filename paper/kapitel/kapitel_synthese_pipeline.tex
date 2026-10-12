@@ -238,8 +238,8 @@ Die Deckelung hat eine Nebenwirkung. Bei den beiden Clean Plates mit 16 und
 Basisdurchmesser über 39,6\px{} nur auf den beiden anderen entstehen. Am oberen
 Ende hängt die Objektgröße damit vom gewählten Hintergrund ab, also genau die
 Art von Zusammenhang, die das Netz als Abkürzung nutzen könnte. Die erzeugte
-Größenverteilung endet deshalb bei gut 40 statt 44\px{}
-(Abschnitt~\ref{sec:datensatz}). Die untere Grenze $z_{\min}$ greift nie. Für
+Größenverteilung endet deshalb bei gut 40 statt 44\px{} (p95 der erzeugten
+Verteilung: 40,4\px). Die untere Grenze $z_{\min}$ greift nie. Für
 die drei Fremdszenen ist Gleichung~\eqref{eq:zoom} nicht definiert, weil sie
 keine Rohrschäfte zeigen; dort werden Zoom und Objektgröße unabhängig gezogen
 (Tabelle~\ref{tab:parameter}).
@@ -409,67 +409,36 @@ erste ist die Nachbarzahl: Die synthetischen Cluster sind dichter (13 statt 10
 Nachbarn innerhalb $5\,\Oe$, im Maximum 61 statt 20). Das ist bewusst so
 belassen, denn eine höhere Dichte bereitet den Detektor auf schwierigere Szenen
 vor, als er im Einsatz vorfindet. Die umgekehrte Abweichung wäre
-problematisch. Die zweite betrifft die Objektgröße. Der Generator soll
-12--44\px{} abdecken, erreicht am oberen Ende wegen der Zoomdeckelung in
-Gleichung~\eqref{eq:zoom} aber nur gut 40\px{} (p95 der erzeugten Verteilung:
-40,4\px). Am unteren Ende enthält \code{test} vier Objekte unter 12\px{}
-(kleinstes 6,4\px). Die Trainingsskalierung senkt die Untergrenze nach
-Gleichung~\eqref{eq:effgroesse} auf $d_{\min}\,(1-a) = 7{,}2$\px{}
-(Abschnitt~\ref{sec:trainparam}) und schließt diese Lücke damit nur zum Teil:
-Drei der vier Objekte liegen im unteren Bereich der Trainingsverteilung, das
-kleinste knapp darunter.
+problematisch. Die zweite betrifft die Objektgröße: Am oberen Ende reicht die
+erzeugte Verteilung wegen der Zoomdeckelung nur bis gut 40\px{}
+(Abschnitt~\ref{sec:synthese}), am unteren fehlen die vier Objekte aus
+\code{test} unter 12\px; wie weit die Trainingsskalierung sie abdeckt, zeigt
+Abschnitt~\ref{sec:trainparam}.
 
 \section{Nachweis der Anforderungen}
 \label{sec:nachweis}
 
-Dieser Abschnitt fasst zusammen, wie die Pipeline die sechs Anforderungen aus
-Abschnitt~\ref{sec:anforderungen} umsetzt und wo geprüft wird, ob die
-Maßnahmen wirken.
+Die sechs Anforderungen aus Abschnitt~\ref{sec:anforderungen} setzt die
+Pipeline so um: A1 über Boxen aus der transformierten Alphamaske und den
+Verzicht auf boxverfälschende Trainingsaugmentierung
+(Abschnitt~\ref{sec:leitprinzip}), A2 über die unskalierte Leinwand und die
+Maßstabskopplung, A3 über die Kopplung der Objektgröße an den Hintergrund, die
+Basisgröße je Cluster, die parallelen Schäfte und das Tiefenmodell
+(Abschnitt~\ref{sec:synthese}). Für A4 gibt es gegen jede Signatur aus
+Tabelle~\ref{tab:signaturen} eine Maßnahme: weiche Alphamaske mit
+weichgezeichneter Kante (S1), partieller Farbangleich (S2), flächentreue
+Skalierung und Unschärfeangleich (S3), Rauschangleich (S4),
+JPEG-Requantisierung (S5) sowie Schlagschatten und physikalische Verdeckung
+(S6); für die Verdecker selbst wirkt die photographische Okkluder-Bibliothek
+gegen S2 bis S4. A5 und A6 erfüllen Tabelle~\ref{tab:parameter}, die für jede
+Transformation Sollbereich, Ist-Anteil und Belegart nennt, und der
+Erzeugungsbericht zu jedem Datensatz; ohne Belegart bleiben nur die beiden
+numerischen Absicherungen der Rauschschätzung.
 
-\absatz{A1 -- Labelgenauigkeit.} Die Box wird aus der transformierten
-Alphamaske berechnet. In der Trainingszeit-Augmentierung stehen
-\code{degrees}, \code{shear} und \code{perspective} auf 0
-(Tabelle~\ref{tab:trainaug}), damit keine Operation die Box nachträglich
-verfälscht. Labels werden nach denselben Regeln verworfen wie bei der
-Handannotation. Abschnitt~\ref{sec:boxversatz} prüft, wie gut die erzeugten
-Boxen zur Handannotation passen, und zeigt, dass A1 nur annähernd erfüllt ist.
-
-\absatz{A2 -- Kalibrierte Objektgrößen.} Die Leinwand ist so groß wie die
-Trainingsauflösung, und die Objekte werden auf 12--44\px{} skaliert. Wegen der
-Zoomdeckelung in Gleichung~\eqref{eq:zoom} reicht die erzeugte Verteilung
-faktisch nur bis gut 40\px.
-
-\absatz{A3 -- Plausible Größenabhängigkeiten.} Die Objektgröße ist an den
-Maßstab des Hintergrunds gekoppelt. Hinter 88\,\% der Instanzen steht ein
-Rohrschaft, die Schäfte eines Clusters laufen parallel, und das Tiefenmodell
-malt 75\,\% von ihnen ganz hinten und reiht 25\,\% zwischen die Instanzen ein.
-Gedreht wird über den vollen Winkelbereich.
-
-\absatz{A4 -- Kontrolle synthetischer Signaturen.} Gegen jede Signatur aus
-Tabelle~\ref{tab:signaturen} gibt es eine Maßnahme: gegen sichtbare Übergänge
-(S1) die weiche Alphamaske und das Weichzeichnen ihrer Kante, gegen künstliche
-Helligkeits- und Farbverhältnisse (S2) den partiellen Farbangleich, gegen
-unpassende Schärfe (S3) die flächentreue Skalierung und den Unschärfeangleich,
-gegen fehlendes Sensorrauschen (S4) den Rauschangleich, gegen fehlende
-Kompressionsspuren (S5) die JPEG-Requantisierung und gegen die fehlende
-Interaktion mit der Umgebung (S6) Schlagschatten und physikalische Verdeckung.
-Für die Verdecker selbst wirkt die photographische Okkluder-Bibliothek gegen
-S2 bis S4. Experimentell geprüft werden die Maßnahmen gegen S1 bis S5 zusammen
-mit dem Schlagschatten als Bündel (Abschnitt~\ref{sec:ablationC}); die Herkunft
-der Verdecker bleibt ungeprüft.
-
-\absatz{A5 -- Kontrollierbare Variation.} Tabelle~\ref{tab:parameter} nennt für
-jede Transformation den Sollbereich und den im Datensatz gemessenen
-Ist-Anteil. Zu jedem Datensatz schreibt der Generator außerdem einen
-Erzeugungsbericht.
-
-\absatz{A6 -- Trennung von Annahme und Messung.} Jeder Parameterwert trägt eine
-Belegart. Ausgenommen sind nur die beiden numerischen Absicherungen der
-Rauschschätzung (Abschnitt~\ref{sec:synthese}), weil sie nichts über die
-Zieldomäne aussagen.
-
-Damit sind alle sechs Anforderungen \emph{formal} erfüllt. Ob die Maßnahmen
-auch wirken, ist damit noch nicht gezeigt. Experimentell geprüft werden A1 und
-A4; A2 und A3 werden nicht eigens geprüft, A5 und A6 betreffen die
-Dokumentation. Wie viele der 44 Parameterwerte der 37 Transformationen
-tatsächlich belegt sind, bilanziert Abschnitt~\ref{sec:tragend}.
+Experimentell geprüft werden davon zwei. Für A1 misst
+Abschnitt~\ref{sec:boxversatz}, wie gut die erzeugten Boxen zur Handannotation
+passen; die Anforderung ist danach nur annähernd erfüllt. Die Maßnahmen für A4
+gegen S1 bis S5 schaltet die Ablation zusammen mit dem Schlagschatten als
+Bündel ab (Abschnitt~\ref{sec:ablationC}); die Herkunft der Verdecker bleibt
+ungeprüft. Wie viele der 44 Parameterwerte tatsächlich belegt sind,
+bilanziert Abschnitt~\ref{sec:tragend}.

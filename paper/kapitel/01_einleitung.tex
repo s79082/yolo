@@ -76,26 +76,18 @@ angegeben. Sie fasst zusammen, welcher Anteil der Detektionen richtig ist
 (\emph{Rückruf}), und zwar über alle Konfidenzschwellen hinweg
 (Abschnitt~\ref{sec:metriken}).
 
-\absatz{Klassische Verfahren.} Bevor tiefe neuronale Netze eingesetzt wurden,
-arbeiteten die meisten Detektoren mit einem \emph{Schiebefenster}. Ein Fenster
-fester Größe wird dabei Position für Position über das Bild geschoben, und an
-jeder Position entscheidet ein Klassifikator, ob darin ein Objekt liegt. Damit
-auch größere Objekte in das Fenster passen, wird das Ganze auf verkleinerten
-Kopien des Bildes wiederholt, der sogenannten \emph{Bildpyramide}. Der
-Klassifikator bekommt dabei nicht die Pixel selbst, sondern von Hand entworfene
-\emph{Merkmale}. Das sind Zahlenwerte, die einen Bildausschnitt beschreiben,
-zum Beispiel Helligkeitsunterschiede zwischen benachbarten Rechtecken
-\parencite{viola2001} oder die Verteilung der Kantenrichtungen in kleinen
-Bildzellen \parencite{dalal2005}. Für einfache geometrische Formen gibt es
-außerdem Verfahren, die ganz ohne Training auskommen. Das bekannteste ist die
-Hough-Transformation, bei der jeder Kantenpunkt für alle Kreise stimmt, auf
-denen er liegen könnte. Kreise mit vielen Stimmen gelten dann als gefunden
+\absatz{Klassische Verfahren.} Vor den tiefen neuronalen Netzen schoben die
+meisten Detektoren ein \emph{Schiebefenster} über das Bild und seine
+verkleinerten Kopien und entschieden an jeder Position anhand von Hand
+entworfener Merkmale, ob dort ein Objekt liegt, etwa anhand von
+Helligkeitsunterschieden benachbarter Rechtecke \parencite{viola2001} oder der
+Verteilung der Kantenrichtungen in kleinen Bildzellen \parencite{dalal2005}.
+Kreise lassen sich mit der Hough-Transformation sogar ganz ohne Training finden
 \parencite{duda1972}. Bei all diesen Ansätzen wird von Hand festgelegt, was ein
-Objekt ausmacht. Für die vorliegende Aufgabe wäre das schwierig, denn ein
-solches Kriterium müsste die Stirnflächen von ähnlich aussehenden Strukturen
-wie Gitterknoten, Maschenöffnungen oder Schattenspalten unterscheiden
-(Abschnitt~\ref{sec:anwendung}) und dabei auch teilweise verdeckte
-Stirnflächen noch erfassen.
+Objekt ausmacht. Hier müsste ein solches Kriterium die Stirnflächen von
+Gitterknoten, Maschenöffnungen und Schattenspalten unterscheiden
+(Abschnitt~\ref{sec:anwendung}) und auch teilweise verdeckte Stirnflächen noch
+erfassen.
 
 \absatz{Zweistufige Detektoren.} Deutlich besser wurden Detektoren erst mit
 Faltungsnetzen, die ihre Merkmale selbst aus Beispielen lernen
@@ -165,29 +157,18 @@ ankerfrei und entkoppelt (Abschnitt~\ref{sec:neck}).
 
 \absatz{Detektion als Mengenvorhersage.} Die bisher beschriebenen Verfahren
 erzeugen für jedes Objekt mehrere, stark überlappende Kandidaten und dünnen sie
-erst im Nachhinein aus. Dafür wird die \emph{Non-Maximum Suppression} (NMS)
-verwendet. Überlappen sich zwei Detektionen stärker als eine festgelegte
-IoU-Schwelle, bleibt nur die mit der höheren Konfidenz erhalten.
-Transformerbasierte Detektoren wie DETR sagen dagegen direkt eine \emph{Menge}
-von Objekten vorher, in der jedes Objekt genau einmal vorkommt
-\parencite{carion2020detr}. Ein \emph{Transformer} ist eine Netzarchitektur, in
-der jede Bildposition über einen \emph{Aufmerksamkeitsmechanismus}
-Informationen aus allen anderen Positionen einbeziehen kann
-\parencite{vaswani2017}. DETR arbeitet mit einer festen Zahl gelernter
-\emph{Objektanfragen}, die das Bild gewissermaßen nach je einem Objekt
-abfragen. Jede Anfrage liefert höchstens eine Detektion. Im Training wird jedem
-annotierten Objekt genau eine Anfrage zugeordnet, und zwar so, dass die Paare
-insgesamt möglichst gut zusammenpassen. Durch diese
-\emph{Eins-zu-eins-Zuordnung} lernt das Netz, Duplikate von sich aus zu
-vermeiden, sodass weder Anker noch NMS nötig sind. Anfangs dauerte das Training
-allerdings lange, und bei kleinen Objekten war die Leistung schwächer. Beides
-haben spätere Arbeiten abgemildert, und inzwischen gibt es auch echtzeitfähige
-Varianten \parencite{zhu2021deformable,zhao2024rtdetr}. Umgekehrt wird die
-Eins-zu-eins-Zuordnung mittlerweile auch in faltungsbasierten einstufigen
-Detektoren eingesetzt. Neben dem üblichen Kopf, der jedem Objekt viele
-Positionen zuweist, wird dort ein zweiter Kopf mit genau einer Position je
-Objekt trainiert. Bei der \emph{Inferenz}, also beim Einsatz des fertigen
-Modells, wird nur dieser zweite Kopf verwendet, und die NMS entfällt
+erst im Nachhinein durch \emph{Non-Maximum Suppression} (NMS) aus: Überlappen
+sich zwei Detektionen stärker als eine festgelegte IoU-Schwelle, bleibt nur die
+mit der höheren Konfidenz erhalten. Der transformerbasierte Detektor DETR sagt
+dagegen direkt eine \emph{Menge} von Objekten vorher \parencite{carion2020detr}.
+Er arbeitet mit einer festen Zahl gelernter \emph{Objektanfragen}, von denen
+jede höchstens eine Detektion liefert, und ordnet im Training jedem annotierten
+Objekt genau eine davon zu. Durch diese \emph{Eins-zu-eins-Zuordnung} lernt das
+Netz, Duplikate von sich aus zu vermeiden, und die NMS entfällt. Inzwischen
+wird dieselbe Zuordnung auch in faltungsbasierten einstufigen Detektoren
+eingesetzt: Neben dem üblichen Kopf, der jedem Objekt viele Positionen zuweist,
+wird ein zweiter Kopf mit genau einer Position je Objekt trainiert und bei der
+\emph{Inferenz}, also beim Einsatz des fertigen Modells, allein verwendet
 \parencite{wang2024yolov10}. Nach demselben Prinzip arbeitet auch das
 Dual-Head-Design von YOLO26 (Abschnitt~\ref{sec:yolo26}).
 

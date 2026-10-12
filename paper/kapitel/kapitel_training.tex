@@ -99,9 +99,7 @@ P2-Ebene werden zufällig initialisiert.
 \absatz{Modellauswahl.} Gespeichert wird der Checkpoint mit der höchsten
 Fitness auf dem realen \code{val}-Bild. In der verwendeten Version~8.4.117 der
 Werkzeugkette ist die Fitness allein \mAPall{} (\code{Metric.fitness} in
-\code{ultralytics/utils/metrics.py}). Ältere Versionen bildeten sie als
-$0{,}1\cdot\mAPfifty + 0{,}9\cdot\mAPall$; für alle Läufe dieser Arbeit führen
-beide Varianten auf dieselbe beste Epoche. Diese Validierung läuft bei der
+\code{ultralytics/utils/metrics.py}). Diese Validierung läuft bei der
 \emph{Trainings}auflösung \code{imgsz}=1024, alle berichteten Zahlen werden
 dagegen beim nativen Maßstab gemessen (2459 bzw.\ 1600\px, vom Netz auf ein
 Vielfaches von 32 aufgefüllt). Ausgewählt und bewertet wird also bei
@@ -113,10 +111,7 @@ gleichermaßen gilt.
 \absatz{Eingabegröße.} Die Eingabegröße \code{imgsz}=1024 entspricht der
 Leinwandgröße des Generators. Die synthetischen Bilder werden beim Einlesen also
 \emph{nicht} skaliert, und die Objekte erreichen das Netz genau in der Größe,
-für die die Pipeline ausgelegt ist (Anforderung~A2). Bei 640\px{} wären sie nach
-Gleichung~\eqref{eq:deff} nur noch 7,5--27,5\px{} groß. Das untere Fünftel
-dieser Spanne läge dann unter der kritischen Größe von 11,3\px{} der P3-Ebene,
-die ohne P2-Kopf die feinste wäre.
+für die die Pipeline ausgelegt ist (Anforderung~A2).
 
 \absatz{Optimierung.} Trainiert wird mit AdamW \parencite{loshchilov2019},
 Startlernrate $\text{lr}_0 = 10^{-3}$ und Kosinusabfall auf 1\,\% davon
@@ -125,9 +120,8 @@ Standard-Verlustgewichten, festem Seed und deterministischen Kerneln; die
 vollständige Konfiguration steht in Tabelle~\ref{tab:trainaug} im Anhang. AdamW
 ist ausdrücklich gesetzt statt \code{auto}, weil für eine Lernratensuche kein
 Budget vorhanden war. Early Stopping greift nach 20 Epochen ohne Verbesserung
-auf dem realen \code{val}-Bild. Das Fenster ist bewusst großzügig, weil die
-Fitness an knapp hundert Objekten \emph{eines} Bildes gemessen wird und
-entsprechend stark schwankt (Abschnitt~\ref{sec:trainingsverlauf}).
+auf dem realen \code{val}-Bild; warum das Fenster so großzügig ist, zeigt
+Abschnitt~\ref{sec:trainingsverlauf}.
 
 \section{Augmentierungsparameter zur Trainingszeit}
 \label{sec:trainparam}
@@ -142,11 +136,10 @@ HSV-Variation. Die Skalierung zieht einen Faktor aus $[1-a,\,1+a]$, mit
 \code{scale}$\,=a=0{,}4$ also aus $[0{,}6;\,1{,}4]$; das ist etwas weniger als
 die Voreinstellung $a=0{,}5$ der Werkzeugkette (Tabelle~\ref{tab:trainaug}).
 
-Abgeschaltet sind \code{degrees}, \code{shear} und \code{perspective}. Eine
-Bildrotation weitet die Boxen nach Gleichung~\eqref{eq:dbox} auf und senkt ihre
-Überlappung mit der richtigen Box nach Gleichung~\eqref{eq:iou}; bei
-$\theta = 10^\circ$ wird die Kantenlänge um 15,8\,\% zu groß, und die IoU sinkt
-auf 0,745 (Abschnitt~\ref{subsec:aabb-rotation}). Auch \code{mixup} und
+Abgeschaltet sind \code{degrees}, \code{shear} und \code{perspective}, weil
+sie achsparallele Boxen aufweiten (Gleichung~\eqref{eq:dbox}); die Drehung
+übernimmt der Generator mit exakten Boxen (Abschnitt~\ref{sec:leitprinzip}).
+Auch \code{mixup} und
 \code{cutmix} sind abgeschaltet, aber aus verschiedenen Gründen. \code{mixup}
 überblendet zwei Bilder etwa im Verhältnis 1:1 und übernimmt beide Labelsätze
 vollständig \parencite{zhang2018mixup}. Jedes Objekt erscheint dann
@@ -178,14 +171,7 @@ nicht erzeugt (Abschnitt~\ref{sec:valtest}), sind damit drei abgedeckt; das
 kleinste liegt mit 6,4\px{} knapp darunter. Nach oben reicht
 die Spanne auch für stark hochskalierte Bilder. Bei sehr niedriger
 Inferenzauflösung kommen die Objekte dagegen noch kleiner als 7,2\px{} im Netz
-an (Abschnitt~\ref{sec:imgsz}). Die Untergrenze von 7,2\px{} liegt über der
-kritischen Größe $S\sqrt{2}$ der P2-Ebene von 5,7\px{}
-(Gleichung~\eqref{eq:gridmiss}), aber \emph{unter} den 11,3\px, die ohne P2-Kopf
-für P3 gälten. Erst mit dem P2-Kopf erhalten also auch die kleinsten
-Trainingsobjekte nach der idealisierten Rechnung aus
-Abschnitt~\ref{subsec:kleine-objekte} in jeder Lage mindestens eine
-Gitterposition; wie die Labelzuweisung der Werkzeugkette diesen Fall auch ohne
-P2-Kopf abfängt, beschreibt derselbe Abschnitt.
+an (Abschnitt~\ref{sec:imgsz}).
 
 \section{Trainingsverlauf}
 \label{sec:trainingsverlauf}

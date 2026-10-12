@@ -69,16 +69,13 @@ wie alle Ergebnistabellen unmittelbar aus den Ergebnisdateien; ein Wert, für de
 kein Lauf vorliegt, erscheint im übersetzten Dokument als \textbf{??}.
 
 Zwei Eigenheiten der Ausführungsumgebung erzwingen Trainingsparameter, die sonst
-anders zu setzen wären. Erstens blockiert in der verwendeten Kombination
-aus \code{opencv-python}~5.0.0.93 und \code{torch}~2.13 der fork-basierte
-DataLoader reproduzierbar beim ersten Batch, sobald \code{workers > 0} gesetzt
-ist -- unabhängig von \code{cv2.setNumThreads(0)}, deaktiviertem OpenCL,
-gesetzten Thread-Limits oder der Startmethode \code{spawn}. Alle Läufe
-verwenden deshalb \code{workers=0}. Zweitens war die verwendete GPU während der
-Läufe durch einen Fremdprozess zu rund 72 von 98\,GB belegt und der
-Arbeitsspeicher zeitweise bis auf unter 2\,GB gefüllt; die Läufe dieser Arbeit
-verwenden daher \code{batch=8} und \code{cache='disk'} statt \code{cache='ram'}
-(Abschnitt~\ref{sec:trainingsaufbau}). Beide Werte gelten für alle Läufe gleich.
+anders zu setzen wären. Mit \code{opencv-python}~5.0.0.93 und \code{torch}~2.13
+blockiert der DataLoader reproduzierbar beim ersten Batch, sobald
+\code{workers > 0} gesetzt ist; alle Läufe verwenden deshalb \code{workers=0}.
+Außerdem war die GPU während der Läufe durch einen Fremdprozess zu rund 72 von
+98\,GB belegt und der Arbeitsspeicher zeitweise fast voll; daher gelten
+\code{batch=8} und \code{cache='disk'} (Abschnitt~\ref{sec:trainingsaufbau}).
+Beide Werte gelten für alle Läufe gleich.
 
 \section{Ergänzende Messwerte}
 \label{sec:anhangbericht}
@@ -118,26 +115,9 @@ Instanzen, die vollständig außerhalb der Leinwand liegen und deshalb schon
 vor der Sichtbarkeitsprüfung entfallen (\code{src/generate.py}).
 
 Ein Wert ist nicht als Anteil lesbar: \code{recess} zählt die \emph{Anzahl} der
-abgedunkelten Mulden je Bild. Eine Mulde entsteht nur in einem Bild mit Objekten
-und wird dort je Cluster mit der Wahrscheinlichkeit $p_{\text{Mulde}}$ gezogen;
-ihre Erwartung je Bild ist daher
-\begin{equation}
-  \mathbb{E}[\text{recess}]
-  = p_{\text{Mulde}} \cdot \mathbb{E}[K] \cdot \big(1 - p_{\text{neg}}\big),
-  \qquad
-  \mathbb{E}[K] = \sum_{k} k\,p_k ,
-  \label{eq:erwartung}
-\end{equation}
-mit der Clusterzahl $K$, ihrer Verteilung $p_k$ und dem Anteil
-$p_{\text{neg}}$ der Negativbilder. Besetzt mit den Sollwerten aus
-\code{src/generate.py} -- $p_{\text{Mulde}} = 0{,}55$ je Cluster,
-$p_1/p_2/p_3 = 0{,}45/0{,}35/0{,}20$ und $p_{\text{neg}} = 0{,}10$ -- ergibt
-sich $\mathbb{E}[K] = 0{,}45 \cdot 1 + 0{,}35 \cdot 2 + 0{,}20 \cdot 3 = 1{,}75$
-und damit $0{,}55 \cdot 1{,}75 \cdot 0{,}90 = 0{,}866$, was den oben
-\emph{gezählten} Wert 0,8738 erklärt. \code{img\_has\_bars} ist dagegen ein
-echter Anteil und folgt derselben Gleichung ohne den Clusterterm: Der Sollwert
-$p_{\text{Stangen}} = 0{,}65$ reduziert sich durch die Negativbilder auf
-$0{,}65 \cdot 0{,}90 = 0{,}585$ und trifft den gezählten Wert 0,5835.
+abgedunkelten Mulden je Bild. Mit den Sollwerten aus \code{src/generate.py}
+(0,55 je Cluster, im Mittel 1,75 Cluster je Bild, 10\,\% Negativbilder) sind
+$0{,}55 \cdot 1{,}75 \cdot 0{,}90 = 0{,}87$ zu erwarten, gezählt sind 0,8738.
 
 \absatz{Vollständiger Sweep der Inferenzauflösung.}\label{sec:anhangsweep}
 Tabelle~\ref{tab:imgszvoll} ergänzt den Auszug aus

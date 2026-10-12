@@ -45,8 +45,8 @@ Die Bewertung erfolgt über eine eigene Implementierung, weil die mittlere
 Treffer-IoU und der $F_1$-optimale Betriebspunkt gebraucht werden; diese
 Größen gibt die Standardfunktion der Werkzeugkette nicht aus. Zur Absicherung
 wurde sie gegen die Referenzimplementierung geprüft: \code{val}
-\zxcValEigen/\zxcValEigenA gegen \zxcValUlt/\zxcValUltA und \code{test}
-\zxcTestEigen/\zxcTestEigenA gegen \zxcTestUlt/\zxcTestUltA
+\zxcValEigen/\zxcValEigenA{} gegen \zxcValUlt/\zxcValUltA{} und \code{test}
+\zxcTestEigen/\zxcTestEigenA{} gegen \zxcTestUlt/\zxcTestUltA{}
 (\mAPfifty{}/\mAPall{}); die Abweichung von höchstens \zxcMaxDiff\,Prozentpunkten ist
 durch Detailunterschiede in der AP-Interpolation erklärbar.
 
@@ -115,12 +115,9 @@ erwarten wäre. Hätte das Netz eine der Signaturen S1--S6 als Abkürzung gelern
 wäre es auf \code{sval} zwar ebenso gut, auf den realen Bildern aber deutlich
 schlechter.
 
-Was \enquote{klein} hier heißt, lässt sich auf zwei Arten einordnen. Den ersten
-Vergleich liefert die Ablation (Abschnitt~\ref{sec:ablationC}). Werden dort die
-Einbettungsmaßnahmen abgeschaltet, wächst der Abstand unter sonst gleichen
-Bedingungen auf das Drei- bis Vierfache, während die Leistung auf den
-synthetischen Bildern praktisch gleich bleibt. Den zweiten Vergleich liefert die
-Stichprobenunsicherheit aus Abschnitt~\ref{sec:bootstrap}. Der Wert
+Was \enquote{klein} hier heißt, ordnet zum einen die Ablation ein
+(Abschnitt~\ref{sec:ablationC}), zum anderen die Stichprobenunsicherheit aus
+Abschnitt~\ref{sec:bootstrap}. Der Wert
 \zrefSvalMap{} auf \code{sval} liegt über dem 95\,\%-Intervall von \code{val},
 $[\zbootValLo;\,\zbootValHi]$, und knapp über dem von \code{test},
 $[\zbootTestLo;\,\zbootTestHi]$. Deutlich größer als die Messunsicherheit ist
@@ -187,16 +184,10 @@ Inferenzauflösung sind \emph{nicht} unabhängig voneinander wählbar; eine
 Entscheidung in der Datenerzeugung legt eine Entscheidung zur Inferenzzeit
 fest.
 
-Für den Einsatz würde man die Auflösung allein auf \code{val} wählen und
-unverändert auf \code{test} übertragen; eine eigene Wahl für \code{test} wäre
-eine Optimierung auf dem Testsatz. Das vor den Läufen und damit vor dem Befund
-aus Abschnitt~\ref{sec:boxversatz} festgelegte Kriterium, das höchste
-\mAPall{} auf \code{val}, wählt \code{imgsz}~\zbestImgsz; in \mAPfifty{} liegt
-das nur einen Prozentpunkt unter dem \code{val}-Optimum bei \zswValBestAt, also
-innerhalb der Messunsicherheit. Bei \zbestImgsz{} läge \mAPfifty{} auf
-\code{test} mit \zselTestMap{} etwas über dem berichteten \zrefTestMap, auf
-\code{val} mit \zselValMap{} knapp darunter (Tabelle~\ref{tab:imgszvoll});
-berichtet wird trotzdem beim nativen Maßstab (Abschnitt~\ref{sec:metriken}).
+Für den Einsatz wäre die Auflösung allein auf \code{val} zu wählen und
+unverändert auf \code{test} zu übertragen, denn eine eigene Wahl für
+\code{test} wäre eine Optimierung auf dem Testsatz; berichtet wird hier
+dennoch beim nativen Maßstab (Abschnitt~\ref{sec:metriken}).
 
 Die übrigen Inferenzparameter sind unkritisch: NMS-Schwellwert und
 Test-Time-Augmentation wirken beim NMS-freien Ende-zu-Ende-Modell nicht
@@ -437,7 +428,4 @@ damit eindeutig: \mAPseven{} und \mAPall{} auf \code{test} messen zu einem
 erheblichen Teil eine Konventionsdifferenz und nicht die Detektionsgüte,
 während \mAPfifty{} und das $F_1$ davon unberührt bleiben. Das rechtfertigt
 die Festlegung aus Abschnitt~\ref{sec:metriken}, \mAPfifty{} als Leitgröße zu
-verwenden, und ist zugleich ein Ergebnis für sich: Bei programmatisch
-erzeugten Labels wird die Labelkonvention selbst zu einer messbaren Größe,
-deren Beitrag zu kennen ist, bevor Lokalisierungsmetriken interpretiert
-werden.
+verwenden.
