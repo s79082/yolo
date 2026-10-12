@@ -388,11 +388,15 @@ diffusem Licht aufgenommen.
 \code{test} ist jede eine \emph{Zweitbox}: Sie trifft ein schon erkanntes
 Rohrende mit $\mathrm{IoU} \geq 0{,}50$, zählt aber als Fehler, weil die
 Zuordnungsregel je annotierter Fläche nur einen Treffer zulässt
-\parencite{lin2014coco}, und bleibt stehen, weil der NMS-freie Kopf
-(Abschnitt~\ref{sec:yolo26}) Duplikate nicht nachträglich aussortiert. Auf
+\parencite{lin2014coco}, und bleibt stehen, weil der Kopf NMS-frei arbeitet
+(Abschnitt~\ref{sec:yolo26}). Auf
 \code{val} ist nur \zfpDoppelVal{} der \zfpVal{} eine Zweitbox; \zfpTeilVal{}
 überdecken eine annotierte Stirnfläche mit einer IoU unter 0{,}50,
-\zfpOhneVal{} überlappt keine Annotation.
+\zfpOhneVal{} überlappt keine Annotation. Eine testweise nachträgliche NMS
+($\mathrm{IoU} = 0{,}7$) entfernt auf beiden Splits genau die Zweitboxen,
+Treffer und Falsch-Negative bleiben gleich;
+$F_1$ stiege auf \code{test} von \znmsTestFfOhne{} auf \znmsTestFfMit.
+Berichtet wird ohne diesen Schritt.
 
 \section{Ein systematischer Größenversatz der Boxen}
 \label{sec:boxversatz}
