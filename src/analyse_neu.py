@@ -211,14 +211,14 @@ def qualbild(preds, split, conf):
                 col = (0, 220, 0)                          # Treffer gruen
             else:
                 if fp_art(M, i, hit) == "zweitbox":
-                    col = (255, 0, 255)                    # Doppeldetektion magenta
+                    col = (255, 0, 255)                    # Zweitbox magenta
                     n_dop += 1
                 else:
                     col = (0, 0, 255)                      # uebrige FP rot
             cv2.rectangle(im, (int(b[0]), int(b[1])), (int(b[2]), int(b[3])), col, 2)
 
         n_fp = int((~tp).sum())
-        txt = (f"gruen TP={int(tp.sum())}   magenta Doppeldetektion={n_dop}   "
+        txt = (f"gruen TP={int(tp.sum())}   magenta Zweitbox={n_dop}   "
                f"rot FP={n_fp - n_dop}   blau FN={len(g) - len(hit)}   "
                f"conf>={conf:.3f}")
         # Schrift an die Bildbreite anpassen - test ist 1600 px breit, val 2459
@@ -229,7 +229,7 @@ def qualbild(preds, split, conf):
                     max(1, int(round(2 * sc))))
         out = os.path.join(DOC, f"qual_{split}.jpg")
         cv2.imwrite(out, im, [cv2.IMWRITE_JPEG_QUALITY, 92])
-        print("->", out, f"(TP {int(tp.sum())}, Doppel {n_dop}, FP {n_fp-n_dop}, "
+        print("->", out, f"(TP {int(tp.sum())}, Zweitbox {n_dop}, FP {n_fp-n_dop}, "
                          f"FN {len(g)-len(hit)})")
 
 
