@@ -509,12 +509,6 @@ und auf test sitzt **jede** Detektion auf einem annotierten Objekt
 (Precision 1,000). Das ist die Antwort auf die Aufgabenstellung. Mit
 Test-Time-Augmentation steigt mAP@0,5 auf test auf 0,963.
 
-> **Der Precision-Wert von 1,000 lädt zu einer Rückfrage ein.** Antwort: Auf test
-> ist jede sichtbare Stirnfläche annotiert, deshalb kann keine korrekte Detektion
-> als Falsch-Positiv gezählt werden. Auf val ist die Annotation nicht vollständig
-> — dort ist die Precision eine Untergrenze, und der Unterschied zwischen den
-> Splits ist genau das.
-
 ### Sim-to-Real-Abstand — die Argumentation ist wichtiger als die Zahl
 
 0,982 gegen 0,886 und 0,956, also **9,6 bzw. 2,6 Prozentpunkte** mAP@0,5.
@@ -688,8 +682,7 @@ statt gemalter Balken — unbelegt.
 
 **Die schwerwiegendste Grenze:** je ein Bild pro Split. Daraus Konfidenz­
 intervalle von ±0,04 bis ±0,05; beide Bilder zeigen dieselbe Objektart bei
-ähnlichem Wetter; die Ground Truth selbst ist unvollständig, weshalb die
-Precision eine **Untergrenze** ist; und val wird doppelt verwendet — für die
+ähnlichem Wetter; und val wird doppelt verwendet — für die
 Modellauswahl *und* für die Wahl der Inferenzauflösung. **Belastbar sind die
 test-Zahlen.**
 

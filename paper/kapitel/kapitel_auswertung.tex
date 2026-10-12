@@ -393,14 +393,8 @@ verbleibende Domänenlücke zurückgeht, denn alle vier Clean Plates sind bei
 diffusem Licht aufgenommen.
 
 \absatz{Falsch-Positive.} Sie sind selten: \zfpTest{} auf \code{test} bei
-\znPredTest{} Detektionen und \zfpVal{} auf \code{val} bei \znPredVal. Zu
-beachten ist, dass die beiden Splits unterschiedlich vollständig annotiert
-sind: Auf \code{test} ist jede sichtbare Stirnfläche erfasst, die Precision
-ist dort also exakt. Auf \code{val} fehlen einzelne erkennbare Rohröffnungen
-in der Annotation; bei \znPredVal{} Detektionen senkt jede fehlende Annotation
-die Precision um rund einen Prozentpunkt, die dortigen Precision-Werte sind
-damit eine \textbf{Untergrenze}. Die Mehrzahl dieser Boxen umschließt zudem
-ein echtes Rohrende: Die Zuordnungsregel lässt je annotierter Fläche nur einen
+\znPredTest{} Detektionen und \zfpVal{} auf \code{val} bei \znPredVal. Die
+Mehrzahl dieser Boxen umschließt ein echtes Rohrende: Die Zuordnungsregel lässt je annotierter Fläche nur einen
 Treffer zu \parencite{lin2014coco}, sodass eine zweite Box auf derselben
 Stirnfläche zwangsläufig als Fehler zählt; auf \code{test} betrifft das alle
 \zfpTest, auf \code{val} \zfpDoppelVal{} von \zfpVal. Nur die übrigen beiden
