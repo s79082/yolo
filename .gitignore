@@ -26,6 +26,14 @@
 !paper/**/*.jpeg
 !paper/**/*.png
 
+# Ausnahme: Quellmaterial fuer Training und Auswertung (die Bewertungsbilder
+# stehen weiter unten bei data/).  assets/ (Masken, Okkluder) und synth/
+# lassen sich daraus mit src/matting.py, src/occluders.py und
+# src/generate.py neu erzeugen.
+!cutouts/*.png
+!bg/*.jpg
+!bg/*.png
+
 # ============================================================
 #  Kompilierte PDFs (Build-Artefakte)
 # ============================================================
@@ -51,7 +59,9 @@ __pycache__/
 # ============================================================
 synth/
 data/sval/
-data/*/images/
+data/*/images/*
+!data/val/images/*.jpg
+!data/test/images/*.jpg
 *.cache
 
 # ============================================================
