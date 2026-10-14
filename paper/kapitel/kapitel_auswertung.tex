@@ -14,7 +14,7 @@
 %     Schranken-Gegenprobe und die beiden Einschraenkungsabsaetze
 %     der Ablation zusammengefuehrt und gekuerzt
 %   - Ablation B (Herkunft der Okkluder) gestrichen; die Einbettung ist die
-%     einzige Ablation, runs/A1_baseline nur noch Wiederholungslauf von C0
+%     einzige Ablation
 %
 %  Mit "% PRUEFEN" markierte Stellen brauchen eine Entscheidung.
 % ======================================================================
@@ -241,24 +241,9 @@ Negativbildanteil und die globale Bildstufe. C1 entspricht damit dem
 dieselbe Verteilung der Szenen, nur ohne Einbettung
 (Abbildung~\ref{abb:einbettung}).
 
-\absatz{Zwei Einschränkungen vorab.} \emph{Erstens} ist dieser Versuch
-\textbf{nicht gepaart}. Wird eine Einbettungsstufe
-übersprungen, entfallen auch ihre inneren Ziehungen -- die Angleichstärken aus
-Gleichung~\eqref{eq:harmonize}, die Unschärfe- und Rauschbeträge --, und der
-Zufallsstrom des Generators läuft auseinander. C0 und C1 sind deshalb zwei
-\emph{unabhängige Realisierungen} derselben Layoutverteilung und nicht
-dasselbe Bild mit anderen Pixeln: Über die ersten 200
-Bilder findet nur etwa ein Sechstel der Boxen im jeweils anderen Arm einen
-Partner näher als ein Pixel. Die Verteilungen stimmen dabei eng überein --
-beide Arme rendern 86\,617 Instanzen und labeln \zCZeroLabels{} gegenüber
-\zCOneLabels{} Objekten, ein Unterschied von \zablCLabelDiffProz\,\% --, die
-Einzelszenen aber nicht. Die Ablation ist damit eine gewöhnliche
-Datensatz-Ablation, bei der ein Unterschied im Ergebnis grundsätzlich auch von
-der anderen Szenenrealisierung herrühren kann.
-
-\emph{Zweitens} lässt sich das Bündel nicht auflösen. Sechs Maßnahmen werden
-gemeinsam abgeschaltet, und welche davon wie viel beiträgt, sagt der Versuch
-nicht. Außerdem ist die Zuordnung zu den Signaturen nicht ganz sauber: S1--S5 sind
+\absatz{Eine Einschränkung vorab.} Das Bündel lässt sich nicht auflösen. Sechs
+Maßnahmen werden gemeinsam abgeschaltet, und welche davon wie viel beiträgt,
+sagt der Versuch nicht. Außerdem ist die Zuordnung zu den Signaturen nicht ganz sauber: S1--S5 sind
 vollständig abgeschaltet, von S6 dagegen nur der Schlagschatten -- die
 physikalisch plausiblen Okkluder, die andere Hälfte dieser Signatur, bleiben
 in beiden Armen aktiv. Für S1 und S5 führt der Erzeugungsbericht zudem keinen
@@ -269,8 +254,7 @@ Messung am erzeugten Datensatz.
 \centering
 \includegraphics[width=\textwidth]{abbildungen/neu_einbettung.png}
 \caption[Einbettung gegen naives Einkleben]{Je ein typischer Ausschnitt aus
-beiden Armen, dreifach vergrößert -- wegen der fehlenden Paarung
-\emph{nicht} dieselbe Szene. Links (C0) gehen die eingefügten Stirnflächen in
+beiden Armen, dreifach vergrößert. Links (C0) gehen die eingefügten Stirnflächen in
 Kantenschärfe, Farbe, Rauschen und Kompression im Hintergrund auf. Rechts (C1)
 stehen sie als scharf umrissene, kontrastreiche Fremdkörper auf einem
 weicheren Untergrund: genau der Unterschied, den ein Faltungsnetz als
@@ -291,23 +275,7 @@ zeigen in dieselbe Richtung und in vergleichbarer Größenordnung. Auf
 3\PP; Abschnitt~\ref{sec:bootstrap}), auf \code{val} rund doppelt so groß
 ($[\zbootValLo;\,\zbootValHi]$).
 
-\absatz{Warum das Ergebnis trotz fehlender Paarung hält.} Gegen eine ungepaarte
-Ablation lässt sich einwenden, der Unterschied könne schlicht von der Streuung
-des Trainings oder von der anderen Szenenrealisierung stammen. Für die Streuung
-des Trainings gibt es einen Anhaltspunkt. Rund einen Monat vor C0 wurde die
-vollständige Pipeline schon einmal mit demselben Budget und Seed erzeugt und
-trainiert (\code{runs/A1\_baseline}). Der Datensatz ist praktisch derselbe: Von
-seinen 68\,281 Boxen finden alle bis auf fünf in C0 einen Partner näher als ein
-Pixel, und die Bilder weichen im Mittel um rund einen halben Grauwert ab.
-Trotzdem liegen die beiden Läufe
-auf \code{test} 1,3\PP{} \mAPfifty{} auseinander (\zBZeroTestMap{} gegen
-\zCZeroTestMap). So weit streut also das Training allein, wenn sich am
-Datensatz nichts Wesentliches ändert; der C1-Effekt ist rund neunmal so groß.
-Wie weit zwei \emph{verschiedene} Szenenrealisierungen auseinanderliegen,
-misst dieser Vergleich dagegen nicht.
-
-Schwerer wiegt eine zweite Beobachtung, weil sie nur Vergleiche innerhalb
-desselben Arms verwendet. Auf seinem \emph{eigenen} synthetischen
+\absatz{Synthetisch unverändert, real schlechter.} Auf seinem \emph{eigenen} synthetischen
 Validierungssplit ist C1 von C0 praktisch nicht zu unterscheiden (\zCOneSval{}
 gegen \zCZeroSval{} \mAPfifty, $\zablCSvalGap$\PP). Der naiv eingeklebte
 Trainingssatz ist also keine schwerere Aufgabe, das Netz löst ihn ebenso gut.

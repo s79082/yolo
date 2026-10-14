@@ -19,8 +19,6 @@ python src/generate.py --out synth/train --n 6000 --seed 1 --preview 8
 python src/generate.py --out synth/sval  --n  400 --seed 99
                                     # je Datensatz generation_report.json:
                                     # Ist-Anteile, Labelzahlen, Sichtbarkeit
-python src/experiment.py ablation-data          # erzeugt u.a. abl_A1_baseline
-                                                # (Wiederholungslauf von C0)
 python src/synth_layout.py          # Layoutstatistik der erzeugten Labels
                                     # -> docs/experiments/synth_layout.json
 
@@ -43,8 +41,6 @@ python src/analyse_neu.py          --weights runs/referenz/weights/best.pt
 python src/train_neu.py --name C0_kontrolle   --data data/C0_kontrolle.yaml
 python src/train_neu.py --name C1_naive_paste --data data/C1_naive_paste.yaml
 python src/eval_armC.py                     # Arme C0/C1, eigene Ergebnisdatei
-python src/train_neu.py --name A1_baseline  --data data/A1_baseline.yaml
-python src/experiment_neu.py eval           # Wiederholungslauf der Kontrolle
 
 # --- Abbildungen und Tabellen ----------------------------------------------
 python src/report_neu.py            # kapitel/zahlen.tex, kapitel/tab_*.tex

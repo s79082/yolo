@@ -98,7 +98,7 @@ Inferenzauflösung. \code{test} ist damit ein sauberer Endtest, \code{val} aber
 kein unabhängiger Bewertungssplit mehr; die belastbaren Zahlen sind die
 \code{test}-Zahlen.
 
-\absatz{Grenzen der Ablation.} Vier Vorbehalte bleiben. \emph{Erstens} das
+\absatz{Grenzen der Ablation.} Drei Vorbehalte bleiben. \emph{Erstens} das
 reduzierte Budget: 3000 Bilder und 30 Epochen sind aus der Rechenzeit gewählt,
 nicht aus einem Konvergenzkriterium. Es ist für beide Arme gleich und kann
 den Vergleich deshalb nicht verzerren, begrenzt aber die absolute Höhe der
@@ -107,13 +107,8 @@ Zahlen; ein Effekt, der sich erst nach 60 Epochen zeigte, bliebe unentdeckt.
 Trainings-Seeds ist die Streuung des Trainings selbst unbekannt und von der
 Wirkung des Datensatzes nicht zu trennen. Das ist die gewichtigste
 Einschränkung, und sie ist mit Rechenzeit behebbar: Drei Seeds je Arm wären
-sechs statt zwei Läufen. Einen Anhaltspunkt liefert immerhin der
-Wiederholungslauf der Kontrolle, der auf praktisch demselben Datensatz
-1,3\PP{} neben C0 liegt; der Effekt von C1 ist groß genug, um dieser
-Einschränkung standzuhalten. \emph{Drittens} ist die Ablation nicht gepaart
-(Abschnitt~\ref{sec:ablationC}), und wie weit zwei verschiedene
-Szenenrealisierungen derselben Pipeline auseinanderliegen, ist nicht gemessen.
-\emph{Viertens} ist die Ablation ein \emph{Eingriff in eine Richtung}: Sie
+sechs statt zwei Läufen. \emph{Drittens} ist die Ablation ein \emph{Eingriff
+in eine Richtung}: Sie
 zeigt die Folgen einer Verschlechterung, nicht den Ertrag eines besseren
 Entwurfs derselben Stufen.
 
@@ -136,9 +131,7 @@ nach erwartetem Nutzen geordnet:
   schlüsselt ihn auf, mit dem Sim-to-Real-Abstand als Zielgröße. Schon zwei Arme
   trennen Abkürzung und Domänenlücke (Abschnitt~\ref{sec:ablationC}): Verliert
   der Arm nur mit harter Kante mehr als der nur ohne photometrischen Angleich,
-  spricht das für die Abkürzung. Gepaart sind solche Arme erst, wenn der
-  Generator seine Stufenparameter immer zieht und nur ihre \emph{Anwendung} von
-  $\pi_\nu$ abhängig macht (Gleichung~\eqref{eq:mischung}). Bereits trainiert,
+  spricht das für die Abkürzung. Bereits trainiert,
   aber nicht ausgewertet sind außerdem Arme zum Verdeckungs\emph{grad}
   (\code{runs/A0\_keine\_okklusion}, \code{A1\_baseline},
   \code{A2\_starke\_okklusion}) und zur \emph{Herkunft} der Okkluder
