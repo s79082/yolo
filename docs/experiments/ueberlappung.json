@@ -1,7 +1,7 @@
 {
   "schwelle": 0.99,
   "aktuell": {
-    "clean_plates": {
+    "hintergruende": {
       "bg/test_cutted.png": {
         "val": {
           "score": 0.197,
@@ -39,6 +39,36 @@
         },
         "test": {
           "score": 0.1435,
+          "skala": 0.3
+        }
+      },
+      "bg/bg_3.jpg": {
+        "val": {
+          "score": 0.4452,
+          "skala": 0.3
+        },
+        "test": {
+          "score": 0.5682,
+          "skala": 0.375
+        }
+      },
+      "bg/bg_4.jpg": {
+        "val": {
+          "score": 0.4177,
+          "skala": 0.425
+        },
+        "test": {
+          "score": 0.3706,
+          "skala": 0.3
+        }
+      },
+      "bg/bg_5.jpg": {
+        "val": {
+          "score": 0.3619,
+          "skala": 0.325
+        },
+        "test": {
+          "score": 0.473,
           "skala": 0.3
         }
       }
@@ -209,7 +239,7 @@
   },
   "zusammenfassung": {
     "aktuell": {
-      "clean_plates": {},
+      "hintergruende": {},
       "ausschnitte": {}
     },
     "aussortiert": {

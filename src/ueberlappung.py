@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Teilt das Quellmaterial Pixel mit den beiden Bewertungsbildern?
 
-Objektausschnitte (cutouts/) und Clean Plates (bg/) wurden aus Realaufnahmen
+Objektausschnitte (cutouts/) und Hintergruende (bg/) wurden aus Realaufnahmen
 geschnitten. Ein unveraenderter Ausschnitt eines Bewertungsbildes findet sich
 per Vorlagenabgleich (normierte Kreuzkorrelation, cv2.TM_CCOEFF_NORMED) dort
 mit einer Korrelation nahe 1 wieder. Gesucht wird ueber mehrere Skalen; als
@@ -23,7 +23,7 @@ import os
 import cv2
 import numpy as np
 
-from occluders import CLEAN_PLATES
+from generate import BACKGROUNDS
 
 BEWERTUNG = {
     "val": ("data/val/images/PXL_20251204_073853552.jpg",
@@ -99,14 +99,15 @@ def main():
         b = cv2.imread(bpfad, cv2.IMREAD_GRAYSCALE)
         bilder[name] = (b, boxen(lpfad, b.shape[1], b.shape[0]))
 
-    # Clean Plates sind grosse Ausschnitte, grobe Skalenstufen genuegen;
+    # Hintergruende sind grosse Ausschnitte, grobe Skalenstufen genuegen;
     # Objektausschnitte sind ~30 px gross und brauchen feinere Stufen.
     s_platte = np.linspace(0.3, 1.2, 37)
     s_objekt = np.linspace(0.5, 2.0, 31)
     rep = {
         "schwelle": SCHWELLE,
         "aktuell": {
-            "clean_plates": pruefe(CLEAN_PLATES, bilder, s_platte),
+            "hintergruende": pruefe([b["path"] for b in BACKGROUNDS],
+                                     bilder, s_platte),
             "ausschnitte": pruefe(sorted(glob.glob("cutouts/*.png")),
                                   bilder, s_objekt),
         },
