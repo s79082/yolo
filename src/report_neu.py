@@ -33,6 +33,7 @@ import numpy as np                                       # noqa: E402
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 os.chdir(ROOT)
+from laeufe import ARME_C, REFERENZ                     # noqa: E402
 EXP = "docs/experiments"
 DOC = "docs"
 RUNS = "runs"
@@ -267,7 +268,8 @@ def fig_training(arme=None, datei="fig_training.png", titel=None):
               "C1_naive_paste": "#d62728"}
     fig, ax = plt.subplots(1, 3, figsize=(13.5, 3.8))
     for arm, lab in alle:
-        p = os.path.join(RUNS, arm, "results.csv")
+        lauf = ARME_C[arm]["lauf"] if arm in ARME_C else arm
+        p = os.path.join(RUNS, lauf, "results.csv")
         if not os.path.exists(p):
             continue
         rows = list(csv.DictReader(open(p)))
@@ -389,8 +391,8 @@ def fig_einbettung(idx=15, crop=(360, 420, 260, 260)):
     Labels sind bewusst nicht eingezeichnet -- die Abbildung soll die
     Einbettung zeigen, nicht die Annotation.
     """
-    ds = [("synth/C0_kontrolle", "C0 -- vollständige Einbettung"),
-          ("synth/C1_naive_paste", "C1 -- naiv eingeklebt")]
+    ds = [(ARME_C["C0_kontrolle"]["daten"], "C0 -- vollständige Einbettung"),
+          (ARME_C["C1_naive_paste"]["daten"], "C1 -- naiv eingeklebt")]
     name = f"syn_1_{idx:06d}"
     x, y, w, h = crop
     fig, axes = plt.subplots(1, 2, figsize=(9.6, 5.0))
@@ -425,7 +427,7 @@ def _c_daten():
         return None, None, None
     ds = {}
     for arm, _ in C_ARME:
-        p = os.path.join("synth", arm, "generation_report.json")
+        p = os.path.join(ARME_C[arm]["daten"], "generation_report.json")
         if os.path.exists(p):
             ds[arm] = json.load(open(p))
     return rows, sval, ds
@@ -946,7 +948,7 @@ def zahlen():
         e = a.get("best_epoch") or {}
 
     import csv as _csv
-    _rp = os.path.join(RUNS, "referenz", "results.csv")
+    _rp = os.path.join(RUNS, REFERENZ["lauf"], "results.csv")
     if os.path.exists(_rp):
         _rows = list(_csv.DictReader(open(_rp)))
         M["refEpochen"] = str(len(_rows))

@@ -1,5 +1,6 @@
 #!/bin/bash
-# Quellmaterial, Datensaetze und Laeufe auf dem bereinigten Quellmaterial.
+# Quellmaterial, Datensaetze, Laeufe und Auswertung auf dem bereinigten
+# Quellmaterial.
 # Umgebung: .venv mit requirements.txt (Ergebnisse haengen an opencv/numpy).
 set -e
 cd /home/mso/source/yolo-gen
@@ -19,3 +20,10 @@ $PY src/generate.py --out synth/bereinigt_sval_C1        --n  400 --seed 99 --na
 $PY src/train_neu.py --name bereinigt_referenz       --data data/bereinigt_referenz.yaml       --epochs 60 > train_bereinigt_referenz.log 2>&1
 $PY src/train_neu.py --name bereinigt_C0_kontrolle   --data data/bereinigt_C0_kontrolle.yaml   --epochs 30 > train_bereinigt_C0_kontrolle.log 2>&1
 $PY src/train_neu.py --name bereinigt_C1_naive_paste --data data/bereinigt_C1_naive_paste.yaml --epochs 30 > train_bereinigt_C1_naive_paste.log 2>&1
+
+# Auswertung; Laeufe und Datensaetze aus src/laeufe.py
+$PY src/experiment_neu.py main    # docs/experiments/hauptergebnis.json
+$PY src/experiment_neu.py sweep   # inferenz_sweep.json: Aufloesung, Bootstrap
+$PY src/analyse_neu.py            # analyse.json: Boxversatz, Sensitivitaet, Fehler
+$PY src/eval_armC.py              # ablationC.json, ablationC_sval.json
+$PY src/report_neu.py             # paper/kapitel/zahlen.tex, tab_*.tex, Abbildungen

@@ -49,6 +49,7 @@ ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 os.chdir(ROOT)
 sys.path.insert(0, os.path.join(ROOT, "src"))
 from evaluate import evaluate_split, summary_line       # noqa: E402
+import laeufe                                           # noqa: E402
 
 OUT = os.path.join(ROOT, "docs", "experiments")
 RUNS = os.path.join(ROOT, "runs")
@@ -192,7 +193,7 @@ def cmd_eval(imgsz="native"):
     print("->", os.path.join(OUT, "ablationen.json"))
 
 
-REFERENZ = os.path.join(ROOT, "runs", "yolo26s_p2", "weights", "best.pt")
+REFERENZ = os.path.join(ROOT, laeufe.gewichte(laeufe.REFERENZ["lauf"]))
 
 
 def set_referenz(w):
@@ -204,11 +205,11 @@ def set_referenz(w):
 def cmd_main(imgsz="native"):
     """Hauptergebnis: das Referenzmodell der vollstaendigen Pipeline.
 
-    runs/yolo26s_p2 ist auf dem vollen Datensatz (6000 Bilder, 60 Epochen)
-    trainiert und dient als Bezugspunkt, gegen den die beiden Ablationen mit
-    ihrem reduzierten Budget (3000/30) einzuordnen sind. Zusaetzlich zu val und
-    test wird sval ausgewertet -- der synthetische Validierungssatz, aus dem
-    sich der Sim-to-Real-Abstand ergibt.
+    Das Referenzmodell (src/laeufe.py) ist auf dem vollen Datensatz (6000
+    Bilder, 60 Epochen) trainiert und dient als Bezugspunkt, gegen den die
+    Ablation mit ihrem reduzierten Budget (3000/30) einzuordnen ist.
+    Zusaetzlich zu val und test wird sval ausgewertet -- der synthetische
+    Validierungssatz, aus dem sich der Sim-to-Real-Abstand ergibt.
     """
     from ultralytics import YOLO
     os.makedirs(OUT, exist_ok=True)

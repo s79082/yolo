@@ -33,10 +33,12 @@ import cv2
 import numpy as np
 from ultralytics import YOLO
 
+from laeufe import SVAL
+
 SPLITS = {
     "val": ("data/val/images", "data/val/labels"),
     "test": ("data/test/images", "data/test/labels"),
-    "sval": ("data/sval/images", "data/sval/labels"),
+    "sval": (f"{SVAL}/images", f"{SVAL}/labels"),
 }
 
 # ---------------------------------------------------------------------------

@@ -32,11 +32,13 @@ sys.path.insert(0, os.path.join(ROOT, "src"))
 from evaluate import (SPLITS, evaluate_split, iou_matrix, load_gt,   # noqa: E402
                       match, pr_curve, average_precision)
 from ultralytics import YOLO                                        # noqa: E402
+import laeufe                                                      # noqa: E402
 
 import argparse
 
 _ap = argparse.ArgumentParser()
-_ap.add_argument("--weights", default="runs/yolo26s_p2/weights/best.pt")
+_ap.add_argument("--weights",
+                 default=laeufe.gewichte(laeufe.REFERENZ["lauf"]))
 _ap.add_argument("--tag", default="")
 ARGS, _ = _ap.parse_known_args()
 WEIGHTS = ARGS.weights
