@@ -1,8 +1,8 @@
 """
 Stufe 3: Synthetische Trainingsdatengenerierung (Copy-Paste-Pipeline).
 
-Erzeugt YOLO-Datensaetze aus 9 freigestellten Rohrprofilen (assets/masks),
-56 echten Rohrstangen als Okkluder (assets/bars) und 7 Hintergruenden (bg/).
+Erzeugt YOLO-Datensaetze aus 6 freigestellten Rohrprofilen (assets/masks),
+55 echten Rohrstangen als Okkluder (assets/bars) und 7 Hintergruenden (bg/).
 
 Die Begruendung jeder einzelnen Transformation und ihres Anteils steht in
 docs/PIPELINE.md; der Code hier nennt zu jedem Block die Kurzbegruendung.
@@ -33,10 +33,10 @@ CANVAS = 1024          # Kantenlaenge der erzeugten Bilder
 # pipe_d = gemessener Rohrdurchmesser in Pixeln (aus src/occluders.py),
 # er verankert den physikalisch korrekten Groessenbezug Profil <-> Umgebung.
 BACKGROUNDS = [
-    dict(path="bg/test_cutted.png",  clean=True,  pipe_d=16, w=6.0),
-    dict(path="bg/test2_cutted.jpg", clean=True,  pipe_d=18, w=6.0),
-    dict(path="bg/test4_cutted.png", clean=True,  pipe_d=21, w=6.0),
-    dict(path="bg/test5_cutted.jpg", clean=True,  pipe_d=20, w=6.0),
+    dict(path="bg/test_cutted.png",    clean=True,  pipe_d=16, w=6.0),
+    dict(path="bg/img3884_cutted.png", clean=True,  pipe_d=18, w=6.0),
+    dict(path="bg/test4_cutted.png",   clean=True,  pipe_d=21, w=6.0),
+    dict(path="bg/img3886_cutted.png", clean=True,  pipe_d=20, w=6.0),
     dict(path="bg/bg_3.jpg",         clean=False, pipe_d=None, w=1.0),
     dict(path="bg/bg_4.jpg",         clean=False, pipe_d=None, w=1.0),
     dict(path="bg/bg_5.jpg",         clean=False, pipe_d=None, w=1.0),
