@@ -1,7 +1,7 @@
 % ======================================================================
 %  Kapitel 3 - Datenaugmentierung und synthetische Datengenerierung
 %
-%  Die Makros (\Dom, \Hcls, \HdH, \disc, \IoU, \px, \absatz, \mAPfifty, \mAPall)
+%  Die Makros (\Dom, \IoU, \px, \absatz, \mAPfifty, \mAPall)
 %  stammen aus der Praeambel der Arbeit. Zitiert wird mit biblatex
 %  (\parencite, \textcite); alle Quellen stehen in literatur.bib.
 %
@@ -401,150 +401,92 @@ Objektgröße.
 \label{sec:sim2real}
 
 Wird fast der gesamte Trainingsdatensatz synthetisch erzeugt, lernt das Modell
-auf einer anderen Verteilung als der, auf der es später arbeiten soll. Eine
-\emph{Domäne} besteht im Folgenden aus einer Verteilung der Eingabebilder und
-einer Beschriftungsfunktion, die jedem Bild seine richtige Beschriftung
-zuordnet. Die synthetische Quelldomäne ist $\langle \Dom{S}^{X}, f_S\rangle$,
-die reale Zieldomäne $\langle \Dom{T}^{X}, f_T\rangle$; $f_S$ ist die
-Boxberechnung des Generators, $f_T$ die Handannotation. Ein Modell $h$ aus einer
-Hypothesenklasse $\Hcls$ wird auf $\Dom{S}$ trainiert, soll aber auf $\Dom{T}$
-gute Vorhersagen machen. Anders als bei der üblichen Aufteilung in Trainings-
-und Validierungsdaten stammen die Daten also aus zwei verschiedenen Prozessen.
+auf einer anderen Verteilung als der, auf der es später arbeiten soll. Wie bei
+\textcite{bendavid2010} besteht eine \emph{Domäne} im Folgenden aus einer
+Verteilung der Eingabebilder und einer Beschriftungsfunktion, die jedem Bild
+seine richtige Beschriftung zuordnet. Die synthetische Quelldomäne ist
+$\langle \Dom{S}^{X}, f_S\rangle$, die reale Zieldomäne
+$\langle \Dom{T}^{X}, f_T\rangle$; $f_S$ ist die Boxberechnung des Generators,
+$f_T$ die Handannotation. Das Modell $h$ wird auf der Quelldomäne trainiert,
+soll aber auf der Zieldomäne gute Vorhersagen machen. Anders als bei der
+üblichen Aufteilung in Trainings- und Validierungsdaten stammen die Daten also
+aus zwei verschiedenen Prozessen.
 
-\absatz{Die Schranke von Ben-David.} Unterschiede zwischen Vorhersagen misst
-wieder eine Verlustfunktion $L$, hier als Bewertungsmaß, das nicht der
-Trainingsverlust sein muss. Für zwei Modelle $h,h'\in\Hcls$ bezeichnet
-\[
-  \epsilon_S(h,h')
-  =
-  \mathbb{E}_{x\sim\Dom{S}^{X}}
-  \bigl[L\bigl(h(x),\,h'(x)\bigr)\bigr]
-\]
-ihren mittleren Unterschied auf synthetischen Bildern und $\epsilon_T(h,h')$
-entsprechend auf realen. Der Fehler eines Modells ist
-$\epsilon_S(h)=\epsilon_S(h,f_S)$ bzw.\ $\epsilon_T(h)=\epsilon_T(h,f_T)$.
-\textcite{bendavid2010} haben für die binäre Klassifikation gezeigt, wie sich
-der Fehler auf der Zieldomäne durch den Fehler auf der Quelldomäne beschränken
-lässt. In der Form von \textcite{mansour2009discrepancy} gilt diese Schranke
-für jede Verlustfunktion, die symmetrisch ist, $L(y,y')=L(y',y)$, und die
-Dreiecksungleichung $L(y,y'')\leq L(y,y')+L(y',y'')$ erfüllt; der Beweis
-verläuft wie der von Theorem~2 bei \textcite{bendavid2010}. Für jedes Modell
-$h\in\Hcls$ gilt dann
-\begin{equation}
-  \epsilon_T(h)
-  \;\leq\;
-  \epsilon_S(h)
-  \;+\;
-  \disc_L\bigl(\Dom{S}^{X},\,\Dom{T}^{X}\bigr)
-  \;+\;
-  \lambda .
-  \label{eq:bendavid}
-\end{equation}
-Der erste Term, $\epsilon_S(h)$, ist der Fehler auf synthetischen Bildern, also
-genau die Größe, die das Training minimiert. Der zweite, im Folgenden
-Distanzterm genannt, ist die Discrepancy-Distanz
-\[
-  \disc_L\bigl(\Dom{S}^{X},\,\Dom{T}^{X}\bigr)
-  =
-  \sup_{h,h'\in\Hcls}
-  \bigl|\,
-    \epsilon_S(h,h') - \epsilon_T(h,h')
-  \,\bigr| .
-\]
-Sie wird groß, wenn es in $\Hcls$ zwei Modelle gibt, die sich auf der einen
-Domäne viel stärker unterscheiden als auf der anderen; dann verrät schon ihr
-Unterschied, ob ein Bild synthetisch oder real ist. Beim $0/1$-Verlust ist sie
-die Hälfte der $\HdH$-Divergenz, mit der \textcite{bendavid2010} die Schranke
-ursprünglich angeben. Der dritte Term
-$\lambda = \min_{h'\in\Hcls}\bigl[\epsilon_S(h') + \epsilon_T(h')\bigr]$ ist
-der kleinste gemeinsame Fehler, den ein einziges Modell aus $\Hcls$ auf beiden
-Domänen zugleich erreichen kann. Er ist groß, wenn kein Modell beide Domänen
-zugleich richtig beschreibt, zum Beispiel weil Generator und Handannotation
-dasselbe Objekt unterschiedlich beschriften.
-
-Für den Generator ist vor allem der Distanzterm wichtig. Er hängt nur von den
-Bildern ab, und deren Verteilung $\Dom{S}^{X}$ erzeugt der Generator selbst
-über $p(t)$. Jedes Merkmal, das er in die Bilder bringt und das in realen
-Bildern fehlt, etwa eine harte Kante um ein eingefügtes Objekt
-(Tabelle~\ref{tab:signaturen}), kann den Distanzterm vergrößern, und jede
-Gegenmaßnahme ist Teil von $p(t)$. Unterschiede in der Beschriftung gehen
-dagegen nur in $\lambda$ ein. In dieser Arbeit betrifft das vor allem die
-abweichende Boxkonvention von Generator und Handannotation
-(Abschnitt~\ref{sec:boxversatz}), die bei kleinen Objekten vor allem die
-strengen IoU-Schwellen trifft (Abschnitt~\ref{subsec:kleine-objekte}). Ohne
-beschriftete reale Daten lässt sich $\lambda$ nicht schätzen.
-
-\absatz{Übertragung auf die Detektion.} Der Verlust $1-\IoU$ ist als
-Jaccard-Distanz eine Metrik \parencite{kosub2019jaccard}; für die
-Lokalisierung genau eines Objekts pro Bild gilt die Schranke also. Die mAP
-passt dagegen nicht in diesen Rahmen. Schon ihr Trefferkriterium verletzt als
-0/1-Verlust die Dreiecksungleichung, denn zwei 20\px{} große Boxen 6\px{}
-links und rechts einer dritten treffen diese bei der Schwelle 0,5 (IoU 0,54
-nach Gleichung~\eqref{eq:ioushift}), einander aber nicht (IoU 0,25). Außerdem
-ist die mAP kein Mittelwert eines Verlusts pro Bild, sondern wird aus den nach
-Konfidenz sortierten Detektionen des ganzen Datensatzes berechnet. Für die
-gemessenen Werte liefert Gleichung~\eqref{eq:bendavid} deshalb keine
-beweisbare Grenze. Sie dient dazu, die Entwurfsentscheidungen der Pipeline
-danach zu ordnen, welchen der drei Terme sie verkleinern sollen.
+Die Domänen können sich auf zwei Arten unterscheiden: in den Bildern,
+$\Dom{S}^{X} \neq \Dom{T}^{X}$, und in den Beschriftungen, $f_S \neq f_T$. Die
+Bildverteilung $\Dom{S}^{X}$ erzeugt der Generator selbst über $p(t)$. Jedes
+Merkmal, das er in die Bilder bringt und das in realen Bildern fehlt, etwa eine
+harte Kante um ein eingefügtes Objekt (Tabelle~\ref{tab:signaturen}), ist ein
+Unterschied der ersten Art, und jede Gegenmaßnahme ist Teil von $p(t)$. Ein
+Unterschied der zweiten Art ist in dieser Arbeit vor allem die abweichende
+Boxkonvention von Generator und Handannotation
+(Abschnitt~\ref{sec:boxversatz}); bei kleinen Objekten trifft sie besonders die
+strengen IoU-Schwellen (Abschnitt~\ref{subsec:kleine-objekte}).
 
 \absatz{Sim-to-Real-Abstand.} Messen lässt sich der Unterschied
-$\Delta_{\mathrm{SR}} = \epsilon_T(h) - \epsilon_S(h)$ zwischen dem Fehler auf
-realen und auf synthetischen Bildern; beschriftete reale Bilder werden dafür
-nur zur Auswertung gebraucht. In Kapitel~\ref{kap:auswertung} wird $\epsilon_S$
-auf einem eigenen synthetischen Split geschätzt, der weder im Training noch bei
-der Modellauswahl verwendet wird (\code{sval}, Abschnitt~\ref{sec:simtoreal}),
-und als Fehler dient $\epsilon = 1 - \text{\mAPfifty}$. Durch Umstellen von
-Gleichung~\eqref{eq:bendavid} ergibt sich
-\begin{equation}
-  \Delta_{\mathrm{SR}}
-  \;\leq\;
-  \disc_L\bigl(\Dom{S}^{X},\,\Dom{T}^{X}\bigr)
-  + \lambda ,
-  \label{eq:gap-bound}
-\end{equation}
-für einen in \mAPfifty{} gemessenen Abstand aus den genannten Gründen aber nur
-als Einordnung.
+$\Delta_{\mathrm{SR}} = \epsilon_T(h) - \epsilon_S(h)$ zwischen dem Fehler
+$\epsilon_T$ auf realen und dem Fehler $\epsilon_S$ auf synthetischen Bildern;
+beschriftete reale Bilder werden dafür nur zur Auswertung gebraucht. In
+Kapitel~\ref{kap:auswertung} wird $\epsilon_S$ auf einem eigenen synthetischen
+Split geschätzt, der weder im Training noch bei der Modellauswahl verwendet
+wird (\code{sval}, Abschnitt~\ref{sec:simtoreal}), und als Fehler dient
+$\epsilon = 1 - \text{\mAPfifty}$.
 
 Der Abstand erlaubt nur einen Schluss in eine Richtung. Sind beide Domänen
-gleich, in den Bildern wie in den Beschriftungen, ist er bis auf Messrauschen
+gleich, in den Bildern wie in den Beschriftungen, stammen \code{sval} und die
+realen Bilder aus derselben Verteilung, und der Abstand ist bis auf Messrauschen
 null. Ein Abstand, der deutlich über die Messunsicherheit
 (Abschnitt~\ref{sec:bootstrap}) hinausgeht, zeigt deshalb, dass sich die
 Domänen unterscheiden. Ein kleiner Abstand beweist umgekehrt nicht, dass sie
-ähnlich sind, denn die rechte Seite von Gleichung~\eqref{eq:gap-bound} ist nur
-eine obere Grenze. Der Abstand verrät auch nicht, ob der Unterschied in den
-Bildern (Distanzterm) oder in den Beschriftungen ($\lambda$) liegt.
+ähnlich sind, denn das Modell kann gegenüber den vorhandenen Unterschieden
+unempfindlich sein. Der Abstand verrät auch nicht, ob der Unterschied in den
+Bildern oder in den Beschriftungen liegt.
 
 \absatz{Domain Randomization.} Ein verbreiteter Ansatz gegen einen großen
-Sim-to-Real-Abstand ist Domain Randomization: Die Parameter des Generators
-werden absichtlich stärker variiert, als es in der Realität zu erwarten ist,
-damit sich das Modell nicht auf eine einzige Erscheinungsform verlässt
-\parencite{tobin2017}. Die strukturierte Variante beschränkt die Variation auf
-physikalisch plausible Bereiche \parencite{prakash2019}; dieser Richtung folgt
-auch Anforderung~A3. Wie stark randomisiert werden sollte, folgt aus der
-Schranke nicht: Eine breitere Verteilung kann den Distanzterm verkleinern,
-solange sie den Bereich der realen Bilder besser abdeckt, verlangt aber ein
-Modell, das auf einem größeren Bereich gut ist, was $\epsilon_S(h)$ und
-$\lambda$ erhöhen kann. Diese Arbeit legt die Bereiche deshalb anhand von
-Messungen, physikalischen Randbedingungen und ausgewiesenen Annahmen fest
-(Tabelle~\ref{tab:parameter}) und prüft ihre Breite nicht experimentell
-(Abschnitt~\ref{sec:grenzen}).
+Sim-to-Real-Abstand ist Domain Randomization. Die Parameter des Generators
+werden dabei absichtlich breit und auch unrealistisch variiert, damit die reale
+Welt dem Modell nur als eine weitere Variante erscheint \parencite{tobin2017}
+und das Netz die wesentlichen Merkmale des Objekts lernen muss
+\parencite{tremblay2018}. Die Breite hat ihren Preis. \textcite{prakash2019}
+berichten aus der Fahrzeugdetektion, dass das Verfahren wegen der vielen
+Variation große Datenmengen braucht, dass das Netz die richtigen Merkmale oft
+nur schwer findet und dass ohne Szenenkontext kleine Fahrzeuge nicht erkannt
+werden. Ihre strukturierte Variante zieht die Objekte deshalb nicht unabhängig
+von der Szene, sondern in Abhängigkeit von ihrem Kontext, etwa Fahrzeuge
+entlang der Fahrspuren. Denselben Aufbau hat
+Gleichung~\eqref{eq:faktorisierung}, in der jedes Objekt von seinem Cluster und
+jeder Cluster von der Szene abhängt; das verlangt auch Anforderung~A3. Wie breit
+die Bereiche innerhalb dieser Struktur sein sollten, ist damit nicht
+beantwortet. Diese Arbeit legt sie anhand von Messungen, physikalischen
+Randbedingungen und ausgewiesenen Annahmen fest (Tabelle~\ref{tab:parameter})
+und prüft ihre Breite nicht experimentell (Abschnitt~\ref{sec:grenzen}).
 
 \absatz{Shortcut Learning.} Ein Modell kann seine Vorhersagen auf Merkmale
 stützen, die im Trainingsdatensatz mit der Zielklasse zusammenhängen, sie aber
-nicht wirklich ausmachen \parencite{geirhos2020}. Bei synthetischen Daten ist
+nicht wirklich ausmachen. \textcite{geirhos2020} nennen solche Lösungen
+Abkürzungen und grenzen sie über eine Taxonomie von Entscheidungsregeln ab:
+Unter den Regeln, die die Trainingsdaten lösen, bestehen manche auch einen Test
+mit neuen Daten aus derselben Verteilung (i.i.d.-Test). Abkürzungen gehören
+dazu, versagen aber auf Daten aus einer anderen Verteilung (o.o.d.-Test), auf
+denen die beabsichtigte Lösung weiter funktioniert. Bei synthetischen Daten ist
 das Risiko besonders groß, weil technische Eigenheiten des Generators in jedem
 Bild wiederkehren können, etwa harte Objektkanten, immer gleiche Schatten oder
-typische Farbübergänge. Im Sinne von Gleichung~\eqref{eq:bendavid} vergrößert
-ein solches Merkmal den Distanzterm und nicht $\lambda$: Ein Detektor, der auf
-die harte Kante um ein eingefügtes Objekt reagiert, und einer, der die
-Stirnfläche selbst erkennt, liefern auf synthetischen Bildern dieselben Boxen,
-auf realen aber nicht. Weil der zweite in beiden Domänen richtig liegt, bleibt
-$\lambda$ klein; welchen der beiden das Training auswählt, sagt die Schranke
-nicht. Mehr Zufallsvariation hilft gegen einen solchen Fehler nicht, denn ein
-Merkmal, das in jedem synthetischen Bild steckt, wird durch weitere Ziehungen
-aus derselben Verteilung nicht seltener. Es kommt deshalb nicht nur darauf an,
-wie vielfältig die Bilder sind, sondern auch darauf, welche gleichbleibenden
-Spuren der Generator selbst hinterlässt.
+typische Farbübergänge. Ein Detektor, der auf die harte Kante um ein
+eingefügtes Objekt reagiert, und einer, der die Stirnfläche selbst erkennt,
+liefern auf synthetischen Bildern dieselben Boxen. In dieser Arbeit entspricht
+\code{sval} dem i.i.d.-Test, die realen Bilder entsprechen dem o.o.d.-Test.
+Eine gelernte Abkürzung zeigt sich deshalb erst im Sim-to-Real-Abstand: Das
+Modell ist auf \code{sval} gut, auf den realen Bildern aber deutlich schlechter.
+
+Mehr Zufallsvariation hilft gegen eine solche Abkürzung nicht, solange sie das
+betreffende Merkmal nicht selbst verändert, denn ein Merkmal, das in jedem
+synthetischen Bild steckt, wird durch weitere Ziehungen aus derselben
+Verteilung nicht seltener. Auch nach \textcite{geirhos2020} verschwinden
+Gelegenheiten zu Abkürzungen selten durch mehr Daten; wirksam ist dagegen, die
+Trainingsdaten so zu verändern, dass eine bestimmte Abkürzung nicht mehr
+möglich ist. Es kommt deshalb nicht nur darauf an, wie vielfältig die Bilder
+sind, sondern auch darauf, welche gleichbleibenden Spuren der Generator selbst
+hinterlässt.
 
 \absatz{Synthetische Signaturen.} Dass sich eingefügte Bildbereiche an
 statistischen Spuren von ihrer Umgebung unterscheiden lassen, ist aus der
