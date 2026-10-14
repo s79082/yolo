@@ -11,8 +11,7 @@ Konvention, an der die Zahlen der Arbeit haengen:
   - ausgewertet werden die ersten 1500 Labeldateien in sortierter Reihenfolge;
   - Nachbarn zaehlen nur innerhalb desselben Bildes;
   - gezaehlt werden nur Objekte aus Bildern mit mindestens zwei Labels, auch
-    fuer Durchmesser und Seitenverhaeltnis. Bei synth/train sind das 34027 der
-    34072 Labels; mit allen sinkt der Median-Durchmesser von 23,5 auf 23,4 px.
+    fuer Durchmesser und Seitenverhaeltnis.
 
 Aufruf:  python src/synth_layout.py
 Ausgabe: docs/experiments/synth_layout.json
@@ -27,8 +26,9 @@ import numpy as np
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 os.chdir(ROOT)
+from laeufe import REFERENZ                          # noqa: E402
 
-DATASETS = ("synth/train", "synth/abl_A1_baseline")
+DATASETS = (REFERENZ["daten"],)
 N_IMAGES = 1500
 CANVAS = 1024                       # Leinwand des Generators in px
 OUT = "docs/experiments/synth_layout.json"

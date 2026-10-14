@@ -22,7 +22,7 @@ import generate as G                                      # noqa: E402
 
 ZIEL = os.path.normpath(os.path.join(os.path.dirname(__file__), "..",
                                      "abbildungen"))
-SEED = 302         # Clean Plate, grosses zentrales Cluster, sechs Stangen
+SEED = 102         # Clean Plate, grosses Cluster, sechs Stangen
 VOLL = 760         # Zielbreite der Ganzbild-Panels
 GRUEN, ROT, ORANGE = (0, 200, 0), (0, 0, 235), (0, 140, 240)
 
