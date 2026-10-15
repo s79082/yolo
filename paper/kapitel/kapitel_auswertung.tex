@@ -71,8 +71,9 @@ ist die Antwort auf die Aufgabenstellung (Tabelle~\ref{tab:hauptergebnis}). Am
 $F_1$-optimalen Betriebspunkt erreicht es einen Rückruf von \zrefValRec{}
 (\code{val}) bzw.\ \zrefTestRec{} (\code{test}) bei einer Precision von
 \zrefValPrec{} und \zrefTestPrec: Auf \code{test} liefert es \znPredTest{}
-Detektionen, von denen nur \zfpTest{} falsch-positiv sind, alle auf schon
-erkannten Stirnflächen, und übersieht \zfnTest{} der 89 Stirnflächen.
+Detektionen, von denen nur \zfpTest{} falsch-positiv sind, \zfpDoppelTest{} davon
+als zweite Box auf einer schon erkannten Stirnfläche, und übersieht \zfnTest{}
+der 89 Stirnflächen.
 
 Der auffällige Unterschied zwischen den Splits -- \mAPseven{} \zrefValMapS{}
 auf \code{val}, aber nur \zrefTestMapS{} auf \code{test} bei \emph{höherem}
@@ -108,25 +109,24 @@ Arbeit nicht erklären kann. Belastbar sind deshalb nur die Aussagen über
 Abschnitt~\ref{sec:metriken} ohnehin beschränkt.
 
 Bei \mAPfifty{} spielt die Labelkonvention keine Rolle: Werden die Boxen
-aufgeweitet, steigt \mAPfifty{} nicht, sondern sinkt sogar leicht. Der kleine
-Abstand bei \mAPfifty{} misst also tatsächlich den Unterschied zwischen den
-Domänen. Er zeigt auch nicht das Muster, das bei reinem Artefaktlernen zu
-erwarten wäre. Hätte das Netz eine der Signaturen S1--S6 als Abkürzung gelernt,
-wäre es auf \code{sval} zwar ebenso gut, auf den realen Bildern aber deutlich
-schlechter.
+aufgeweitet, steigt \mAPfifty{} nicht, auf \code{test} sinkt es sogar leicht.
+Der Abstand bei \mAPfifty{} misst also keine Labelkonvention, sondern den
+Unterschied zwischen den Domänen. Auf \code{test} zeigt er auch nicht das
+Muster, das bei reinem Artefaktlernen zu erwarten wäre: Hätte das Netz eine der
+Signaturen S1--S6 als Abkürzung gelernt, wäre es auf \code{sval} zwar ebenso
+gut, auf den realen Bildern aber deutlich schlechter.
 
-Was \enquote{klein} hier heißt, ordnet zum einen die Ablation ein
+Wie groß der Abstand ist, ordnet zum einen die Ablation ein
 (Abschnitt~\ref{sec:ablationC}), zum anderen die Stichprobenunsicherheit aus
-Abschnitt~\ref{sec:bootstrap}. Der Wert
-\zrefSvalMap{} auf \code{sval} liegt über dem 95\,\%-Intervall von \code{val},
-$[\zbootValLo;\,\zbootValHi]$, und knapp über dem von \code{test},
-$[\zbootTestLo;\,\zbootTestHi]$. Deutlich größer als die Messunsicherheit ist
-der Abstand also nur auf \code{val}. Nach Abschnitt~\ref{sec:sim2real} zeigt er
-dort, dass sich die Domänen unterscheiden, aber nicht, ob in den Bildern oder
-in den Beschriftungen. Auf \code{test} trägt der knappe Abstand diesen Schluss
-nicht, zumal die Unsicherheit von \code{sval} selbst nicht berücksichtigt ist;
-gemessen wurde sie nicht, bei 400 Bildern dürfte sie aber deutlich kleiner sein
-als die eines einzelnen Realbilds.
+Abschnitt~\ref{sec:bootstrap}. Der Wert \zrefSvalMap{} auf \code{sval} liegt
+über den 95\,\%-Intervallen beider Realbilder, $[\zbootValLo;\,\zbootValHi]$
+auf \code{val} und $[\zbootTestLo;\,\zbootTestHi]$ auf \code{test}. Auf beiden
+Splits ist der Abstand also größer als die Messunsicherheit. Nach
+Abschnitt~\ref{sec:sim2real} zeigt er damit, dass sich die Domänen
+unterscheiden, aber nicht, ob in den Bildern oder in den Beschriftungen. Die
+Unsicherheit von \code{sval} selbst ist dabei nicht berücksichtigt; gemessen
+wurde sie nicht, bei 400 Bildern dürfte sie aber deutlich kleiner sein als die
+eines einzelnen Realbilds.
 
 \section{Die Inferenzauflösung}
 \label{sec:imgsz}
@@ -161,25 +161,28 @@ unten nur bis 7,2\px{} reicht (Abschnitt~\ref{sec:trainparam}).
 
 \absatz{Das Optimum liegt dort, wo die Objektgröße zur Trainingsverteilung
 passt.} Der Generator erzeugt Objekte mit Median 23,5\px{}
-(Tabelle~\ref{tab:kalibrierung}), und genau dort liegt auch das Maximum beider
-Kurven in Abbildung~\ref{abb:imgsz}. Auf \code{val} ist \mAPfifty{} bei
-\code{imgsz}~\zswValBestAt{} am höchsten (\zswValBest), was den gemessenen
-\code{val}-Median von 26,8\px{} nach Gleichung~\eqref{eq:deff} auf
-\zswValBestDeff\px{} im Netzeingang bringt; auf \code{test} bei
-\code{imgsz}~\zswTestBestAt{} (\zswTestBest) mit \zswTestBestDeff\px. Beide
-Werte liegen dicht am Trainingsmedian, obwohl die beiden Bilder
-unterschiedlich groß sind und unterschiedlich große Objekte enthalten. Der
-Effekt ist in beide Richtungen sichtbar: Eine zu \emph{kleine} Auflösung wirkt
-sich stark aus (bei 960 kommt der \code{val}-Median mit 10,4\px{} an), aber
-auch eine zu \emph{große} kostet Leistung: Auf \code{test} fällt \mAPfifty{}
-von \zswTestBest{} bei \zswTestBestAt{} auf \zswTestHoch{} bei \zswTestHochAt,
-wo die Objekte mit \zswTestHochDeff\px{} die Trainingsverteilung
-überschreiten.
+(Tabelle~\ref{tab:parameter}, T2), und in diesem Bereich liegt auch das Maximum
+beider Kurven in Abbildung~\ref{abb:imgsz}. Auf \code{val} ist \mAPfifty{} bei
+\code{imgsz}~\zswValBestAt{} und 2240 gleich hoch (\zswValBest); der gemessene
+\code{val}-Median von 26,8\px{} kommt dort nach Gleichung~\eqref{eq:deff} mit
+\zswValBestDeff{} bzw.\ 24,4\px{} im Netzeingang an. Auf \code{test} liegt das
+Maximum bei \code{imgsz}~\zswTestBestAt{} (\zswTestBest) mit \zswTestBestDeff\px.
+Beide Werte liegen nahe am Trainingsmedian, obwohl die beiden Bilder
+unterschiedlich groß sind und unterschiedlich große Objekte enthalten.
+Sichtbar ist der Effekt aber nur in einer Richtung. Eine zu \emph{kleine}
+Auflösung wirkt sich stark aus (bei 960 kommt der \code{val}-Median mit
+10,4\px{} an). Sobald der Median im Netzeingang etwa 17\px{} erreicht, auf
+\code{val} ab 1600, auf \code{test} ab dem nativen Maßstab, ändert sich dagegen
+wenig: Auf diesem Plateau bleiben die Unterschiede auf beiden Splits innerhalb
+der Messunsicherheit aus Abschnitt~\ref{sec:bootstrap}, und auf \code{test}
+liegt \mAPfifty{} selbst bei \zswTestHochAt{} mit \zswTestHoch{} kaum unter dem
+Maximum.
 
 Daraus folgt eine praktische Regel und eine methodische Feststellung. Die
-Regel: \emph{nicht} auf den nativen Maßstab skalieren, sondern so, dass die
-erwartete Objektgröße im Netzeingang dem Median der Trainingsverteilung
-entspricht. Die Feststellung: Objektgrößenbereich des Generators und
+Regel: die Auflösung so wählen, dass die erwartete Objektgröße im Netzeingang
+im Bereich der Trainingsverteilung liegt und keinesfalls deutlich darunter; ob
+ihr Median selbst das Optimum trifft, lässt sich bei dieser Messunsicherheit
+nicht entscheiden. Die Feststellung: Objektgrößenbereich des Generators und
 Inferenzauflösung sind \emph{nicht} unabhängig voneinander wählbar; eine
 Entscheidung in der Datenerzeugung legt eine Entscheidung zur Inferenzzeit
 fest.
@@ -191,16 +194,17 @@ dennoch beim nativen Maßstab (Abschnitt~\ref{sec:metriken}).
 
 Die übrigen Inferenzparameter sind unkritisch: NMS-Schwellwert und
 Test-Time-Augmentation wirken beim NMS-freien Ende-zu-Ende-Modell nicht
-(Abschnitt~\ref{sec:yolo26}), \code{max\_det} ist ab 100 gesättigt, und FP16
-liefert identische Metrikwerte.
+(Abschnitt~\ref{sec:yolo26}), \code{max\_det} verändert ab 100 den
+Betriebspunkt und ab 200 auch \mAPfifty{} nicht mehr, und FP16 liefert
+identische Metrikwerte (\code{src/experiment.py infer}).
 
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=\textwidth]{abbildungen/neu_imgsz.png}
 \caption[Inferenzauflösung]{Metriken über die Inferenzauflösung für das
 Referenzmodell \code{yolo26s-p2}; gepunktet der native Maßstab je Split. Der
-Verlauf ist auf beiden Splits derselbe: steiler Anstieg bis etwa 1300\px, danach
-ein flaches Optimum. Die Zahlen stehen vollständig in
+Verlauf ist auf beiden Splits derselbe: steiler Anstieg, bis der Objektmedian im
+Netzeingang etwa 17\px{} erreicht, danach ein flaches Optimum. Die Zahlen stehen vollständig in
 Tabelle~\ref{tab:imgszvoll} im Anhang.}
 \label{abb:imgsz}
 \end{figure}
@@ -214,7 +218,7 @@ Einfügen selbst betrifft. Jede Stufe, die gegen eine der Signaturen
 S1--S6 gerichtet ist, kostet Rechenzeit und wird mit demselben Argument
 begründet: Ein eingefügtes Objekt, das sich statistisch von seiner Umgebung
 unterscheidet, könnte als Abkürzung dienen. Gestützt war dieses Argument bisher
-nur \emph{indirekt} durch den kleinen Sim-to-Real-Abstand des Referenzmodells
+nur \emph{indirekt} durch den Sim-to-Real-Abstand des Referenzmodells
 (Abschnitt~\ref{sec:hauptergebnis}), also durch ein Indiz. Die Ablation prüft
 es direkt, indem sie alle diese Maßnahmen zusammen abschaltet.
 
@@ -230,7 +234,7 @@ Tabelle~\ref{tab:budgets} trainiert und deshalb nur untereinander vergleichbar
   Gegenmaßnahmen: harte Alphakante statt weicher (S1), kein Farbangleich
   (S2), kein Unschärfeangleich (S3), kein Rauschangleich (S4), keine
   JPEG-Requantisierung (S5), kein Schlagschatten. Die gemessenen Ist-Anteile
-  fallen entsprechend von 0,849 / 0,597 / 0,699 / 0,496 auf \textbf{0,000}
+  fallen entsprechend von 0,847 / 0,599 / 0,695 / 0,494 auf \textbf{0,000}
   (Erzeugungsbericht, Abschnitt~\ref{sec:anhangbericht}).
 \end{description}
 
@@ -269,57 +273,65 @@ Abkürzung verwenden kann. Erzeugt mit \code{src/report\_neu.py}.}
 \zCZeroTestMap), $F_1$ um $\zablCTestGapFf$\PP{} und der Rückruf um
 $\zablCTestGapRec$\PP; auf \code{val} sind es $\zablCValGap$, $\zablCValGapFf$
 und $\zablCValGapRec$\PP{} (Tabelle~\ref{tab:ablationC}). Beide Splits
-zeigen in dieselbe Richtung und in vergleichbarer Größenordnung. Auf
-\code{test} ist der Effekt fast viermal so groß wie die Halbbreite des
-95\,\%-Bootstrap-Intervalls ($[\zbootTestLo;\,\zbootTestHi]$, also rund
-3\PP; Abschnitt~\ref{sec:bootstrap}), auf \code{val} rund doppelt so groß
-($[\zbootValLo;\,\zbootValHi]$).
+zeigen in allen drei Kennzahlen in dieselbe Richtung, aber in sehr
+unterschiedlicher Größe. Auf \code{test} ist der Effekt rund fünfmal so groß
+wie die Halbbreite des 95\,\%-Bootstrap-Intervalls
+($[\zbootTestLo;\,\zbootTestHi]$, also rund 3\PP;
+Abschnitt~\ref{sec:bootstrap}). Auf \code{val} liegt er bei \mAPfifty{} und
+$F_1$ innerhalb dieser Halbbreite ($[\zbootValLo;\,\zbootValHi]$, rund
+4\PP); größer ist dort nur der Rückgang des Rückrufs, dem eine höhere
+Precision gegenübersteht.
 
 \absatz{Synthetisch unverändert, real schlechter.} Auf seinem \emph{eigenen} synthetischen
 Validierungssplit ist C1 von C0 praktisch nicht zu unterscheiden (\zCOneSval{}
 gegen \zCZeroSval{} \mAPfifty, $\zablCSvalGap$\PP). Der naiv eingeklebte
 Trainingssatz ist also keine schwerere Aufgabe, das Netz löst ihn ebenso gut.
-Nur überträgt sich das Gelernte nicht: Der Sim-to-Real-Abstand wächst von
-\zgapCZeroTest{} auf \zgapCOneTest\PP{} auf \code{test} und von \zgapCZeroVal{}
-auf \zgapCOneVal\PP{} auf \code{val}, also auf das Drei- bis Vierfache.
+Nur überträgt sich das Gelernte schlechter: Der Sim-to-Real-Abstand wächst auf
+\code{test} von \zgapCZeroTest{} auf \zgapCOneTest\PP, also auf mehr als das
+Vierfache, auf \code{val} dagegen nur von \zgapCZeroVal{} auf
+\zgapCOneVal\PP.
 
-Damit tritt genau das Muster auf, das Abschnitt~\ref{sec:hauptergebnis} als
-Kennzeichen von Artefaktlernen beschrieben und für das Referenzmodell
-ausgeschlossen hatte: synthetisch nahezu unverändert, real deutlich schlechter.
-Erst dieser Vergleich gibt der Aussage über das Referenzmodell einen Maßstab.
-Sein kleiner Abstand steht jetzt einem Arm gegenüber, bei dem derselbe Abstand
-unter sonst gleichen Bedingungen drei- bis viermal so groß ist.
+Auf \code{test} tritt damit genau das Muster auf, das
+Abschnitt~\ref{sec:hauptergebnis} als Kennzeichen von Artefaktlernen
+beschrieben und für das Referenzmodell ausgeschlossen hatte: synthetisch nahezu
+unverändert, real deutlich schlechter. Erst dieser Vergleich gibt der Aussage
+über das Referenzmodell einen Maßstab. Sein Abstand auf \code{test} beträgt
+\zsimRealTest\PP{} und liegt in der Größenordnung der Kontrolle; bei C1 ist derselbe
+Abstand unter sonst gleichen Bedingungen mehr als viermal so groß. Auf
+\code{val} ist das Muster nur schwach ausgeprägt.
 
 \absatz{Was der Versuch über den \emph{Mechanismus} nicht sagt.} Naheliegend
 ist die Deutung, das Netz habe die Einklebespur als Abkürzung gelernt. Im
 Trainingsbild trägt schließlich jedes gelabelte Objekt diese Spur und sonst
-nichts, sie hängt also perfekt mit dem Label zusammen. Das Fehlermuster stützt
-diese Deutung aber nur zur Hälfte. Der Einbruch liegt fast vollständig beim
-Rückruf: Auf \code{test} fallen die Treffer von 80 auf 66, während die Zahl der
-Falsch-Positiven mit 8 gegenüber 10 kaum steigt; die Precision sinkt von
-\zCZeroTestPrec{} auf \zCOneTestPrec{} vor allem deshalb, weil ihr Zähler
-kleiner wird. Auf \code{val} steigen die Falsch-Positiven von 6 auf 13, bei
-insgesamt \emph{weniger} Detektionen. Das Modell findet also vor allem weniger
-Objekte; deutlich mehr Falschalarme gibt es nur auf \code{val}.
+nichts, sie hängt also perfekt mit dem Label zusammen. Das Fehlermuster am
+$F_1$-optimalen Betriebspunkt ist auf den beiden Splits aber verschieden. Auf
+\code{test} fallen die Treffer von 80 auf 67, und zugleich steigt die Zahl der
+Falsch-Positiven von 5 auf 16; die Precision sinkt von \zCZeroTestPrec{} auf
+\zCOneTestPrec. Auf \code{val} fallen die Treffer von 79 auf 70, die
+Falsch-Positiven dagegen von 9 auf 4, bei insgesamt \emph{weniger}
+Detektionen: C1 tauscht dort Rückruf gegen Precision, und \mAPfifty{} ändert
+sich kaum.
 
-Dieses Muster ist mit zwei Erklärungen gleichermaßen verträglich. Die eine ist
-die Abkürzung: Das Netz sucht die Einklebespur, findet sie im Realbild nicht
-und schweigt. Die andere ist eine gewöhnliche Domänenlücke: Ohne Angleich
-\emph{sehen} die Trainingsobjekte schlicht anders aus als reale Rohrenden --
-schärfer, kontrastreicher, mit dunklerer Bohrung --, und das Netz hat ein zu
-enges Erscheinungsmodell gelernt. Beide sagen denselben Rückrufeinbruch bei
-etwa gleichbleibender Falschalarmzahl voraus, und der Versuch kann sie nicht
-trennen, weil das Abschalten der Einbettung zweierlei zugleich bewirkt: Es
-erzeugt die künstliche Kante \emph{und} verfälscht die Erscheinung des Objekts
-selbst. Belegt ist damit, \emph{dass} die Einbettung wirkt und dass ihr Fehlen
-an den synthetischen Daten nicht zu sehen ist, aber nicht, auf welchem der
-beiden Wege der Verlust entsteht. Einen Versuch, der das trennt, nennt
-Abschnitt~\ref{sec:grenzen}.
+Für den Verlust kommen zwei Erklärungen in Frage. Die eine ist die Abkürzung:
+Das Netz sucht die Einklebespur, findet sie im Realbild nicht und meldet
+weniger -- das entspricht dem Muster auf \code{val}. Die andere ist eine
+gewöhnliche Domänenlücke: Ohne Angleich \emph{sehen} die Trainingsobjekte
+schlicht anders aus als reale Rohrenden -- schärfer, kontrastreicher, mit
+dunklerer Bohrung --, und das Netz hat ein zu enges Erscheinungsmodell gelernt,
+das echte Enden übersieht und an anderer Stelle anschlägt -- das entspricht
+eher dem Muster auf \code{test}. Trennen kann der Versuch die beiden nicht,
+weil das Abschalten der Einbettung zweierlei zugleich bewirkt: Es erzeugt die
+künstliche Kante \emph{und} verfälscht die Erscheinung des Objekts selbst.
+Belegt ist damit, \emph{dass} die Einbettung auf dem Testbild wirkt und dass
+ihr Fehlen an den synthetischen Daten nicht zu sehen ist, aber nicht, auf
+welchem der beiden Wege der Verlust entsteht. Einen Versuch, der das trennt,
+nennt Abschnitt~\ref{sec:grenzen}.
 
 \absatz{Konsequenz für die Pipeline.} Die Einbettungsstufen sind damit die
-erste Gruppe von Maßnahmen, deren Nutzen nicht nur begründet, sondern deutlich
-belegt ist. Ohne sie verliert Copy-Paste-Synthese auf dieser Aufgabe acht bis
-elf Prozentpunkte \mAPfifty, und keine synthetische Kennzahl zeigt das an.
+erste Gruppe von Maßnahmen, deren Nutzen nicht nur begründet, sondern gemessen
+ist, und zwar auf dem Testbild: Ohne sie verliert Copy-Paste-Synthese dort rund
+14 Prozentpunkte \mAPfifty; auf \code{val} bleibt der Unterschied innerhalb der
+Messunsicherheit. Keine synthetische Kennzahl zeigt den Verlust an.
 
 \section{Statistische Belastbarkeit und Fehleranalyse}
 \label{sec:bootstrap}
@@ -344,23 +356,25 @@ Intervall dagegen um ein Vielfaches.
 
 \absatz{Falsch-Negative.} Am $F_1$-optimalen Betriebspunkt bleiben auf
 \code{test} \zfnTest{} Objekte unentdeckt, auf \code{val} \zfnVal. Auf
-\code{test} sind \zfnKleinTest{} davon kleiner als 18\px. Die Fehler treten
-also ganz überwiegend bei den kleinsten Objekten der Aufnahme auf, am linken
-Bildrand und am oberen Stapelrand. Der zweite wiederkehrende Fehlertyp sind
-Enden ohne sichtbaren hellen Kranz; das ist der Anteil, der auf die
-verbleibende Domänenlücke zurückgeht, denn alle vier Clean Plates sind bei
-diffusem Licht aufgenommen.
+\code{test} sind \zfnKleinTest{} davon kleiner als 18\px; sie liegen
+überwiegend am linken Bildrand, wo die Objekte am kleinsten sind. Daneben gibt
+es einen zweiten Fehlertyp: Enden mit ungewöhnlicher Erscheinung, auf
+\code{test} ein Ende ohne sichtbaren hellen Kranz, auf \code{val} vor allem
+Enden, deren Bohrung mit Laub oder Rost gefüllt ist und deshalb kaum dunkler
+erscheint als der Kranz. Solche Enden kommen unter den sechs Quellobjekten
+nicht vor; hier liegt die verbleibende Domänenlücke im Quellmaterial selbst.
 
-\absatz{Falsch-Positive.} Sie sind selten: \zfpTest{} auf \code{test} bei
-\znPredTest{} Detektionen und \zfpVal{} auf \code{val} bei \znPredVal. Auf
-\code{test} ist jede eine \emph{Zweitbox}: Sie trifft ein schon erkanntes
-Rohrende mit $\mathrm{IoU} \geq 0{,}50$, zählt aber als Fehler, weil die
-Zuordnungsregel je annotierter Fläche nur einen Treffer zulässt
-\parencite{lin2014coco}, und bleibt stehen, weil der Kopf NMS-frei arbeitet
-(Abschnitt~\ref{sec:yolo26}). Auf
-\code{val} ist nur \zfpDoppelVal{} der \zfpVal{} eine Zweitbox; \zfpTeilVal{}
-überdecken eine annotierte Stirnfläche mit einer IoU unter 0{,}50,
-\zfpOhneVal{} überlappt keine Annotation. Eine testweise nachträgliche NMS
+\absatz{Falsch-Positive.} Auf \code{test} sind sie selten: \zfpTest{} bei
+\znPredTest{} Detektionen. Davon sind \zfpDoppelTest{} \emph{Zweitboxen}: Sie
+treffen ein schon erkanntes Rohrende mit $\mathrm{IoU} \geq 0{,}50$, zählen
+aber als Fehler, weil die Zuordnungsregel je annotierter Fläche nur einen
+Treffer zulässt \parencite{lin2014coco}, und bleiben stehen, weil der Kopf
+NMS-frei arbeitet (Abschnitt~\ref{sec:yolo26}); \zfpOhneTest{} überlappt keine
+Annotation. Auf \code{val} sind es \zfpVal{} bei \znPredVal{} Detektionen; der
+$F_1$-optimale Betriebspunkt liegt dort bei der niedrigen Konfidenzschwelle
+\zrefValConf. Darunter sind \zfpDoppelVal{} Zweitbox, \zfpTeilVal{} Detektionen,
+die eine annotierte Stirnfläche mit einer IoU unter 0{,}50 überdecken, und
+\zfpOhneVal{} ohne jede Überlappung. Eine testweise nachträgliche NMS
 ($\mathrm{IoU} = 0{,}7$) entfernt auf beiden Splits genau die Zweitboxen,
 Treffer und Falsch-Negative bleiben gleich;
 $F_1$ stiege auf \code{test} von \znmsTestFfOhne{} auf \znmsTestFfMit.
