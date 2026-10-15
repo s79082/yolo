@@ -44,21 +44,26 @@ auch die verdeckten Teile eines Objekts. Würde der Generator amodale Boxen
 erzeugen, während die Realbilder modal annotiert sind, entstünde ein
 systematischer Größenversatz, und Anforderung~A1 wäre verletzt.
 
-\absatz{Objektausschnitte.}\label{sec:quellmaterial} Verfügbar sind neun aus Realaufnahmen
-ausgeschnittene Rohrprofile der Größe $28\times30$ bis $43\times38$ Pixel. Sechs
-zeigen eine dunkle Bohrung (offenes Rohr), drei eine helle (Sonnenlicht fällt in
-die Röhre oder das Ende ist gestaucht); beide Formen kommen in den Realbildern
-vor, weshalb gleichverteilt aus allen neun gezogen wird. Die aus dem
+\absatz{Objektausschnitte.}\label{sec:quellmaterial} Verfügbar sind sechs aus einer
+Realaufnahme ausgeschnittene Rohrprofile der Größe $28\times30$ bis $43\times38$
+Pixel. Drei zeigen eine dunkle Bohrung (offenes Rohr), drei eine helle
+(Sonnenlicht fällt in die Röhre oder das Ende ist gestaucht); beide Formen
+kommen in den Realbildern vor, weshalb gleichverteilt aus allen sechs gezogen
+wird. Die aus dem
 Ellipsenmodell gewonnenen Achsverhältnisse der Ausschnitte streuen zwischen 0,84
 und 1,14 (Abschnitt~\ref{sec:matting}). Kritisch ist Befund~1 in
-Tabelle~\ref{tab:befunde}: Alle neun sind zwar RGBA-Dateien, ihr Alphakanal ist
+Tabelle~\ref{tab:befunde}: Alle sechs sind zwar RGBA-Dateien, ihr Alphakanal ist
 aber durchgängig 255 -- es handelt sich um rechteckige Ausschnitte, bei denen
 13--35\,\% der Fläche nicht zum Objekt gehören.
 
 \absatz{Hintergründe.} Von den sieben Hintergrundaufnahmen sind vier
 \emph{Clean Plates}: Aufnahmen von Wänden aus Rohrschäften derselben Objektart,
 aber \emph{ohne} Stirnflächen, mit gemessenen Rohrdurchmessern von 16, 18, 21
-und 20\px. Sie liefern zugleich photometrisch passenden Kontext, das
+und 20\px. Zwei davon stammen aus derselben Aufnahmeserie wie die
+Objektausschnitte, die beiden anderen zeigen Stapel auf einem anderen Gelände;
+diese Fotos sind flächentreu so verkleinert, dass ihr Rohrdurchmesser im
+Bereich der beiden übrigen liegt (\code{src/clean\_plates.py}). Die Clean Plates
+liefern zugleich photometrisch passenden Kontext, das
 Rohmaterial für die Okkluder-Bibliothek und echte Negativbeispiele. Deshalb
 werden sie bevorzugt gezogen: In 80\,\% der Bilder stammt der Hintergrund aus
 dieser Gruppe, also 20\,\% je Clean Plate gegenüber 6,7\,\% je Fremdszene. Beim
@@ -76,6 +81,24 @@ Licht, harter Sonnenschein, Nässe und Schnee fehlen.
 \absatz{Bewertungsdaten.}\label{sec:valtest} Zur Bewertung stehen zwei vollständig handannotierte Realaufnahmen zur
 Verfügung: \code{val} ($2459\times1174$, 98 Objekte) für die Modellauswahl und
 \code{test} ($1600\times900$, 89 Objekte) ausschließlich für die Endbewertung.
+
+Mit dem Quellmaterial teilen die beiden Bilder keinen Bildinhalt. Ein
+Vorlagenabgleich über mehrere Skalen findet keinen der Objektausschnitte und
+keinen der Hintergründe in \code{val} oder \code{test} wieder: Die höchste
+normierte Kreuzkorrelation liegt bei 0,74, ein unverändert übernommener
+Ausschnitt erreicht über 0,99 (\code{src/ueberlappung.py}). Ganz unabhängig
+sind Quellmaterial und Bewertungsdaten dennoch nicht, und zwar in zweierlei
+Hinsicht. \emph{Erstens} stammt die Aufnahme, aus der alle sechs
+Objektausschnitte und eine Clean Plate geschnitten sind, aus derselben
+Aufnahmeserie wie \code{val}: Sie entstand zwei Sekunden vor dem
+\code{val}-Bild am selben Ort mit derselben Kamera, die Quelle einer zweiten
+Clean Plate 15 Sekunden danach. \code{test} zeigt dagegen einen anderen Stapel
+auf anderem Untergrund. \emph{Zweitens} beruhen mehrere Generatorparameter auf
+der Labelstatistik beider Bilder, darunter die untere Größengrenze, die das
+5\,\%-Quantil von \code{test} ist (Tabelle~\ref{tab:befunde}, Befunde~5, 6
+und~9). \code{test} ist damit nicht mit seinem Bildinhalt, wohl aber mit seiner
+Statistik in den Entwurf eingegangen; eine Entscheidung auf Grundlage seiner
+Ergebnisse gibt es nicht.
 
 \begin{table}[htbp]
 \centering
@@ -119,7 +142,7 @@ Gleichung~\eqref{eq:gridmiss}. Zweitens sind die beiden Bilder
 \emph{nicht} austauschbar. \code{test} enthält kleinere Objekte (Median 17,0
 gegen 26,8\px), eine lockerere Packung (NN-Median 1,26 gegen 1,11\,\Oe) und
 mehr angeschnittene Boxen (6,7 gegen 2,0\,\%). Der schwierigere Split ist also
-gerade der, den Training und Modellauswahl nie berühren. Das ist beim Lesen der
+gerade der, dessen Ergebnisse in keine Entscheidung eingehen. Das ist beim Lesen der
 Ergebnisse zu berücksichtigen.
 
 \absatz{Befunde.}\label{sec:messungmapping} Tabelle~\ref{tab:befunde} fasst
@@ -144,9 +167,9 @@ Annahme.}
 \midrule
 \textbf{1} Alphakanal durchgängig 255; 13--35\,\% Fremdkontext &
 eigene Matting-Stufe mit weicher Alphamaske (Signatur~S1) & M \\
-\textbf{2} sechs dunkle, drei helle Bohrungen; Achsverhältnis der Ausschnitte
+\textbf{2} drei dunkle, drei helle Bohrungen; Achsverhältnis der Ausschnitte
 0,84--1,14 &
-Gleichverteilung über alle neun Ausschnitte; Ovalisierung überhaupt vorsehen & M/A \\
+Gleichverteilung über alle sechs Ausschnitte; Ovalisierung überhaupt vorsehen & M/A \\
 \textbf{3} vier Clean Plates der Zieldomäne; Maschendraht und Schotter in den
 Fremdszenen &
 80\,\% Ziehgewicht auf Clean Plates; 10\,\% Negativbilder (Gewichte gewählt) & M/A \\
