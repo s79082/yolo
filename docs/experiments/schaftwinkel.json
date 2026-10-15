@@ -1,0 +1,11 @@
+{
+  "n_bilder": 6000,
+  "seed": 1,
+  "grenze_grad": 60.0,
+  "cluster_auf_clean_plates": 7520,
+  "cluster_kreuzend": 1460,
+  "anteil_cluster": 0.19414893617021275,
+  "bilder_mit_kreuzendem_cluster": 1320,
+  "anteil_bilder": 0.22,
+  "bilder_auf_clean_plates": 4780
+}

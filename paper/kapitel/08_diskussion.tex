@@ -17,7 +17,8 @@ Einbettungsmaßnahmen gegen S1--S5 samt Schlagschatten
 ist offen. \textbf{Ohne Neutraining gemessen} sind die Inferenzparameter
 (Abschnitt~\ref{sec:imgsz}). Nur die Auflösung zeigt dabei einen Effekt über
 dem Bootstrap-Intervall; NMS-Schwelle und Test-Time-Augmentation bleiben beim
-Ende-zu-Ende-Kopf wirkungslos, und \code{max\_det} ist ab 100 gesättigt.
+Ende-zu-Ende-Kopf wirkungslos, und \code{max\_det} verändert ab 100 den
+Betriebspunkt und ab 200 auch \mAPfifty{} nicht mehr.
 \textbf{An der erzeugten Verteilung kalibriert} sind Objektgrößenbereich,
 Ovalisierungsanteil, Gitterabstände, die Basisgröße je Cluster, das
 Tiefenmodell 75/25 und die Randregel: Die erzeugte Statistik trifft die reale
@@ -29,10 +30,10 @@ globale Bildstufe, Negativbildanteil sowie Dellen- und Perspektivanteil.
 \absatz{Bilanz der Begründungen.} Die Zielsetzung hatte drei zulässige Quellen
 festgelegt und für alles andere die Kennzeichnung als Annahme verlangt.
 Tabelle~\ref{tab:parameter} dokumentiert 37 Transformationen mit 44
-Parameterwerten: 8 sind an den Realdaten gemessen, 8 literaturgestützt, 2
-physikalisch begründet, 11 gemischt und \textbf{15 ausdrücklich als Annahme
-gekennzeichnet}. Rund 66\,\% sind damit auf eine der drei zulässigen Quellen
-zurückgeführt -- die elf gemischten allerdings nur zur Hälfte --, 34\,\% sind
+Parameterwerten: 7 sind an den Realdaten gemessen, 8 literaturgestützt, 2
+physikalisch begründet, 11 gemischt und \textbf{16 ausdrücklich als Annahme
+gekennzeichnet}. Rund 64\,\% sind damit auf eine der drei zulässigen Quellen
+zurückgeführt -- die elf gemischten allerdings nur zur Hälfte --, 36\,\% sind
 Annahmen. Diese Bilanz ist nicht nebensächlich: Bei rein synthetischen Trainingsdaten
 ist die Liste dieser 44 Werte die vollständige Beschreibung der
 Trainingsverteilung.
@@ -64,24 +65,28 @@ Vorhersage ist eingetroffen.
 \section{Grenzen und nächste Schritte}
 \label{sec:grenzen}
 
-\absatz{Grenzen der Pipeline.} \emph{(1)} Nur neun Quellobjekte -- jedes
-erscheint rund 15\,100-mal als gelabeltes Objekt. Die photometrische und
-geometrische Streuung mildert das, hebt es aber nicht auf; Augmentierung
-erzeugt keine neue Information über die Objektklasse. Das ist der Hauptgrund
-für die Wahl der Modellgröße \enquote{s}: Kapazität, die über die vorhandene
-Formvielfalt hinausgeht, kann sie nur memorieren
-\parencite{zhang2017rethinking}. \emph{(2)} Nur diffuses Licht im
-Quellmaterial: Harte Schlagschatten, Gegenlicht, Nässe und Schnee fehlen
-vollständig und werden nur approximativ über die globale photometrische Stufe
-angenähert -- die größte verbleibende Domänenlücke, von der Fehleranalyse
-bestätigt. \emph{(3)} Reflect-Padding erzeugt Spiegelsymmetrie, wenn ein
+\absatz{Grenzen der Pipeline.} \emph{(1)} Nur sechs Quellobjekte aus einer
+einzigen Aufnahme -- jedes erscheint rund 22\,700-mal als gelabeltes Objekt.
+Die photometrische und geometrische Streuung mildert das, hebt es aber nicht
+auf; Augmentierung erzeugt keine neue Information über die Objektklasse. Keines
+der sechs zeigt eine mit Laub oder Rost gefüllte Bohrung, und genau solche
+Enden übersieht das Modell auf \code{val} (Abschnitt~\ref{sec:bootstrap}). Auf
+die geringe Formvielfalt stützt sich auch die Wahl der Modellgröße
+\enquote{s} (Abschnitt~\ref{sec:trainingsaufbau}); dass mehr Kapazität hier vor
+allem auswendig lernen würde, ist plausibel \parencite{zhang2017rethinking},
+aber nicht gemessen. \emph{(2)} Nur diffuses Licht im Quellmaterial: Harte
+Schlagschatten, Gegenlicht, Nässe und Schnee fehlen vollständig und werden nur
+approximativ über die globale photometrische Stufe angenähert. Ob das die
+Detektion beeinträchtigt, zeigt die Fehleranalyse nicht; ihr zweiter Fehlertyp
+geht auf die Erscheinung der Rohrenden selbst zurück. \emph{(3)} Reflect-Padding erzeugt Spiegelsymmetrie, wenn ein
 Hintergrund für den gewünschten Zoom zu klein ist; eine spiegelsymmetrische
 Bildhälfte ist selbst ein erkennbares Merkmal, die Maßnahme gegen Signatur~S1
 erzeugt damit eine schwächere neue Auffälligkeit. \emph{(4)} Die Schaftrichtung ist an der
 Säulenrichtung des Clusters kalibriert, nicht an der Rohrrichtung des
-Hintergrunds. In 19,1\,\% der Cluster kreuzt der Schaft die Hintergrundrohre
-deshalb unter mehr als $60^\circ$, betroffen sind 21,6\,\% der erzeugten
-Bilder, obwohl real alle Rohre eines Stapels parallel liegen. Ein Angleich wäre
+Hintergrunds. In 19,4\,\% der Cluster auf Clean Plates kreuzt der Schaft die
+Hintergrundrohre deshalb unter mehr als $60^\circ$, betroffen sind 22,0\,\% der
+erzeugten Bilder (\code{src/schaftwinkel.py}), obwohl real alle Rohre eines
+Stapels parallel liegen. Ein Angleich wäre
 mit geringem Aufwand möglich, weil die dominante Hintergrundrichtung gemessen
 vorliegt (\code{src/occluders.py}).
 
@@ -94,9 +99,23 @@ entscheidbar; beide Bilder zeigen dieselbe Objektart bei ähnlichem
 Wetter, die Ergebnisse sagen also nichts über andere Zaunhersteller,
 Rohrdurchmesser oder Lichtsituationen. Schließlich wird \code{val} doppelt
 verwendet -- für die Modellauswahl \emph{und} für die Wahl der
-Inferenzauflösung. \code{test} ist damit ein sauberer Endtest, \code{val} aber
-kein unabhängiger Bewertungssplit mehr; die belastbaren Zahlen sind die
-\code{test}-Zahlen.
+Inferenzauflösung. \code{val} ist damit kein unabhängiger Bewertungssplit
+mehr.
+
+\absatz{Quellmaterial und Bewertungsdaten.} Bildinhalt teilen Quellmaterial und
+Bewertungsbilder nicht (Abschnitt~\ref{sec:valtest}), unabhängig sind sie aber
+nicht. Alle sechs Objektausschnitte und zwei der vier Clean Plates stammen aus
+derselben Aufnahmeserie wie \code{val}, aufgenommen innerhalb von 20 Sekunden
+am selben Ort mit derselben Kamera. Die \code{val}-Zahlen messen deshalb auch,
+wie gut das Modell auf eine Szene überträgt, aus der sein Quellmaterial stammt.
+Außerdem ist die Labelstatistik beider Bilder in die Kalibrierung eingegangen,
+am deutlichsten bei der unteren Größengrenze von 12\px, dem 5\,\%-Quantil von
+\code{test} (Befund~5). Streng getrennt wäre eine Kalibrierung allein an
+\code{val}; die untere Grenze läge dann bei 19\px, und die kleinen Objekte in
+\code{test} deckte nur noch die Trainingsskalierung ab. \code{test} ist damit
+der einzige Split, der einen anderen Stapel zeigt als das Quellmaterial und
+dessen Ergebnisse in keine Entscheidung eingehen; die
+belastbaren Zahlen sind die \code{test}-Zahlen.
 
 \absatz{Grenzen der Ablation.} Drei Vorbehalte bleiben. \emph{Erstens} das
 reduzierte Budget: 3000 Bilder und 30 Epochen sind aus der Rechenzeit gewählt,
@@ -105,7 +124,8 @@ den Vergleich deshalb nicht verzerren, begrenzt aber die absolute Höhe der
 Zahlen; ein Effekt, der sich erst nach 60 Epochen zeigte, bliebe unentdeckt.
 \emph{Zweitens} je ein Lauf pro Arm: Ohne Wiederholung mit verschiedenen
 Trainings-Seeds ist die Streuung des Trainings selbst unbekannt und von der
-Wirkung des Datensatzes nicht zu trennen. Das ist die gewichtigste
+Wirkung des Datensatzes nicht zu trennen, zumal der Effekt nur auf einem der
+beiden Bilder größer ist als die Messunsicherheit. Das ist die gewichtigste
 Einschränkung, und sie ist mit Rechenzeit behebbar: Drei Seeds je Arm wären
 sechs statt zwei Läufen. \emph{Drittens} ist die Ablation ein \emph{Eingriff
 in eine Richtung}: Sie
@@ -120,7 +140,8 @@ nach erwartetem Nutzen geordnet:
   Generator genügt, und die Sensitivitätsrechnung lässt auf \code{test} rund
   \zsensTestGain{} Punkte \mAPseven{} erwarten; das ist der mit geringstem Aufwand erreichbare Gewinn dieser Liste, anzugehen vor jeder weiteren Optimierung.
   \item \textbf{Mehr Bewertungsdaten und mehrere Seeds.} Zehn bis zwanzig
-  annotierte Realbilder würden die Konfidenzintervalle auf ein Maß bringen, bei
+  annotierte Realbilder aus Aufnahmen, aus denen kein Quellmaterial stammt,
+  würden die Konfidenzintervalle auf ein Maß bringen, bei
   dem auch kleinere Differenzen entscheidbar wären; drei Trainings-Seeds je Arm
   trennen zusätzlich die Streuung des Trainings von der Wirkung des Datensatzes.
   Zusammen sind das die beiden Punkte, die aus einem Hinweis einen Nachweis
@@ -131,14 +152,13 @@ nach erwartetem Nutzen geordnet:
   schlüsselt ihn auf, mit dem Sim-to-Real-Abstand als Zielgröße. Schon zwei Arme
   trennen Abkürzung und Domänenlücke (Abschnitt~\ref{sec:ablationC}): Verliert
   der Arm nur mit harter Kante mehr als der nur ohne photometrischen Angleich,
-  spricht das für die Abkürzung. Bereits trainiert,
-  aber nicht ausgewertet sind außerdem Arme zum Verdeckungs\emph{grad}
-  (\code{runs/A0\_keine\_okklusion}, \code{A1\_baseline},
-  \code{A2\_starke\_okklusion}) und zur \emph{Herkunft} der Okkluder
-  (\code{runs/B1\_prozedural}, \code{B2\_prozedural\_naiv}).
-  \item \textbf{Breiteres Quellmaterial.} Zusätzliche Clean Plates bei harter
-  Sonne, Gegenlicht und Nässe gegen die verbleibende Domänenlücke; die Fehleranalyse weist sie als den Fehlertyp aus, der nicht auf Objektgröße
-  zurückgeht.
+  spricht das für die Abkürzung. Auf dieselbe Weise ließen sich der
+  Verdeckungs\emph{grad} und die \emph{Herkunft} der Okkluder prüfen, die
+  bisher nur begründet sind.
+  \item \textbf{Breiteres Quellmaterial.} Objektausschnitte aus mehreren
+  Aufnahmen, darunter Enden mit gefüllter oder verschmutzter Bohrung, die die
+  Fehleranalyse als den Fehlertyp ausweist, der nicht auf Objektgröße
+  zurückgeht; dazu Clean Plates bei harter Sonne, Gegenlicht und Nässe.
 \end{enumerate}
 
 \section{Fazit}
@@ -146,9 +166,9 @@ nach erwartetem Nutzen geordnet:
 Ein ausschließlich auf synthetischen Bildern trainierter Detektor erreicht auf
 zwei echten Aufnahmen \mAPfifty{} von \textbf{\zrefValMap} und
 \textbf{\zrefTestMap} bei einem besten $F_1$ von \zrefValFf{} und \zrefTestFf;
-auf \code{test}, das Training und Modellauswahl nie berührt, zählen von
-\znPredTest{} Detektionen nur \zfpTest{} als falsch-positiv, und auch diese
-sind zweite Boxen auf bereits erkannten Stirnflächen. Für
+auf \code{test}, das weder im Quellmaterial vorkommt noch zur Modellauswahl
+dient, zählen von \znPredTest{} Detektionen nur \zfpTest{} als falsch-positiv,
+\zfpDoppelTest{} davon als zweite Box auf einer bereits erkannten Stirnfläche. Für
 eine Anwendung, für die kein einziges handannotiertes Trainingsbild existiert,
 ist das ein tragfähiges Ergebnis.
 
@@ -166,14 +186,15 @@ Methodisch tragen drei Einsichten:
   synthetische Kennzahl zeigt an, wenn sie fehlt.} Werden die Maßnahmen gegen
   die Signaturen S1--S5 abgeschaltet, ändert sich \mAPfifty{} auf dem
   Testbild um $\zablCTestGap$\PP, auf dem \emph{eigenen} synthetischen Split
-  desselben Arms aber nur um $\zablCSvalGap$\PP. Der Schaden entsteht
+  desselben Arms aber nur um $\zablCSvalGap$\PP; auf dem zweiten Realbild
+  bleibt der Unterschied innerhalb der Messunsicherheit. Der Schaden entsteht
   ausschließlich in der Übertragung und ist an den synthetischen Daten
   unsichtbar. Wer eine Copy-Paste-Pipeline an ihren eigenen Bildern misst,
   misst die falsche Größe; nötig ist ein beschrifteter realer Split, und sei
   es ein einziges Bild.
   \item \textbf{Auflösung dominiert, und die Labelkonvention ist Teil des
   Messinstruments.} Zwischen \code{imgsz}~640 und dem Optimum liegen
-  \zswValGain\PP{} \mAPfifty, mehr als das Fünffache des Effekts der
+  \zswValGain\PP{} \mAPfifty, mehr als das Vierfache des Effekts der
   Einbettung. Ein systematischer Größenversatz von rund zwei Pixeln
   zwischen Generatorlabel und Handannotation verschiebt außerdem \mAPseven{}
   auf dem Testbild von \zsensTestMapSOrig{} auf \zsensTestMapSNeu, ohne dass
