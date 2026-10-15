@@ -91,7 +91,7 @@ Stufenfolge T1--T9 ist fest; der Zufall liegt allein in den Stufenparametern.}
 \section{Vorstufen: Freistellen und Okkluder-Bibliothek}
 \label{sec:matting}
 
-\absatz{Stufe 1 -- Matting.} Alle neun Ausschnitte sind rechteckig
+\absatz{Stufe 1 -- Matting.} Alle sechs Ausschnitte sind rechteckig
 (Befund~1); direkt eingefügt, erzeugten sie Signatur~S1. Freigestellt wird
 deshalb mit einem Ellipsenmodell $(c_x, c_y, r_x, r_y, \theta)$, das zuerst grob
 auf einem Raster und dann numerisch an die radiale Kantenenergie angepasst wird
@@ -107,8 +107,8 @@ wiegen unterschiedlich schwer. Wird der helle Kranz angeschnitten, geht genau
 das Merkmal verloren, an dem das Netz das Objekt erkennt. Ein etwa 1\px{}
 breiter Saum aus Hintergrund fällt dagegen nach Kantenweichzeichnung und
 Farbangleich kaum auf. Die Aufweitung ist auf $[1{,}02;\,1{,}10]$ begrenzt. Bei
-acht der neun Ausschnitte liegt der ermittelte Faktor ohnehin bei 1,02--1,05;
-nur beim kontrastarmen neunten käme sonst 1,19 heraus, und die Maske würde
+fünf der sechs Ausschnitte liegt der ermittelte Faktor ohnehin bei 1,00--1,05;
+nur beim kontrastarmen sechsten käme sonst 1,19 heraus, und die Maske würde
 Hintergrund einschließen. Das Ergebnis sind weiche Alphamasken mit rund
 1,1\px{} Übergangsbreite. Das ist gewollt, denn auch in einer realen Aufnahme
 hat ein 25\px{} großes Objekt keine pixelscharfe Kontur.
@@ -116,19 +116,20 @@ hat ein 25\px{} großes Objekt keine pixelscharfe Kontur.
 \absatz{Stufe 2 -- Okkluder.} Ein prozedural \emph{gezeichneter} Balken hätte
 eine andere Textur-, Rausch- und Glanzstatistik als der Rest des Bildes. Das
 Netz könnte dann \enquote{Objekt liegt neben künstlichem Balken} lernen, eine
-Abkürzung der Art S2--S4. Die vier Clean Plates zeigen dagegen Rohrschäfte aus
-demselben Material, aufgenommen mit derselben Kamera und unter derselben
-Beleuchtung. Aus ihnen werden die Okkluder gewonnen. Zuerst wird die dominante
+Abkürzung der Art S2--S4. Die vier Clean Plates zeigen dagegen echte
+Rohrschäfte aus demselben Material, mit echter Textur, echtem Sensorrauschen und
+echten Glanzlichtern. Aus ihnen werden die Okkluder gewonnen. Zuerst wird die dominante
 Rohrrichtung über den Struktur-Tensor bestimmt \parencite{jaehne2005} und das
-Bild entsprechend gedreht (gemessen $+0{,}9$, $-1{,}6$, $+0{,}9$ und
-$+6{,}6$ Grad). Ein Hochpass auf dem mittleren Zeilenprofil liefert dann die
+Bild entsprechend gedreht (gemessen $+0{,}9$, $+0{,}5$, $+0{,}9$ und
+$+0{,}2$ Grad). Ein Hochpass auf dem mittleren Zeilenprofil liefert dann die
 Rohrachsen; ihr Abstand ist der Rohrdurchmesser (16/18/21/20\px, dieselben
-Werte, die den Maßstab festlegen). Für jede Achse wird ein Streifen
-ausgeschnitten und mit einer weichen Kapselmaske mit 1,6\px{} Randbreite
-versehen. So entstehen 56 Rohrschäfte mit echter zylindrischer Schattierung und
+Werte, die den Maßstab festlegen). An höchstens 14 Achsen je Platte, in
+gleichem Abstand ausgewählt, wird ein Streifen ausgeschnitten und mit einer
+weichen Kapselmaske mit 1,6\px{} Randbreite versehen. So entstehen 55
+Rohrschäfte mit echter zylindrischer Schattierung und
 echten Glanzlichtern. Sie dienen als Schaft \emph{hinter} der Stirnfläche
 (Tabelle~\ref{tab:parameter}, T5, 88\,\% der Instanzen) und als Okkluder
-\emph{vor} dem Stapel (T6, 58\,\% der Bilder).
+\emph{vor} dem Stapel (T6, 59\,\% der Bilder).
 
 Der Umweg über echte Aufnahmen kostet eine eigene Verarbeitungsstufe und
 bindet die Bibliothek an die vier vorhandenen Clean Plates. Ein prozedural
