@@ -189,24 +189,20 @@ auf.
   \includegraphics[width=\textwidth]{abbildungen/stufe_T7_sichtbarkeit.jpg}
   \caption{T7 Sichtbarkeit}
 \end{subfigure}
-% Instanzzahl auf 48 + 33 = 81 angeglichen (war 82). Falls im Bild
-% tatsaechlich 82 Instanzen gerendert werden, ist eine davon vollstaendig
-% verdeckt und erscheint in (f) weder gruen noch rot -- dann 82 behalten
-% und in (f) ergaenzen: "eine Instanz ist vollstaendig verdeckt".
 \caption[Aufbau eines synthetischen Bildes]{Aufbau eines synthetischen Bildes,
 Stufe für Stufe am selben Bild. (a)~Der Clean Plate nach Zoom, Ausschnitt und
 Spiegelung. (b)~Die gezogenen Objektzentren des Layoutmodells (orange), dazu
-zwei abgedunkelte Mulden. (c)~Die Rohrschäfte in paralleler Richtung.
-(d)~Die Stirnflächen mit Instanzgeometrie und Photometrie -- 81 Instanzen.
-(e)~Die Ergänzungen der Okklusionsstufe, orange umrandet: sechs quer liegende
-Stangen und Fremdkörper. (f)~Das Ergebnis der Sichtbarkeitsrechnung: grün die
-48 vergebenen Labels, rot die 33 verworfenen Instanzen. Die Einzelstufen T2, T3, T8
+drei abgedunkelte Mulden. (c)~Die Rohrschäfte in paralleler Richtung.
+(d)~Die Stirnflächen mit Instanzgeometrie und Photometrie -- 82 Instanzen im
+Bild. (e)~Die Ergänzungen der Okklusionsstufe, orange umrandet: sechs quer
+liegende Stangen. (f)~Das Ergebnis der Sichtbarkeitsrechnung: grün die
+64 vergebenen Labels, rot die 18 verworfenen Instanzen. Die Einzelstufen T2, T3, T8
 und T9 sind in den Abbildungen~\ref{abb:stufendetail}
 und~\ref{abb:stufenglobal} im Anhang vergrößert dargestellt. Zur Lesbarkeit ist
-ein Bild am oberen Ende des Größenbereichs gewählt (Basisdurchmesser 44\px{}
+ein Bild am oberen Ende des Größenbereichs gewählt (Basisdurchmesser 38\px{}
 statt des Medians von 23,5\px) und mit überdurchschnittlicher Verdeckung;
 Abbildung~\ref{abb:synthbeispiele} zeigt typische Bilder. Erzeugt mit
-\code{paper/tools/fig\_stufen.py}, Seed~302.}
+\code{paper/tools/fig\_stufen.py}, Seed~102.}
 \label{abb:stufen}
 \end{figure}
 
@@ -347,8 +343,8 @@ Box kleiner als 5\px{} ist. Nach denselben Regeln wurden auch \code{val} und
 und ist an dieser Stelle ein korrektes hartes Negativ. Vergeben wird immer die
 \emph{modale} Box, also die Box um den sichtbaren Teil.
 
-Insgesamt werden 36\,716 der 173\,100 gerenderten Instanzen verworfen
-(21,2\,\%), die meisten wegen zu geringer Sichtbarkeit; die Aufschlüsselung
+Insgesamt werden 37\,084 der 173\,075 gerenderten Instanzen verworfen
+(21,4\,\%), die meisten wegen zu geringer Sichtbarkeit; die Aufschlüsselung
 nach Ursachen steht im Erzeugungsbericht (Abschnitt~\ref{sec:anhangbericht}).
 An genau diesen Stellen hätte ein Generator ohne Sichtbarkeitsrechnung ein
 falsches Label gesetzt.
