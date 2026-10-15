@@ -24,13 +24,13 @@
 \label{kap:pipeline}
 
 Dieses Kapitel vermisst zuerst das verfügbare Quellmaterial und beschreibt dann
-die Pipeline, die daraus, also aus neun Objektausschnitten und sieben
+die Pipeline, die daraus, also aus sechs Objektausschnitten und sieben
 Hintergrundaufnahmen, den Trainingsdatensatz erzeugt.
 Abbildung~\ref{abb:pipeline} zeigt, woher die Bausteine kommen und in welcher
 Reihenfolge die Stufen ablaufen. Die Anteile in Tabelle~\ref{tab:parameter}
 sind keine konfigurierten Sollwerte, sondern \emph{gemessene} Ist-Werte aus dem
-Erzeugungsbericht \code{synth/train/generation\_report.json} über 6000 Bilder
-mit 173\,100 gerenderten Instanzen und 136\,384 gelabelten Objekten.
+Erzeugungsbericht \code{synth/bereinigt\_train/generation\_report.json} über
+6000 Bilder mit 173\,075 gerenderten Instanzen und 135\,991 gelabelten Objekten.
 
 \input{kapitel/kapitel_datengrundlage}
 
@@ -66,14 +66,14 @@ damit nicht, sie werden nur an anderer Stelle und mit exakten Labels erzeugt.
   erg/.style={draw,rounded corners=2pt,align=center,font=\scriptsize,
               text width=2.0cm,minimum height=9mm,inner sep=2.5pt,fill=green!12},
   ar/.style={-{Latex[length=1.8mm]},semithick,gray!60!black}]
-  \node[box]   (cut)   at (0,1.15)  {9 Objekt-\\ausschnitte};
+  \node[box]   (cut)   at (0,1.15)  {6 Objekt-\\ausschnitte};
   \node[box]   (bg)    at (0,-1.15) {7 Hintergrund-\\aufnahmen};
   \node[stage] (mat)   at (2.8,1.15) {\textbf{Stufe 1}\\Matting};
   \node[stage] (occ)   at (2.8,-1.15){\textbf{Stufe 2}\\Okkluder};
-  \node[box]   (masks) at (5.5,1.15) {9 Alphamasken\\(1,1\,px Kante)};
-  \node[box]   (bars)  at (5.5,-1.15){56 echte\\Rohrschäfte};
+  \node[box]   (masks) at (5.5,1.15) {6 Alphamasken\\(1,1\,px Kante)};
+  \node[box]   (bars)  at (5.5,-1.15){55 echte\\Rohrschäfte};
   \node[stage] (syn)   at (8.3,0)    {\textbf{Stufe 3}\\Synthese\\T1--T9};
-  \node[erg]   (ds)    at (11.1,0)   {6000 Bilder\\136\,384 Labels};
+  \node[erg]   (ds)    at (11.1,0)   {6000 Bilder\\135\,991 Labels};
   \draw[ar] (cut) -- (mat);   \draw[ar] (bg)  -- (occ);
   \draw[ar] (mat) -- (masks); \draw[ar] (occ) -- (bars);
   \draw[ar] (masks) -- (syn); \draw[ar] (bars)  -- (syn);
@@ -355,10 +355,10 @@ falsches Label gesetzt.
 Alle Zahlen dieses Abschnitts stammen aus dem Erzeugungsbericht
 \code{generation\_report.json}, den der Generator neben jeden Datensatz
 schreibt; Abschnitt~\ref{sec:anhangbericht} listet ihn vollständig auf.
-Es entstehen 6000 Bilder zu $1024\times1024$ Pixeln, davon 583 Negativbilder
-(9,7\,\%), mit 136\,384 gelabelten Objekten (22,7 je Bild über alle 6000, also
-25,2 je Positivbild) aus 173\,100 gerenderten Instanzen. Die mittlere
-Sichtbarkeit der gelabelten Objekte beträgt 90,0\,\%, 30,1\,\% von ihnen sind
+Es entstehen 6000 Bilder zu $1024\times1024$ Pixeln, davon 584 Negativbilder
+(9,7\,\%), mit 135\,991 gelabelten Objekten (22,7 je Bild über alle 6000, also
+25,1 je Positivbild) aus 173\,075 gerenderten Instanzen. Die mittlere
+Sichtbarkeit der gelabelten Objekte beträgt 89,9\,\%, 30,4\,\% von ihnen sind
 teilverdeckt.
 
 Ob der Datensatz brauchbar ist, zeigt weniger der optische Eindruck als der
@@ -370,7 +370,7 @@ Seitenverhältnisverteilung des erzeugten Datensatzes.
 \centering
 \caption[Kalibrierung gegen die Realmessung]{Kalibrierung des Layoutmodells
 gegen die Realmessung ($n = 187$). Alle Abstände in Objektdurchmessern; die
-synthetischen Werte sind über 1500 erzeugte Bilder mit 34\,027 Labeln gemessen.}
+synthetischen Werte sind über 1500 erzeugte Bilder mit 33\,653 Labeln gemessen.}
 \label{tab:kalibrierung}
 \footnotesize
 % Die Durchmesserzeile stand im Kopf auf p95, trug real aber p90-Werte
@@ -388,14 +388,14 @@ synthetischen Werte sind über 1500 erzeugte Bilder mit 34\,027 Labeln gemessen.
 \textbf{synthetisch (Ist)} \\
 \midrule
 NN-Abstand p10 / Median / p90 & 0,86 / 1,11 / 1,78 &
-0,78 / 1,26 / 2,72 & \textbf{0,84 / 1,17 / 1,90} \\
-NN näher als $1{,}2\,\Oe$ & 60,2\,\% & 44,9\,\% & \textbf{53,5\,\%} \\
+0,78 / 1,26 / 2,72 & \textbf{0,84 / 1,18 / 1,92} \\
+NN näher als $1{,}2\,\Oe$ & 60,2\,\% & 44,9\,\% & \textbf{52,3\,\%} \\
 Nachbarn innerhalb $5\,\Oe$ (Median) & 10 & 10 & \textbf{13} \\
 Größenverhältnis zum NN (Median) & 1,05 & 1,07 & \textbf{1,10} \\
 Objektdurchmesser p05 / Median (px) & 19,1 / 26,8 &
-12,2 / 17,0 & \textbf{12,0 / 23,5} \\
+12,2 / 17,0 & \textbf{12,0 / 23,2} \\
 Seitenverhältnis p10 / Median / p90 & 0,97 / 1,09 / 1,40 &
-0,82 / 1,08 / 1,22 & \textbf{0,78 / 1,00 / 1,33} \\
+0,82 / 1,08 / 1,22 & \textbf{0,78 / 1,00 / 1,32} \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -403,7 +403,7 @@ Seitenverhältnis p10 / Median / p90 & 0,97 / 1,09 / 1,40 &
 Bei fast allen Kenngrößen liegt die synthetische Verteilung zwischen den beiden
 realen Messungen oder nahe daran. Zwei systematische Abweichungen bleiben. Die
 erste ist die Nachbarzahl: Die synthetischen Cluster sind dichter (13 statt 10
-Nachbarn innerhalb $5\,\Oe$, im Maximum 61 statt 20). Das ist bewusst so
+Nachbarn innerhalb $5\,\Oe$, im Maximum 56 statt 20). Das ist bewusst so
 belassen, denn eine höhere Dichte bereitet den Detektor auf schwierigere Szenen
 vor, als er im Einsatz vorfindet. Die umgekehrte Abweichung wäre
 problematisch. Die zweite betrifft die Objektgröße: Am oberen Ende reicht die
