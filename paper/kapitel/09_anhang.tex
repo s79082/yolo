@@ -9,38 +9,51 @@ Der Kommentar hinter einem Aufruf nennt, welche Zahlen er liefert.
 
 \begin{footnotesize}
 \begin{verbatim}
-# --- Quellmaterial und Datensaetze -----------------------------------------
+# --- Quellmaterial ---------------------------------------------------------
 python src/analyze_data.py          # reale Labels, Ausschnitte, Hintergruende
                                     # -> docs/datensichtung.json
 python src/matting.py               # Freistellung: Ellipsen, Radien, Aufweitung
+python src/clean_plates.py          # Clean Plates aus IMG_3884 und IMG_3886
 python src/occluders.py             # photographische Okkluder; Rohrdurchmesser
                                     # und Drehwinkel der Clean Plates
-python src/generate.py --out synth/train --n 6000 --seed 1 --preview 8
-python src/generate.py --out synth/sval  --n  400 --seed 99
+python src/ueberlappung.py          # Abgleich Quellmaterial gegen val/test
+                                    # -> docs/experiments/ueberlappung.json
+
+# --- Datensaetze -----------------------------------------------------------
+python src/generate.py --out synth/bereinigt_train --n 6000 --seed 1 \
+    --preview 8
+python src/generate.py --out synth/bereinigt_sval  --n  400 --seed 99
                                     # je Datensatz generation_report.json:
                                     # Ist-Anteile, Labelzahlen, Sichtbarkeit
 python src/synth_layout.py          # Layoutstatistik der erzeugten Labels
                                     # -> docs/experiments/synth_layout.json
+python src/cutmix_flaechen.py       # boxfreie CutMix-Flaechen
+python src/schaftwinkel.py          # Schaefte quer zu den Hintergrundrohren
 
 # --- Datensaetze der Ablation (Einbettung) ---------------------------------
-python src/generate.py --out synth/C0_kontrolle   --n 3000 --seed 1
-python src/generate.py --out synth/C1_naive_paste --n 3000 --seed 1 \
-    --naive-paste                               # S1-S5 und Schlagschatten aus
+python src/generate.py --out synth/bereinigt_C0_kontrolle   --n 3000 \
+    --seed 1
+python src/generate.py --out synth/bereinigt_C1_naive_paste --n 3000 \
+    --seed 1 --naive-paste                      # S1-S5 und Schlagschatten aus
+python src/generate.py --out synth/bereinigt_sval_C1 --n 400 --seed 99 \
+    --naive-paste                               # eigener sval von C1
 
 # --- Training und Auswertung -----------------------------------------------
+# Laeufe und Datensaetze der Auswertung stehen in src/laeufe.py;
 # Trainingsverlauf und beste Epoche je Lauf -> runs/*/results.csv;
 # alle Metriken berechnet src/evaluate.py
-python src/train_neu.py --name referenz \
-    --data data/referenz.yaml --epochs 60   # Referenzmodell
-python src/experiment_neu.py main  --weights runs/referenz/weights/best.pt
-                                            # Hauptergebnis
-python src/experiment_neu.py sweep --weights runs/referenz/weights/best.pt
-                                            # Aufloesungssweep, Bootstrap
-python src/analyse_neu.py          --weights runs/referenz/weights/best.pt
-                                            # Boxversatz, Sensitivitaet
-python src/train_neu.py --name C0_kontrolle   --data data/C0_kontrolle.yaml
-python src/train_neu.py --name C1_naive_paste --data data/C1_naive_paste.yaml
-python src/eval_armC.py                     # Arme C0/C1, eigene Ergebnisdatei
+python src/train_neu.py --name bereinigt_referenz \
+    --data data/bereinigt_referenz.yaml --epochs 60   # Referenzmodell
+python src/train_neu.py --name bereinigt_C0_kontrolle \
+    --data data/bereinigt_C0_kontrolle.yaml
+python src/train_neu.py --name bereinigt_C1_naive_paste \
+    --data data/bereinigt_C1_naive_paste.yaml
+python src/experiment_neu.py main           # Hauptergebnis
+python src/experiment_neu.py sweep          # Aufloesungssweep, Bootstrap
+python src/analyse_neu.py                   # Boxversatz, Sensitivitaet, Fehler
+python src/eval_armC.py                     # Arme C0/C1 auf val, test, sval
+python src/experiment.py infer \
+    --weights runs/bereinigt_referenz/weights/best.pt  # NMS, max_det, FP16
 
 # --- Abbildungen und Tabellen ----------------------------------------------
 python src/report_neu.py            # kapitel/zahlen.tex, kapitel/tab_*.tex
@@ -58,6 +71,13 @@ Netzaufbau aus, die Speicherbelegung stammt aus \code{nvidia-smi} während der
 Läufe. \emph{Abgeleitete} Werte wie IoU-Verläufe, effektive und kritische
 Objektgrößen sind mit der jeweils genannten Gleichung im Text nachrechenbar.
 
+Die Versionen aller Bibliotheken stehen in \code{requirements.txt}; die erzeugten
+Daten hängen an ihnen, insbesondere an \code{opencv-python} und \code{numpy}.
+Weil \code{src/matting.py} die Alphamasken unter anderen Versionen nicht
+bitgleich reproduziert, sind Masken und Okkluder mit eingecheckt
+(\code{assets/masks}, \code{assets/bars}); alle Aufrufe stehen zusätzlich in
+\code{tools/run\_bereinigt.sh}.
+
 Alle Metriken der Kapitel~\ref{kap:auswertung} und~\ref{kap:diskussion} stehen
 nicht als Ziffern im Quelltext der Arbeit, sondern als Makros in
 \code{paper/kapitel/zahlen.tex}. Diese Datei erzeugt \code{src/report\_neu.py}
@@ -68,7 +88,7 @@ Zwei Eigenheiten der Ausführungsumgebung erzwingen Trainingsparameter, die sons
 anders zu setzen wären. Mit \code{opencv-python}~5.0.0.93 und \code{torch}~2.13
 blockiert der DataLoader reproduzierbar beim ersten Batch, sobald
 \code{workers > 0} gesetzt ist; alle Läufe verwenden deshalb \code{workers=0}.
-Außerdem war die GPU während der Läufe durch einen Fremdprozess zu rund 72 von
+Außerdem war die GPU während der Läufe durch einen Fremdprozess zu rund 80 von
 98\,GB belegt und der Arbeitsspeicher zeitweise fast voll; daher gelten
 \code{batch=8} und \code{cache='disk'} (Abschnitt~\ref{sec:trainingsaufbau}).
 Beide Werte gelten für alle Läufe gleich.
@@ -77,43 +97,43 @@ Beide Werte gelten für alle Läufe gleich.
 \label{sec:anhangbericht}
 
 \absatz{Anteile aus dem Erzeugungsbericht.} Die folgenden Werte stammen unverändert aus
-\code{synth/train/generation\_report.json} und sind die Belegquelle für alle
+\code{synth/bereinigt\_train/generation\_report.json} und sind die Belegquelle für alle
 Ist-Anteile in Tabelle~\ref{tab:parameter}.
 
 \begin{footnotesize}
 \begin{verbatim}
-n_images                      6000        instances_rendered      173100
-canvas                        1024        instances_labeled       136384
-boxes_per_image_mean          22.73       dropped_occluded         30801
-mean_visibility_all_rendered   0.7569     dropped_offscreen         3846
-mean_visibility_labeled        0.9002     dropped_tiny               228
+n_images                      6000        instances_rendered      173075
+canvas                        1024        instances_labeled       135991
+boxes_per_image_mean          22.67       dropped_occluded         31189
+mean_visibility_all_rendered   0.7539     dropped_offscreen         3825
+mean_visibility_labeled        0.8988     dropped_tiny               248
 
 inst_rotation      (je Instanz)  1.0000    negative_image  (je Bild)  0.0973
-inst_oval          (je Instanz)  0.5707    img_has_bars    (je Bild)  0.5835
-inst_dent          (je Instanz)  0.1814    img_clutter     (je Bild)  0.3157
-inst_perspective   (je Instanz)  0.3020    recess          (je Bild)  0.8738
-inst_photometric   (je Instanz)  0.9976    bg_fliplr       (je Bild)  0.5047
-inst_gamma         (je Instanz)  0.7969    bg_flipud       (je Bild)  0.1487
-inst_hsv           (je Instanz)  0.6973    bg_rot          (je Bild)  0.3428
-inst_harmonize     (je Instanz)  0.8482    glob_bc         (je Bild)  0.8958
-inst_blur          (je Instanz)  0.5983    glob_hsv        (je Bild)  0.6897
-inst_noise         (je Instanz)  0.6988    glob_blur       (je Bild)  0.3435
-inst_shadow        (je Instanz)  0.4931    glob_motion     (je Bild)  0.0988
-inst_stub          (je Instanz)  0.8801    glob_noise      (je Bild)  0.8015
-inst_occluded (je Label)         0.3009    glob_vignette   (je Bild)  0.2502
+inst_oval          (je Instanz)  0.5690    img_has_bars    (je Bild)  0.5860
+inst_dent          (je Instanz)  0.1788    img_clutter     (je Bild)  0.3253
+inst_perspective   (je Instanz)  0.3015    recess          (je Bild)  0.8743
+inst_photometric   (je Instanz)  0.9970    bg_fliplr       (je Bild)  0.5047
+inst_gamma         (je Instanz)  0.7965    bg_flipud       (je Bild)  0.1487
+inst_hsv           (je Instanz)  0.6969    bg_rot          (je Bild)  0.3428
+inst_harmonize     (je Instanz)  0.8470    glob_bc         (je Bild)  0.9015
+inst_blur          (je Instanz)  0.5979    glob_hsv        (je Bild)  0.7062
+inst_noise         (je Instanz)  0.6971    glob_blur       (je Bild)  0.3490
+inst_shadow        (je Instanz)  0.4936    glob_motion     (je Bild)  0.0990
+inst_stub          (je Instanz)  0.8795    glob_noise      (je Bild)  0.7968
+inst_occluded (je Label)         0.3038    glob_vignette   (je Bild)  0.2583
 \end{verbatim}
 \end{footnotesize}
 
 Die drei \code{dropped}-Zähler erfassen nur Instanzen, die die
-Sichtbarkeitsrechnung überhaupt erreichen. Sie summieren sich auf 34\,875;
-die Differenz zu den insgesamt 36\,716 verworfenen Instanzen sind 1841
+Sichtbarkeitsrechnung überhaupt erreichen. Sie summieren sich auf 35\,262;
+die Differenz zu den insgesamt 37\,084 verworfenen Instanzen sind 1822
 Instanzen, die vollständig außerhalb der Leinwand liegen und deshalb schon
 vor der Sichtbarkeitsprüfung entfallen (\code{src/generate.py}).
 
 Ein Wert ist nicht als Anteil lesbar: \code{recess} zählt die \emph{Anzahl} der
 abgedunkelten Mulden je Bild. Mit den Sollwerten aus \code{src/generate.py}
 (0,55 je Cluster, im Mittel 1,75 Cluster je Bild, 10\,\% Negativbilder) sind
-$0{,}55 \cdot 1{,}75 \cdot 0{,}90 = 0{,}87$ zu erwarten, gezählt sind 0,8738.
+$0{,}55 \cdot 1{,}75 \cdot 0{,}90 = 0{,}87$ zu erwarten, gezählt sind 0,8743.
 
 \absatz{Vollständiger Sweep der Inferenzauflösung.}\label{sec:anhangsweep}
 Tabelle~\ref{tab:imgszvoll} ergänzt den Auszug aus
@@ -219,21 +239,21 @@ Kleinrotation $\pm6^\circ$ (Zoom 1,06) & 34,3\,\% & Die Rohrlinien sind nie exak
 \multicolumn{4}{@{}l}{\textbf{T2 -- Instanzgeometrie} \hfill\emph{Anteile je gerenderter Instanz}}\\
 Rotation $0$--$360^\circ$ & 100\,\% & Rohrenden haben keine kanonische Orientierung -- die einzige Orientierungsinformation ist das Glanzlicht, und dessen Richtung hängt vom Sonnenstand ab. Volle Rotationsinvarianz ist korrekt \emph{und} ohne Mehraufwand, daher 100\,\% statt eines Bruchteils. & P \\
 Skalierung auf 12--44\px{} (Abschnitt~\ref{sec:modellentscheidungen}) & 100\,\% & Realmessung 12,2--35,8\px{} plus 25\,\% Reserve; Ist-Verteilung p05/Median/p95 = 12,0/23,5/40,4\px. Verkleinerung flächentreu, weil bilineare Interpolation Aliasing im Objekt zurückließe. & M (S3) \\
-Ovalisierung 0,66--0,97 bzw.\ 1,03--1,30 & 57,1\,\% & Gemessenes Seitenverhältnis p10--p90 = 0,82--1,40; über die Hälfte der echten Boxen weicht um $\geq5\,\%$ vom Quadrat ab. Oblat dominiert (45:12), weil Schrägansicht die Höhe verkürzt. & M \\
-Delle, 1--2 Sektoren, Tiefe 10--30\,\% & 18,1\,\% & Mechanisch beschädigte Enden. \textbf{Anteil ist Annahme} -- Dellen sind nicht annotiert. 18\,\% lässt das Modell die Verformung regelmäßig sehen, ohne die Rundheit als Merkmal zu verwässern. & A \\
-Perspektive, Homographie $\pm9\,\%$ & 30,2\,\% & Bei Schrägblick wird der Kranz einseitig \emph{breiter} (sichtbare Rohrinnenwand); anisotrope Skalierung kann das nicht abbilden. Anteil ist Annahme. & A \\
+Ovalisierung 0,66--0,97 bzw.\ 1,03--1,30 & 56,9\,\% & Gemessenes Seitenverhältnis p10--p90 = 0,82--1,40; über die Hälfte der echten Boxen weicht um $\geq5\,\%$ vom Quadrat ab. Oblat dominiert (45:12), weil Schrägansicht die Höhe verkürzt. & M \\
+Delle, 1--2 Sektoren, Tiefe 10--30\,\% & 17,9\,\% & Mechanisch beschädigte Enden. \textbf{Anteil ist Annahme} -- Dellen sind nicht annotiert. 18\,\% lässt das Modell die Verformung regelmäßig sehen, ohne die Rundheit als Merkmal zu verwässern. & A \\
+Perspektive, Homographie $\pm9\,\%$ & 30,1\,\% & Bei Schrägblick wird der Kranz einseitig \emph{breiter} (sichtbare Rohrinnenwand); anisotrope Skalierung kann das nicht abbilden. Anteil ist Annahme. & A \\
 \addlinespace
 \multicolumn{4}{@{}l}{\textbf{T3 -- Photometrie und Einbettungsrealismus} \hfill\emph{je Instanz}}\\
-Helligkeit $\times0{,}70$--$1{,}35$ & 99,8\,\% & Stirnflächen liegen in praller Sonne oder tiefem Schatten; gemessen ist die Spannweite der Ausschnitte (Kranz-p90 123--162 Grauwerte, Faktor 1,32). \textbf{Der Faktorbereich ist gesetzt} und greift mit 1,93 darüber hinaus. & M/A \\
+Helligkeit $\times0{,}70$--$1{,}35$ & 99,7\,\% & Stirnflächen liegen in praller Sonne oder tiefem Schatten; gemessen ist die Spannweite der Ausschnitte (Kranz-p90 123--162 Grauwerte, Faktor 1,32). \textbf{Der Faktorbereich ist gesetzt} und greift mit 1,93 darüber hinaus. & M/A \\
 Gamma $0{,}75$--$1{,}35$ & 79,7\,\% & Gamma statt Kontrast, weil es die nichtlineare Tonwertkurve verschiedener Kameras abbildet \parencite{grossberg2003} und das Verhältnis Bohrung $\leftrightarrow$ Kranz verändert. & L \\
 HSV: Ton $\pm16^\circ$, Sättigung $\times0{,}45$--$1{,}60$ & 69,7\,\% & Verzinkter Stahl ist neutralgrau, nimmt aber Farbstiche an (Flugrost, Moos, Himmelsreflex); Farbtonhub moderat, da große Sprünge unphysikalisch wären. \textbf{Weder Hub noch Anteil sind gemessen} -- die Farbstiche sind beobachtet, nicht quantifiziert. Der Code zieht $\pm8$ Einheiten des OpenCV-H-Kanals, der $0$--$179$ für den vollen Kreis nutzt; eine Einheit sind also zwei Grad. & A \\
-Farbangleich an den lokalen Hintergrund, Gl.~\eqref{eq:harmonize} & 84,8\,\% & \textbf{Wichtigste Anti-Abkürzungs-Maßnahme:} Ohne Angleich bleibt ein konstanter Farb- und Helligkeitsversatz, den ein CNN trivial als Einfügemarke lernt. Partieller Statistiktransfer \parencite{reinhard2001,tsai2017}, bewusst nicht vollständig. & L (S2) \\
+Farbangleich an den lokalen Hintergrund, Gl.~\eqref{eq:harmonize} & 84,7\,\% & \textbf{Wichtigste Anti-Abkürzungs-Maßnahme:} Ohne Angleich bleibt ein konstanter Farb- und Helligkeitsversatz, den ein CNN trivial als Einfügemarke lernt. Partieller Statistiktransfer \parencite{reinhard2001,tsai2017}, bewusst nicht vollständig. & L (S2) \\
 \quad Angleichstärken $\alpha_\mu \in [0{,}10;\,0{,}45]$, $\alpha_\sigma \in [0;\,0{,}35]$ & -- & Deutlich unter 1 gedeckelt, damit der Transfer partiell bleibt und der Albedo-Unterschied Bohrung/Kranz erhalten wird (Abschnitt~\ref{sec:synthese}). Die Richtung ist begründet, die vier Grenzen sind gesetzt. & A \\
 Unschärfeangleich $\sigma$ 0,25--1,10\px & 59,8\,\% & Das skalierte Objekt ist glatter oder schärfer als das Zielbild, und reale Objekte liegen je nach Stapeltiefe außerhalb der Schärfeebene \parencite{popescu2005}. & L (S3) \\
-Rauschangleich (Abschnitt~\ref{sec:modellentscheidungen}) & 69,9\,\% & Beim Verkleinern sinkt das Rauschen, der eingeklebte Bereich wäre messbar sauberer. Niveau \emph{pro Einfügestelle} über den Hochpassrest geschätzt \parencite{immerkaer1996} (Hintergründe: 6,8--15,2 Grauwerte Hochpassstreuung). & L (S4) \\
+Rauschangleich (Abschnitt~\ref{sec:modellentscheidungen}) & 69,7\,\% & Beim Verkleinern sinkt das Rauschen, der eingeklebte Bereich wäre messbar sauberer. Niveau \emph{pro Einfügestelle} über den Hochpassrest geschätzt \parencite{immerkaer1996} (Hintergründe: 6,8--15,2 Grauwerte Hochpassstreuung). & L (S4) \\
 \quad Streufaktor $\mathcal{U}[0{,}5;\,1{,}25]$ & -- & Variiert das eingefügte Niveau um die lokale Schätzung, damit der Einsatz nicht exakt die Hintergrundstatistik trifft. Grenzen gesetzt. & A \\
 Alphakante weichzeichnen $\sigma$ 0,4--1,0\px & 100\,\% & Immer -- eine pixelharte Silhouette gibt es bei 25\px-Objekten in echten Aufnahmen nicht. Die Randbedingung begründet $\sigma > 0$, nicht das Intervall: Es liegt unterhalb der 1,1\px{} Übergangsbreite, die die Alphamaske bereits mitbringt (Abschnitt~\ref{sec:matting}), und ist im Übrigen \textbf{gesetzt}. & P/A (S1) \\
-Schlagschatten, $\kappa$ 0,18--0,45 & 49,3\,\% & Ohne Kontaktschatten \enquote{schwebt} ein eingeklebtes Objekt sichtbar; rund 50\,\%, weil bei diffusem Licht etwa die Hälfte der realen Objekte keinen sichtbaren Schatten wirft (Annahme). & A (S6) \\
+Schlagschatten, $\kappa$ 0,18--0,45 & 49,4\,\% & Ohne Kontaktschatten \enquote{schwebt} ein eingeklebtes Objekt sichtbar; rund 50\,\%, weil bei diffusem Licht etwa die Hälfte der realen Objekte keinen sichtbaren Schatten wirft (Annahme). & A (S6) \\
 \addlinespace
 \multicolumn{4}{@{}l}{\textbf{T4 -- Layout}}\\
 gescherte Gitterpackung, 1--3 Cluster, Gl.~\eqref{eq:layout} & 100\,\% & Kalibriert am gemessenen NN-Abstand und an der Nachbarzahl (Tabelle~\ref{tab:kalibrierung}); eine Basisgröße pro Cluster nach Befund~7. & M \\
@@ -245,24 +265,24 @@ gescherte Gitterpackung, 1--3 Cluster, Gl.~\eqref{eq:layout} & 100\,\% & Kalibri
 abgedunkelte Mulde je Cluster & 0,87 je Bild & Die Stirnflächen liegen vor dem verschatteten Stapelinneren -- das ist die physikalische Randbedingung; ohne Abdunklung stünden die dunklen Bohrungen im Kontrast zu isoliert. \textbf{Häufigkeit und Stärke sind gesetzt.} & P/A \\
 \addlinespace
 \multicolumn{4}{@{}l}{\textbf{T5 -- Rohrschaft} \hfill\emph{je Instanz}}\\
-echter Rohrschaft dahinter, Länge 2--24\,\Oe & 88,0\,\% & \textbf{Wichtigste Einzelentscheidung} (Befund~8): Ein dunkler Kreis mitten auf einem durchgehenden Rohr ist physikalisch unmöglich. Lange Schäfte, weil real jedes Rohr aus dem Ausschnitt herausläuft; kurze Stummel wären ein erkennbares Muster. Die Randbedingung begründet \emph{jede} Instanz; \textbf{der Anteil von 88\,\% und der Längenbereich sind gesetzt} -- die verbleibenden 12\,\% halten den Schaft als Merkmal davon ab, mit der Stirnfläche vollständig zusammenzufallen. Dass der Schaft aus der \emph{photographischen} Bibliothek stammt, ist begründet (Abschnitt~\ref{sec:matting}), aber nicht abliert. & P/A \\
+echter Rohrschaft dahinter, Länge 2--24\,\Oe & 87,9\,\% & \textbf{Wichtigste Einzelentscheidung} (Befund~8): Ein dunkler Kreis mitten auf einem durchgehenden Rohr ist physikalisch unmöglich. Lange Schäfte, weil real jedes Rohr aus dem Ausschnitt herausläuft; kurze Stummel wären ein erkennbares Muster. Die Randbedingung begründet \emph{jede} Instanz; \textbf{der Anteil von 88\,\% und der Längenbereich sind gesetzt} -- die verbleibenden 12\,\% halten den Schaft als Merkmal davon ab, mit der Stirnfläche vollständig zusammenzufallen. Dass der Schaft aus der \emph{photographischen} Bibliothek stammt, ist begründet (Abschnitt~\ref{sec:matting}), aber nicht abliert. & P/A \\
 Schaftrichtung je Cluster parallel, $\pm11^\circ$ & 100\,\% & Alle Rohre eines Stapels liegen parallel; die Randbedingung begründet damit die Parallelität, nicht die Streuung: \textbf{die $\pm11^\circ$ sind am optischen Eindruck kalibriert}, weil $\pm18^\circ$ einen sternförmigen Fächer erzeugte, den es real nicht gibt. Die Bedingung gilt \emph{innerhalb} eines Clusters; gegen die
 Rohrrichtung des Hintergrunds ist sie nicht erzwungen
 (Abschnitt~\ref{sec:grenzen}). & P/A \\
-Helligkeitsangleich des Schafts, $\kappa$ 0,35--0,75 & 100\,\% & Die Bibliothek stammt aus vier Aufnahmen mit Hintergrundmittel 70--102 Grauwerten; ohne Angleich stünden sichtbar zu dunkle Rohre im Bild. & M \\
-Tiefenmodell: 75\,\% ganz hinten, 25\,\% eingereiht & -- & An der erzeugten Statistik kalibriert: Mit zufälliger Tiefenordnung stieg der synthetische NN-Abstand auf $1{,}55\,\Oe$, rund 40\,\% über dem realen Wert; mit 75/25 liegt er bei $1{,}17\,\Oe$. & M \\
+Helligkeitsangleich des Schafts, $\kappa$ 0,35--0,75 & 100\,\% & Die Bibliothek stammt aus vier Aufnahmen mit Hintergrundmittel 70--126 Grauwerten; ohne Angleich stünden sichtbar zu dunkle Rohre im Bild. & M \\
+Tiefenmodell: 75\,\% ganz hinten, 25\,\% eingereiht & -- & An der erzeugten Statistik kalibriert: Mit zufälliger Tiefenordnung stieg der synthetische NN-Abstand auf $1{,}55\,\Oe$, rund 40\,\% über dem realen Wert; mit 75/25 liegt er bei $1{,}18\,\Oe$. & M \\
 \addlinespace
 \multicolumn{4}{@{}l}{\textbf{T6 -- Okklusion} \hfill\emph{Anteile je Bild}}\\
-quer liegende echte Rohrstangen, 1--6 Stück & 58,4\,\% & Rohre vor dem Stapel, Breite $0{,}55$--$1{,}35\,\Oe$; zu 80\,\% durch ein Cluster gelegt statt ins Leere, weil eine Verdeckung ohne getroffenes Objekt keinen Trainingsnutzen hat. Das Phänomen ist in den Realbildern belegt, \textbf{die Rate ist gesetzt} und ebenso wenig abliert wie die \emph{Herkunft} der Stangen. & M/A \\
-Fremdkörper (Laub, Draht, Schnee), 1--4 Stück & 31,6\,\% & Aus den Hintergründen selbst geschnitten, mit weicher Maske aus geglättetem Rauschen -- gleiches Quellmaterial, also gleiche Sensorsignatur. Das begründet das \emph{Verfahren}; \textbf{der Anteil ist gesetzt}. & M/A \\
+quer liegende echte Rohrstangen, 1--6 Stück & 58,6\,\% & Rohre vor dem Stapel, Breite $0{,}55$--$1{,}35\,\Oe$; zu 80\,\% durch ein Cluster gelegt statt ins Leere, weil eine Verdeckung ohne getroffenes Objekt keinen Trainingsnutzen hat. Das Phänomen ist in den Realbildern belegt, \textbf{die Rate ist gesetzt} und ebenso wenig abliert wie die \emph{Herkunft} der Stangen. & M/A \\
+Fremdkörper (Laub, Draht, Schnee), 1--4 Stück & 32,5\,\% & Aus den Hintergründen selbst geschnitten, mit weicher Maske aus geglättetem Rauschen -- gleiches Quellmaterial, also gleiche Sensorsignatur. Das begründet das \emph{Verfahren}; \textbf{der Anteil ist gesetzt}. & M/A \\
 \addlinespace
 \multicolumn{4}{@{}l}{\textbf{T8 -- Globale Bildstufe} \hfill\emph{Anteile je Bild}}\\
-Helligkeit/Kontrast $\times0{,}80$--$1{,}22$, Offset $\pm18$ & 89,6\,\% & Wetter- und Belichtungsvariation über das ganze Bild. \textbf{Bereich und Anteil sind gesetzt}: Alle sieben Quellaufnahmen entstanden bei diffusem Licht, eine Spannweite realer Belichtungen ließ sich daran nicht messen. & A \\
-HSV: Ton $\pm12^\circ$, Sättigung $\times0{,}60$--$1{,}40$, Hellwert $\times0{,}85$--$1{,}15$ & 69,0\,\% & Bewölkt bis Abendsonne; da alle Clean Plates bei diffusem Licht entstanden, ist diese Stufe der einzige -- approximative -- Ersatz für die fehlende Beleuchtungsvielfalt. Anders als in T3 wirkt sie auf das gesamte Bild und verschiebt deshalb auch den Hellwert. & A \\
-Defokus $\sigma$ 0,3--1,0\px & 34,4\,\% & Der Autofokus trifft bei Stapelaufnahmen oft die falsche Ebene; Defokusunschärfe zählt zu den Standardkorruptionen der Robustheitsliteratur \parencite{hendrycks2019}. & L \\
+Helligkeit/Kontrast $\times0{,}80$--$1{,}22$, Offset $\pm18$ & 90,2\,\% & Wetter- und Belichtungsvariation über das ganze Bild. \textbf{Bereich und Anteil sind gesetzt}: Alle sieben Quellaufnahmen entstanden bei diffusem Licht, eine Spannweite realer Belichtungen ließ sich daran nicht messen. & A \\
+HSV: Ton $\pm12^\circ$, Sättigung $\times0{,}60$--$1{,}40$, Hellwert $\times0{,}85$--$1{,}15$ & 70,6\,\% & Bewölkt bis Abendsonne; da alle Clean Plates bei diffusem Licht entstanden, ist diese Stufe der einzige -- approximative -- Ersatz für die fehlende Beleuchtungsvielfalt. Anders als in T3 wirkt sie auf das gesamte Bild und verschiebt deshalb auch den Hellwert. & A \\
+Defokus $\sigma$ 0,3--1,0\px & 34,9\,\% & Der Autofokus trifft bei Stapelaufnahmen oft die falsche Ebene; Defokusunschärfe zählt zu den Standardkorruptionen der Robustheitsliteratur \parencite{hendrycks2019}. & L \\
 Bewegungsunschärfe, Kern 3--8\px & 9,9\,\% & Verwacklung aus der Hand; niedriger Anteil, weil moderne Mobiltelefone kurz belichten (Annahme). & A \\
-Sensorrauschen $\sigma$ 1,0--5,0 & 80,1\,\% & Vereinheitlicht das Rauschniveau über das ganze Bild; Training mit Rauschen wirkt zugleich als Tikhonov-Regularisierung \parencite{bishop1995} und gehört zu den Standardkorruptionen \parencite{hendrycks2019}. & L \\
-Vignettierung 10--35\,\% & 25,0\,\% & Weitwinkelobjektive; erzwingt zusätzlich Positionsinvarianz der Helligkeit. \textbf{Anteil und Nutzen sind Annahme} -- anders als Unschärfe, Rauschen und JPEG gehört Vignettierung nicht zu den in der Robustheitsliteratur untersuchten Korruptionen. & A \\
+Sensorrauschen $\sigma$ 1,0--5,0 & 79,7\,\% & Vereinheitlicht das Rauschniveau über das ganze Bild; Training mit Rauschen wirkt zugleich als Tikhonov-Regularisierung \parencite{bishop1995} und gehört zu den Standardkorruptionen \parencite{hendrycks2019}. & L \\
+Vignettierung 10--35\,\% & 25,8\,\% & Weitwinkelobjektive; erzwingt zusätzlich Positionsinvarianz der Helligkeit. \textbf{Anteil und Nutzen sind Annahme} -- anders als Unschärfe, Rauschen und JPEG gehört Vignettierung nicht zu den in der Robustheitsliteratur untersuchten Korruptionen. & A \\
 JPEG-Requantisierung $q \in [55, 95]$ & 85\,\%$^\ast$ & \textbf{Wichtigste unsichtbare Transformation:} Eingeklebte Pixel behalten sonst eine andere DCT-Blockstatistik als der bereits einmal komprimierte Hintergrund \parencite{wallace1992jpeg}; ein erneuter Durchlauf über das \emph{Gesamtbild} vereinheitlicht sie. Forensisch die belastbarste Einfügemarke \parencite{farid2009}. & L (S5) \\
 \addlinespace
 \multicolumn{4}{@{}l}{\textbf{T9 -- Negativbilder}}\\
@@ -322,7 +342,7 @@ erscheint halbtransparent und trägt ein volles Boxlabel. \\
 beschnittener Box \parencite{yun2019cutmix} -- Labels auf Fragmenten, die die
 Sichtbarkeitsregel des Generators bei 30\,\% aussortiert
 (Abschnitt~\ref{sec:sichtbarkeit}). Die Flächenwahl findet auf den 6000
-erzeugten Bildern in 67,7\,\% der Positivbilder eine boxfreie Fläche
+erzeugten Bildern in 67,3\,\% der Bilder mit mindestens einem Label eine boxfreie Fläche
 (\code{src/cutmix\_flaechen.py}); beide Angaben beziehen sich auf
 Ultralytics~8.4.117 und sind implementierungsabhängig. Verdeckung entsteht
 stattdessen im Generator physikalisch korrekt. \\
@@ -344,16 +364,16 @@ korrekter Sichtbarkeitsrechnung leistet. \\
 \begin{figure}[htbp]
 \centering
 \begin{subfigure}{0.245\textwidth}
-  \includegraphics[width=\textwidth]{abbildungen/synth_000.jpg}
+  \includegraphics[width=\textwidth]{abbildungen/synth_001.jpg}
 \end{subfigure}\hfill
 \begin{subfigure}{0.245\textwidth}
-  \includegraphics[width=\textwidth]{abbildungen/synth_001.jpg}
+  \includegraphics[width=\textwidth]{abbildungen/synth_002.jpg}
 \end{subfigure}\hfill
 \begin{subfigure}{0.245\textwidth}
   \includegraphics[width=\textwidth]{abbildungen/synth_003.jpg}
 \end{subfigure}\hfill
 \begin{subfigure}{0.245\textwidth}
-  \includegraphics[width=\textwidth]{abbildungen/synth_004.jpg}
+  \includegraphics[width=\textwidth]{abbildungen/synth_005.jpg}
 \end{subfigure}
 \caption[Beispiele synthetischer Trainingsbilder]{Vier synthetische
 Trainingsbilder mit den erzeugten Labels. Erkennbar sind die Clusterstruktur des
@@ -425,7 +445,7 @@ Zweitbox verdeckt die Trefferbox deshalb im Bild.
 \zfpDoppelTest{} Zweitboxen. \emph{Unten} \code{val} ($c^* = \zrefValConf$):
 \zfnVal{} Falsch-Negative, \zfpVal{} Falsch-Positive bei 98 annotierten
 Stirnflächen, davon \zfpDoppelVal{} Zweitbox. Die getrennte Einfärbung ist
-nötig, weil auf \code{test} alle Falsch-Positiven auf einem echten Rohr sitzen:
+nötig, weil auf \code{test} die meisten Falsch-Positiven auf einem echten Rohr sitzen:
 Der YOLO26-Kopf arbeitet Ende-zu-Ende, es läuft keine NMS -- der
 Inferenzparameter \code{iou} bleibt damit ohne Wirkung --, und nach der
 COCO-Regel darf jede Stirnfläche nur einmal getroffen werden. Erzeugt mit
