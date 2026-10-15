@@ -13,7 +13,7 @@ Nachgebildet sind _rand_bbox und die Bedingung aus get_params:
     brauchbar, wenn die Summe der Ueberlappungsflaechen null ist
 
 Aufruf (aus dem Projektwurzelverzeichnis):
-    .venv/bin/python src/cutmix_flaechen.py [--labels synth/train/labels]
+    .venv/bin/python src/cutmix_flaechen.py [--labels <Datensatz>/labels]
 """
 from __future__ import annotations
 
@@ -22,6 +22,8 @@ import glob
 import os
 
 import numpy as np
+
+from laeufe import REFERENZ
 
 
 def rand_bbox(rng, w, h, beta):
@@ -47,7 +49,8 @@ def boxen(pfad, w, h):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--labels", default="synth/train/labels")
+    ap.add_argument("--labels",
+                    default=os.path.join(REFERENZ["daten"], "labels"))
     ap.add_argument("--canvas", type=int, default=1024)
     ap.add_argument("--num-areas", type=int, default=3)
     ap.add_argument("--beta", type=float, default=1.0)

@@ -69,12 +69,14 @@ die Läufe von der momentanen Fremdlast abhängig und damit unvergleichbar
 (Belegung der Karte in Abschnitt~\ref{sec:anhangrepro}).
 
 \absatz{Modellwahl.} Durchgängig verwendet wird \code{yolo26s-p2} mit
-9,66~Millionen Parametern. Die \emph{Größe} \enquote{s} folgt aus der Datenlage:
-Der Datensatz hat nur eine Klasse und neun zugrunde liegende Objektinstanzen,
-die Formvielfalt und damit die nötige Modellkapazität sind also klein. Die
-\enquote{nano}-Variante verliert bei 12--40\px{} großen Objekten Rückruf,
-größere Varianten würden die synthetischen Eigenheiten eher auswendig lernen
-\parencite{zhang2017rethinking}. Der \emph{P2-Kopf} folgt aus der
+9,66~Millionen Parametern. Die \emph{Größe} \enquote{s} ist gesetzt und nicht
+durch einen Vergleich bestimmt; kleinere oder größere Varianten wurden nicht
+trainiert. Begründet ist sie allein mit der Datenlage: Der Datensatz hat nur
+eine Klasse und sechs zugrunde liegende Objektinstanzen, die Formvielfalt ist
+also klein, und tiefe Netze haben genug Kapazität, um selbst zufällige Labels
+auswendig zu lernen \parencite{zhang2017rethinking}. Dass ein größeres Modell
+deshalb die synthetischen Eigenheiten eher lernt und schlechter auf reale Bilder
+überträgt, ist eine Annahme. Der \emph{P2-Kopf} folgt aus der
 Auflösungsrechnung in Abschnitt~\ref{subsec:kleine-objekte}. Er halbiert den
 Stride der feinsten Detektionsebene von 8 auf 4 und senkt damit die kritische Größe
 $S\sqrt{2}$ aus Gleichung~\eqref{eq:gridmiss} von 11,3 auf 5,7\px. Beim nativen
@@ -150,8 +152,9 @@ Ausschnitt liegen, mit entsprechend beschnittener Box \parencite{yun2019cutmix}.
 So entstehen Labels auf Objektresten bis hinab zu einem Zehntel der Fläche,
 also genau das, was die Sichtbarkeitsregel des Generators mit ihrer Grenze von
 30\,\% aussortiert (Abschnitt~\ref{sec:sichtbarkeit}). Selten wäre das nicht:
-Auf den 6000 erzeugten Bildern findet die Werkzeugkette in 67,7\,\% der
-Positivbilder eine boxfreie Fläche (\code{src/cutmix\_flaechen.py}).
+Auf den 6000 erzeugten Bildern findet die Werkzeugkette in 67,3\,\% der
+Bilder mit mindestens einem Label eine boxfreie Fläche
+(\code{src/cutmix\_flaechen.py}).
 \code{erasing} und \code{copy\_paste} entfallen, weil der Generator beides
 physikalisch korrekt übernimmt. Die vollständige Tabelle mit Begründung je
 Parameter steht im Anhang (Tabelle~\ref{tab:trainaug}).
@@ -181,7 +184,8 @@ Drei Beobachtungen sind unabhängig vom Ausgang der Ablation.
 
 \emph{Erstens} fällt der Trainingsverlust bis zur letzten Epoche, von kleinen
 Schwankungen abgesehen, während die Metrik auf dem realen \code{val}-Bild
-deutlich früher flach wird. Das ist der
+deutlich früher flach wird und beim naiv eingeklebten Arm nach ihrem Höchstwert
+in Epoche~9 sogar wieder sinkt. Das ist der
 Sim-to-Real-Abstand in zeitlicher Form: Ab dem Knick verbessert das Modell
 überwiegend seine Anpassung an Eigenschaften der synthetischen Daten, die in der
 Zieldomäne nicht gelten. Deshalb ist es methodisch notwendig, das beste
@@ -190,7 +194,7 @@ Validierung wählte das Modell aus der letzten Epoche und damit das am stärkste
 überangepasste.
 
 \emph{Zweitens} liegt der Trainingsverlust des naiv eingeklebten Arms (C1)
-in jeder Epoche unter dem der Kontrolle (C0), obwohl beide Arme aus derselben
+ab der zweiten Epoche unter dem der Kontrolle (C0), obwohl beide Arme aus derselben
 Layoutverteilung ziehen und fast gleich viele Objekte labeln. Das ist für sich
 genommen kein Qualitätsurteil -- ein niedriger Trainingsverlust auf
 synthetischen Daten sagt nichts über die Zieldomäne --, aber es zeigt, dass der
