@@ -123,7 +123,7 @@ verdecken zufällig gewählte Bildbereiche, damit das Modell auch mit
 unvollständiger Information zurechtkommt. In den Stapelaufnahmen ist Verdeckung
 aber keine künstliche Störung, denn die Stirnflächen werden dort tatsächlich von
 Rohren, Gitterstäben und Schatten verdeckt. Die Pipeline löscht deshalb keine
-zufälligen Rechtecke, sondern fügt plausible Verdecker in die Szene ein. So
+zufälligen Rechtecke, sondern fügt plausible Okkluder in die Szene ein. So
 lassen sich Form und Lage der Verdeckung, der sichtbare Teil jedes Objekts und
 das Zusammenspiel von Vorder- und Hintergrund gezielt steuern.
 
@@ -277,7 +277,7 @@ lernt systematisch zu große Boxen.
 Im Generator tritt dieses Problem nicht auf, weil er die Box nach der Drehung
 direkt aus der gedrehten Objektmaske bestimmt; welche Transformationen deshalb
 im Generator und welche im Training liegen, regelt
-Abschnitt~\ref{sec:leitprinzip}.
+Abschnitt~\ref{sec:arbeitsteilung}.
 
 \absatz{Kleine Objekte, Auflösung und Labelzuweisung.}\label{subsec:kleine-objekte}
 Wie viele Positionen einer Merkmalsebene auf ein Objekt fallen, hängt davon ab,

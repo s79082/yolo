@@ -27,34 +27,14 @@ Dieses Kapitel vermisst zuerst das verfügbare Quellmaterial und beschreibt dann
 die Pipeline, die daraus, also aus sechs Objektausschnitten und sieben
 Hintergrundaufnahmen, den Trainingsdatensatz erzeugt.
 Abbildung~\ref{abb:pipeline} zeigt, woher die Bausteine kommen und in welcher
-Reihenfolge die Stufen ablaufen. Die Anteile in Tabelle~\ref{tab:parameter}
-sind keine konfigurierten Sollwerte, sondern \emph{gemessene} Ist-Werte aus dem
-Erzeugungsbericht \code{synth/bereinigt\_train/generation\_report.json} über
-6000 Bilder mit 173\,075 gerenderten Instanzen und 135\,991 gelabelten Objekten.
+Reihenfolge sie verarbeitet werden.
 
-\input{kapitel/kapitel_datengrundlage}
-
-\section{Leitprinzip und Arbeitsteilung}
-\label{sec:leitprinzip}
-
-\absatz{Leitprinzip.} Die Pipeline verfolgt vor allem ein Ziel: Sie soll
-\emph{jede Abkürzung schließen, über die ein CNN \enquote{hier wurde etwas
-eingeklebt} statt \enquote{hier ist ein Rohrende} lernen könnte.} Wie in
+Die Pipeline verfolgt vor allem ein Ziel: Sie soll \emph{jede Abkürzung
+schließen, über die ein CNN \enquote{hier wurde etwas eingeklebt} statt
+\enquote{hier ist ein Rohrende} lernen könnte.} Wie in
 Abschnitt~\ref{sec:sim2real} begründet, liegt die größte Gefahr bei
 Copy-Paste-Synthese nicht in zu wenig Variation, sondern im systematischen
 Unterschied zwischen eingefügten und originalen Pixeln.
-
-\absatz{Arbeitsteilung.} Aus Anforderung~A1 folgt, wo eine Transformation
-ausgeführt wird. Der \textbf{Generator} übernimmt alles, was \emph{pro Instanz}
-wirkt und bei dem die Box aus der transformierten Alphamaske neu bestimmt
-werden muss: Rotation über den vollen Kreis, Ovalisierung, Delle, Perspektive,
-Photometrie, Verdeckung und Sichtbarkeitsrechnung. Die
-\textbf{Trainingszeit-Augmentierung} übernimmt alles, was \emph{bildweit} wirkt
-und die Boxen nicht verfälscht: Mosaic, Skalierung, Translation, Spiegelung und
-HSV-Variation. Im Training stehen deshalb \code{degrees}, \code{shear} und
-\code{perspective} auf~0, weil sie achsparallele Boxen aufweiten würden
-(Abschnitt~\ref{subsec:aabb-rotation}). Die entsprechenden Invarianzen fehlen
-damit nicht, sie werden nur an anderer Stelle und mit exakten Labels erzeugt.
 
 \begin{figure}[htbp]
 \centering
@@ -68,11 +48,11 @@ damit nicht, sie werden nur an anderer Stelle und mit exakten Labels erzeugt.
   ar/.style={-{Latex[length=1.8mm]},semithick,gray!60!black}]
   \node[box]   (cut)   at (0,1.15)  {6 Objekt-\\ausschnitte};
   \node[box]   (bg)    at (0,-1.15) {7 Hintergrund-\\aufnahmen};
-  \node[stage] (mat)   at (2.8,1.15) {\textbf{Stufe 1}\\Matting};
-  \node[stage] (occ)   at (2.8,-1.15){\textbf{Stufe 2}\\Okkluder};
+  \node[stage] (mat)   at (2.8,1.15) {\textbf{Freistellen}};
+  \node[stage] (occ)   at (2.8,-1.15){\textbf{Schäfte}\\ausschneiden};
   \node[box]   (masks) at (5.5,1.15) {6 Alphamasken\\(1,1\,px Kante)};
   \node[box]   (bars)  at (5.5,-1.15){55 echte\\Rohrschäfte};
-  \node[stage] (syn)   at (8.3,0)    {\textbf{Stufe 3}\\Synthese\\T1--T9};
+  \node[stage] (syn)   at (8.3,0)    {\textbf{Synthese}\\T1--T9};
   \node[erg]   (ds)    at (11.1,0)   {6000 Bilder\\135\,991 Labels};
   \draw[ar] (cut) -- (mat);   \draw[ar] (bg)  -- (occ);
   \draw[ar] (mat) -- (masks); \draw[ar] (occ) -- (bars);
@@ -82,16 +62,19 @@ damit nicht, sie werden nur an anderer Stelle und mit exakten Labels erzeugt.
   \node[font=\scriptsize,gray!50!black,fill=white,inner sep=1.5pt]
         at (4.0,-2.2) {Hintergründe zusätzlich direkt};
 \end{tikzpicture}
-\caption[Aufbau der Pipeline]{Herkunft der Bausteine und Reihenfolge der Stufen;
-Abbildung~\ref{abb:stufen} zeigt anschließend die Wirkung jeder Stufe. Die
-Stufenfolge T1--T9 ist fest; der Zufall liegt allein in den Stufenparametern.}
+\caption[Aufbau der Pipeline]{Herkunft der Bausteine und Ablauf der Pipeline;
+Abbildung~\ref{abb:stufen} zeigt anschließend die Wirkung der Synthesestufen
+T1--T9. Ihre Reihenfolge ist fest; der Zufall liegt allein in den
+Stufenparametern.}
 \label{abb:pipeline}
 \end{figure}
 
-\section{Vorstufen: Freistellen und Okkluder-Bibliothek}
+\input{kapitel/kapitel_datengrundlage}
+
+\section{Vorbereitung des Quellmaterials: Alphamasken und Rohrschäfte}
 \label{sec:matting}
 
-\absatz{Stufe 1 -- Matting.} Alle sechs Ausschnitte sind rechteckig
+\absatz{Freistellen.} Alle sechs Ausschnitte sind rechteckig
 (Befund~1); direkt eingefügt, erzeugten sie Signatur~S1. Freigestellt wird
 deshalb mit einem Ellipsenmodell $(c_x, c_y, r_x, r_y, \theta)$, das zuerst grob
 auf einem Raster und dann numerisch an die radiale Kantenenergie angepasst wird
@@ -113,12 +96,12 @@ Hintergrund einschließen. Das Ergebnis sind weiche Alphamasken mit rund
 1,1\px{} Übergangsbreite. Das ist gewollt, denn auch in einer realen Aufnahme
 hat ein 25\px{} großes Objekt keine pixelscharfe Kontur.
 
-\absatz{Stufe 2 -- Okkluder.} Ein prozedural \emph{gezeichneter} Balken hätte
+\absatz{Rohrschaft-Bibliothek.} Ein prozedural \emph{gezeichneter} Balken hätte
 eine andere Textur-, Rausch- und Glanzstatistik als der Rest des Bildes. Das
 Netz könnte dann \enquote{Objekt liegt neben künstlichem Balken} lernen, eine
 Abkürzung der Art S2--S4. Die vier Clean Plates zeigen dagegen echte
 Rohrschäfte aus demselben Material, mit echter Textur, echtem Sensorrauschen und
-echten Glanzlichtern. Aus ihnen werden die Okkluder gewonnen. Zuerst wird die dominante
+echten Glanzlichtern. Aus ihnen wird die Bibliothek gewonnen. Zuerst wird die dominante
 Rohrrichtung über den Struktur-Tensor bestimmt \parencite{jaehne2005} und das
 Bild entsprechend gedreht (gemessen $+0{,}9$, $+0{,}5$, $+0{,}9$ und
 $+0{,}2$ Grad). Ein Hochpass auf dem mittleren Zeilenprofil liefert dann die
@@ -131,18 +114,23 @@ echten Glanzlichtern. Sie dienen als Schaft \emph{hinter} der Stirnfläche
 (Tabelle~\ref{tab:parameter}, T5, 88\,\% der Instanzen) und als Okkluder
 \emph{vor} dem Stapel (T6, 59\,\% der Bilder).
 
-Der Umweg über echte Aufnahmen kostet eine eigene Verarbeitungsstufe und
-bindet die Bibliothek an die vier vorhandenen Clean Plates. Ein prozedural
-gezeichneter Balken ließe sich dagegen mit wenigen Zeilen Code in beliebiger
-Zahl erzeugen. Gerechtfertigt ist der Aufwand nur durch das oben genannte
-Argument, und dieses Argument ist eine \emph{Annahme}: Es benennt eine
-plausible Abkürzung, misst sie aber nicht, und auch diese Arbeit prüft es nicht
-experimentell. Befund~8 in Tabelle~\ref{tab:befunde} hat deshalb die Belegart
-\emph{P/A}: Dass hinter der Stirnfläche ein Schaft steht, ist physikalisch
-zwingend; \emph{woraus} er bestehen sollte, ist nur begründet und nicht belegt.
+Gerechtfertigt ist dieser Umweg, der einen eigenen Verarbeitungsschritt kostet
+und die Bibliothek an die vier Clean Plates bindet, nur durch das genannte
+Argument, und das ist eine \emph{Annahme}: Es benennt eine plausible Abkürzung,
+die auch diese Arbeit nicht experimentell prüft. Befund~8 in
+Tabelle~\ref{tab:befunde} hat deshalb die Belegart \emph{P/A}: Dass hinter der
+Stirnfläche ein Schaft steht, ist physikalisch zwingend, \emph{woraus} er
+besteht, nur begründet.
 
-\section{Stufe 3 -- Bildsynthese}
+\section{Bildsynthese}
 \label{sec:synthese}
+
+\absatz{Arbeitsteilung.}\label{sec:arbeitsteilung} Aus Anforderung~A1 folgt,
+wo eine Transformation ausgeführt wird. Der Generator übernimmt alles, was
+\emph{pro Instanz} wirkt und bei dem die Box aus der transformierten Alphamaske
+neu bestimmt werden muss, darunter die Rotation über den vollen Kreis, die
+Perspektive und die Verdeckung. Das Training ergänzt nur, was \emph{bildweit}
+wirkt und die Boxen nicht verfälscht (Abschnitt~\ref{sec:trainparam}).
 
 Die Leinwand ist $1024\times1024$ Pixel groß, genau wie die
 Trainingsauflösung. Nach Anforderung~A2 ist das gewollt: Die synthetischen
@@ -158,8 +146,9 @@ Die Synthese läuft in neun Stufen ab: Hintergrund (T1), Instanzgeometrie (T2),
 Photometrie (T3), Layout (T4), Rohrschaft (T5), Okklusion (T6),
 Sichtbarkeitsrechnung (T7), globale Bildstufe (T8) und Negativbilder (T9).
 Tabelle~\ref{tab:parameter} im Anhang führt alle 37 Transformationen dieser
-Stufen mit Parameterbereich, gemessenem Ist-Anteil, Begründung und Belegart
-auf.
+Stufen mit Parameterbereich, Begründung und Belegart auf; ihre Anteile sind
+keine Sollwerte, sondern im Erzeugungsbericht gezählte Ist-Werte
+(Abschnitt~\ref{sec:anhangbericht}).
 
 \begin{figure}[htbp]
 \centering
@@ -221,23 +210,20 @@ Der Zielbereich $[d_{\min}, d_{\max}] = [12, 44]$\px{} reicht vom
 (35,8\px) plus rund 25\,\% Reserve (Tabelle~\ref{tab:statistik}, Befund~5). Die Deckelung
 $[z_{\min}, z_{\max}] = [0{,}55;\,2{,}20]$ ist \emph{gesetzt}. Sie verhindert,
 dass eine Clean Plate bis zur Unkenntlichkeit vergrößert wird oder so stark
-verkleinert, dass ihre Rohre zu einer bloßen Textur werden
-(Tabelle~\ref{tab:parameter}). Der Rohrdurchmesser $d_{\text{Rohr}}$ wird für
-jede Clean Plate einzeln über den Struktur-Tensor gemessen
-(\code{src/occluders.py}, Abschnitt~\ref{sec:matting}). So sind Objektgröße und
-Hintergrundmaßstab gekoppelt, wie es Anforderung~A3 verlangt. Dass die
-Stirnflächen dabei denselben Durchmesser bekommen wie die Rohre im Hintergrund,
-ist eine Annahme: Die seitlichen Rahmenrohre, deren Stirnflächen detektiert
-werden, müssen nicht genauso dick sein wie die Rohre der Clean Plates.
+verkleinert, dass ihre Rohre zu einer bloßen Textur werden. Der
+Rohrdurchmesser $d_{\text{Rohr}}$ wird für jede Clean Plate einzeln über den
+Struktur-Tensor gemessen (\code{src/occluders.py}, Abschnitt~\ref{sec:matting}).
+So sind Objektgröße und Hintergrundmaßstab gekoppelt, wie es Anforderung~A3
+verlangt. Dass die Stirnflächen dabei denselben Durchmesser bekommen wie die
+Rohre im Hintergrund, ist eine Annahme (Tabelle~\ref{tab:parameter}, T1).
 
-Die Deckelung hat eine Nebenwirkung. Bei den beiden Clean Plates mit 16 und
-18\px{} Rohrdurchmesser greift die obere Grenze $z_{\max}$, sodass
-Basisdurchmesser über 39,6\px{} nur auf den beiden anderen entstehen. Am oberen
-Ende hängt die Objektgröße damit vom gewählten Hintergrund ab, also genau die
-Art von Zusammenhang, die das Netz als Abkürzung nutzen könnte. Die erzeugte
-Größenverteilung endet deshalb bei gut 40 statt 44\px{} (p95 der erzeugten
-Verteilung: 40,4\px). Die untere Grenze $z_{\min}$ greift nie. Für
-die drei Fremdszenen ist Gleichung~\eqref{eq:zoom} nicht definiert, weil sie
+Die Deckelung hat eine Nebenwirkung: Bei den Clean Plates mit 16 und 18\px{}
+Rohrdurchmesser greift $z_{\max}$, Basisdurchmesser über 39,6\px{} entstehen
+unter den Clean Plates also nur auf den beiden anderen. Am oberen Ende hängt
+die Objektgröße damit vom Hintergrund ab, genau die Art von Zusammenhang, die
+das Netz als Abkürzung nutzen könnte; das p95 der erzeugten Größen liegt
+deshalb bei 40,4 statt nahe 44\px. Die untere Grenze $z_{\min}$ greift nie. Auf
+den drei Fremdszenen ist Gleichung~\eqref{eq:zoom} nicht definiert, weil sie
 keine Rohrschäfte zeigen; dort werden Zoom und Objektgröße unabhängig gezogen
 (Tabelle~\ref{tab:parameter}).
 
@@ -274,10 +260,8 @@ Reinhard-Transfer. Er wird nicht verwendet, weil er den Albedo-Unterschied
 zwischen dunkler Bohrung und hellem Kranz einebnen würde, an dem das Objekt
 überhaupt zu erkennen ist. Angeglichen werden
 soll nur der Unterschied in Beleuchtung und Weißabgleich, nicht die Objektfarbe
-selbst. Begründet ist damit die \emph{Richtung} des Angleichs, nicht seine
-Stärke: Die vier Grenzen der Angleichstärken sind Sollwerte aus
-\code{src/generate.py} und in Tabelle~\ref{tab:parameter} als Annahme
-gekennzeichnet.
+selbst; die vier Grenzen der Angleichstärken sind gesetzt
+(Tabelle~\ref{tab:parameter}).
 
 \absatz{Rauschschätzung.} Das lokale Rauschniveau wird als Streuung des
 Hochpassrests geschätzt, $\hat{\sigma} = \operatorname{std}(g -
@@ -286,9 +270,8 @@ geht ohne Normierungsfaktor nur als \emph{relatives} Maß ein: Eingefügt wird
 Rauschen der Stärke $\max(0{,}5,\,\hat{\sigma}\cdot\mathcal{U}[0{,}5;\,1{,}25])$.
 Die Untergrenze von 0,5 und die Begrenzung von $\sigma_b/\sigma_i$ auf
 $[0{,}6;\,1{,}6]$ fangen nur entartete Schätzwerte ab, etwa bei einem völlig
-gleichmäßigen Hintergrundfleck; sie sagen nichts über die Zieldomäne aus und
-zählen nicht zu den in Tabelle~\ref{tab:parameter} bilanzierten
-Parameterwerten.
+gleichmäßigen Hintergrundfleck, und zählen deshalb nicht zu den in
+Tabelle~\ref{tab:parameter} bilanzierten Werten.
 
 \absatz{Layoutmodell.} Die Objektzentren eines Clusters mit Basisdurchmesser
 $d_0$ liegen auf einem schiefwinkligen Gitter mit zufälligen Abweichungen:
@@ -313,20 +296,16 @@ Berührungsquote (Tabelle~\ref{tab:kalibrierung}; Belegart je Wert in
 Tabelle~\ref{tab:parameter}, Block T4). Der Winkelbereich ist am Histogramm
 der realen Nachbarrichtungen ausgerichtet, aber gesetzt; mit den erzeugten
 Richtungen verglichen wurde er nicht. Ohne den Rauschterm
-$\boldsymbol{\epsilon}_{ij}$ entstünden sichtbar künstliche Reihen. Die Form
-dieses Terms ist dagegen eine vereinfachende Annahme: Jede Gitterlage wird
-unabhängig von ihren Nachbarn und in alle Richtungen gleich stark
-normalverteilt verschoben. Ein Gitter mit unabhängigen, identisch verteilten
-Verschiebungen heißt in der Theorie der Punktprozesse \emph{gestörtes Gitter}
-(\emph{perturbed lattice}); definiert ist es etwa in Beispiel~2.11 bei
-\textcite{holroyd2013}.
-\textcite{flimmel2026} verwendet in Abschnitt~4.4 dieselbe Variante mit
-$\mathcal{N}(\mathbf{0}, \sigma^2\mathbf{I})$ als Modell mit nur einem
-Parameter; im Fazit derselben Arbeit (Abschnitt~5) gelten gestörte Gitter als
-leicht zu simulieren und zu kalibrieren, die unabhängig gestörte Variante als
-einfaches Basismodell für regelmäßige Punktmuster, und erst korrelierte
-Verschiebungen machen das Modell deutlich flexibler. Kalibriert wird hier nur die Stärke $\sigma_G$; ob die
-Abweichungen in den Realbildern tatsächlich unabhängig, isotrop und
+$\boldsymbol{\epsilon}_{ij}$ entstünden sichtbar künstliche Reihen. Seine Form
+ist eine vereinfachende Annahme: Jede Gitterlage wird unabhängig und in alle
+Richtungen gleich stark normalverteilt verschoben. Ein solches Gitter heißt in
+der Theorie der Punktprozesse \emph{gestörtes Gitter} (\emph{perturbed
+lattice}, Beispiel~2.11 bei \textcite{holroyd2013});
+\textcite{flimmel2026} verwendet diese Variante in Abschnitt~4.4 als Modell
+mit nur einem Parameter und nennt sie im Fazit (Abschnitt~5) ein einfaches
+Basismodell, das erst mit korrelierten Verschiebungen deutlich flexibler wird.
+Kalibriert wird hier
+nur $\sigma_G$; ob die realen Abweichungen unabhängig, isotrop und
 normalverteilt sind, wurde nicht geprüft. Die
 Untergrenze der Gitterabstände ist physikalisch begründet, denn zwei Rohre
 können sich nicht durchdringen; die zwei Prozent Spielraum darunter folgen aus
@@ -353,16 +332,12 @@ Das Produkt läuft über \emph{alle} später gezeichneten Schichten, also auch
 
 Ein Label wird verworfen, wenn weniger als 30\,\% des Objekts sichtbar sind,
 wenn weniger als 15\,\% seiner Fläche im Bild liegen oder wenn die sichtbare
-Box kleiner als 5\px{} ist. Nach denselben Regeln wurden auch \code{val} und
-\code{test} annotiert (Anforderung~A1). Ein Objekt ohne Label bleibt im Bild
+Box kleiner als 5\px{} ist. Die Schwellen sind gesetzt; sie übertragen die
+Annotationsdefinition aus Abschnitt~\ref{sec:annotation}, nach der
+ausschließlich die sichtbare Stirnfläche annotiert ist, auf verdeckte und
+angeschnittene Instanzen (Anforderung~A1). Ein Objekt ohne Label bleibt im Bild
 und ist an dieser Stelle ein korrektes hartes Negativ. Vergeben wird immer die
 \emph{modale} Box, also die Box um den sichtbaren Teil.
-
-Insgesamt werden 37\,084 der 173\,075 gerenderten Instanzen verworfen
-(21,4\,\%), die meisten wegen zu geringer Sichtbarkeit; die Aufschlüsselung
-nach Ursachen steht im Erzeugungsbericht (Abschnitt~\ref{sec:anhangbericht}).
-An genau diesen Stellen hätte ein Generator ohne Sichtbarkeitsrechnung ein
-falsches Label gesetzt.
 
 \section{Der erzeugte Datensatz}
 \label{sec:datensatz}
@@ -372,9 +347,11 @@ Alle Zahlen dieses Abschnitts stammen aus dem Erzeugungsbericht
 schreibt; Abschnitt~\ref{sec:anhangbericht} listet ihn vollständig auf.
 Es entstehen 6000 Bilder zu $1024\times1024$ Pixeln, davon 584 Negativbilder
 (9,7\,\%), mit 135\,991 gelabelten Objekten (22,7 je Bild über alle 6000, also
-25,1 je Positivbild) aus 173\,075 gerenderten Instanzen. Die mittlere
-Sichtbarkeit der gelabelten Objekte beträgt 89,9\,\%, 30,4\,\% von ihnen sind
-teilverdeckt.
+25,1 je Positivbild) aus 173\,075 gerenderten Instanzen. Die übrigen 37\,084
+Instanzen (21,4\,\%) verwirft die Sichtbarkeitsrechnung, die meisten wegen zu
+geringer Sichtbarkeit; an genau diesen Stellen hätte ein Generator ohne
+Sichtbarkeitsrechnung ein falsches Label gesetzt. Die mittlere Sichtbarkeit der
+gelabelten Objekte beträgt 89,9\,\%, 30,4\,\% von ihnen sind teilverdeckt.
 
 Ob der Datensatz brauchbar ist, zeigt weniger der optische Eindruck als der
 Vergleich seiner Statistik mit den Realbildern. Tabelle~\ref{tab:kalibrierung}
@@ -421,9 +398,9 @@ erste ist die Nachbarzahl: Die synthetischen Cluster sind dichter (13 statt 10
 Nachbarn innerhalb $5\,\Oe$, im Maximum 56 statt 20). Das ist bewusst so
 belassen, denn eine höhere Dichte bereitet den Detektor auf schwierigere Szenen
 vor, als er im Einsatz vorfindet. Die umgekehrte Abweichung wäre
-problematisch. Die zweite betrifft die Objektgröße: Am oberen Ende reicht die
-erzeugte Verteilung wegen der Zoomdeckelung nur bis gut 40\px{}
-(Abschnitt~\ref{sec:synthese}), am unteren fehlen die vier Objekte aus
+problematisch. Die zweite betrifft die Objektgröße: Oben dünnt die erzeugte
+Verteilung wegen der Zoomdeckelung ab etwa 40\px{} aus
+(Abschnitt~\ref{sec:modellentscheidungen}), unten fehlen die vier Objekte aus
 \code{test} unter 12\px; wie weit die Trainingsskalierung sie abdeckt, zeigt
 Abschnitt~\ref{sec:trainparam}.
 
@@ -439,30 +416,20 @@ Dass jede Instanz unabhängig gedreht wird,
 ist eine Annahme (Tabelle~\ref{tab:parameter}, T2). Ob die fehlende
 Vorzugsrichtung die Detektion beeinflusst, wurde nicht gemessen.
 
-\section{Nachweis der Anforderungen}
+\section{Umsetzung der Anforderungen}
 \label{sec:nachweis}
 
-Die sechs Anforderungen aus Abschnitt~\ref{sec:anforderungen} setzt die
-Pipeline so um: A1 über Boxen aus der transformierten Alphamaske und den
-Verzicht auf boxverfälschende Trainingsaugmentierung
-(Abschnitt~\ref{sec:leitprinzip}), A2 über die unskalierte Leinwand und die
-Maßstabskopplung, A3 über die Kopplung der Objektgröße an den Hintergrund, die
-Basisgröße je Cluster, die parallelen Schäfte und das Tiefenmodell
-(Abschnitt~\ref{sec:synthese}). Für A4 gibt es gegen jede Signatur aus
-Tabelle~\ref{tab:signaturen} eine Maßnahme: weiche Alphamaske mit
-weichgezeichneter Kante (S1), partieller Farbangleich (S2), flächentreue
-Skalierung und Unschärfeangleich (S3), Rauschangleich (S4),
-JPEG-Requantisierung (S5) sowie Schlagschatten und physikalische Verdeckung
-(S6); für die Verdecker selbst wirkt die photographische Okkluder-Bibliothek
-gegen S2 bis S4. A5 und A6 erfüllen Tabelle~\ref{tab:parameter}, die für jede
-Transformation Sollbereich, Ist-Anteil und Belegart nennt, und der
-Erzeugungsbericht zu jedem Datensatz; ohne Belegart bleiben nur die beiden
-numerischen Absicherungen der Rauschschätzung.
-
-Experimentell geprüft werden davon zwei. Für A1 misst
-Abschnitt~\ref{sec:boxversatz}, wie gut die erzeugten Boxen zur Handannotation
-passen; die Anforderung ist danach nur annähernd erfüllt. Die Maßnahmen für A4
-gegen S1 bis S5 schaltet die Ablation zusammen mit dem Schlagschatten als
-Bündel ab (Abschnitt~\ref{sec:ablationC}); die Herkunft der Verdecker bleibt
-ungeprüft. Wie viele der 44 Parameterwerte tatsächlich belegt sind,
+Die Anforderungen aus Abschnitt~\ref{sec:anforderungen} setzt die Pipeline so
+um: A1 über Boxen aus der transformierten Alphamaske und die Arbeitsteilung
+mit dem Training (Abschnitt~\ref{sec:arbeitsteilung}), A2 über die unskalierte
+Leinwand und die Maßstabskopplung, A3 über die Kopplung der Objektgröße an den
+Hintergrund, die Basisgröße je Cluster, die parallelen Schäfte und das
+Tiefenmodell, A4 über die Gegenmaßnahmen, die Spalte \emph{S} in
+Tabelle~\ref{tab:parameter} den Signaturen S1--S6 zuordnet, A5 und A6 über
+diese Tabelle selbst und den Erzeugungsbericht. Experimentell geprüft werden
+davon zwei. Für A1 misst Abschnitt~\ref{sec:boxversatz}, wie gut die erzeugten
+Boxen zur Handannotation passen; die Anforderung ist danach nur annähernd
+erfüllt. Die Maßnahmen für A4 gegen S1 bis S5 schaltet die Ablation zusammen
+mit dem Schlagschatten als Bündel ab (Abschnitt~\ref{sec:ablationC}); die
+Herkunft der Okkluder bleibt ungeprüft. Wie viele der 44 Parameterwerte tatsächlich belegt sind,
 bilanziert Abschnitt~\ref{sec:tragend}.

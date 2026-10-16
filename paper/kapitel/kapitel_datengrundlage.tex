@@ -19,10 +19,11 @@
 \section{Datengrundlage}
 \label{sec:daten}
 
-Alle Parameter der Pipeline berufen sich auf Messungen am verfügbaren
-Quellmaterial. Dieser Abschnitt dokumentiert sie. Sämtliche Zahlenwerte sind mit
-\code{src/analyze\_data.py} an den Quelldateien gemessen und in
-\code{docs/datensichtung.json} abgelegt.
+Dieser Abschnitt dokumentiert die Messungen am Quellmaterial, auf die sich die
+Pipeline stützt, und zeigt, welche Parameter keine Messung deckt. Die
+Labelstatistik und die Eigenschaften der Ausschnitte misst
+\code{src/analyze\_data.py} (Ausgabe \code{docs/datensichtung.json}); welches
+Programm die übrigen Werte erzeugt, nennt Abschnitt~\ref{sec:anhangrepro}.
 
 \absatz{Annotationsdefinition.}\label{sec:annotation} Vor jeder Messung steht die Frage, was ein Objekt ist. Aus der Sichtung der
 beiden handannotierten Realbilder ergibt sich eine Definition, die die gesamte
@@ -64,9 +65,9 @@ Objektausschnitte, die beiden anderen zeigen Stapel auf einem anderen Gelände;
 diese Fotos sind flächentreu so verkleinert, dass ihr Rohrdurchmesser im
 Bereich der beiden übrigen liegt (\code{src/clean\_plates.py}). Die Clean Plates
 liefern zugleich photometrisch passenden Kontext, das
-Rohmaterial für die Okkluder-Bibliothek und echte Negativbeispiele. Deshalb
+Rohmaterial für die Rohrschaft-Bibliothek und echte Negativbeispiele. Deshalb
 werden sie bevorzugt gezogen: In 80\,\% der Bilder stammt der Hintergrund aus
-dieser Gruppe, also 20\,\% je Clean Plate gegenüber 6,7\,\% je Fremdszene. Beim
+dieser Gruppe. Beim
 Hintergrund ähneln diese Trainingsbilder der Zieldomäne damit nicht nur, sie
 stammen aus ihr. Unterschiede in den Bildern (Abschnitt~\ref{sec:sim2real})
 entstehen dann vor allem beim Einfügen der Objekte (Signaturen~S1--S6).
@@ -168,7 +169,7 @@ Annahme.}
 \textbf{Befund / Messwert} & \textbf{abgeleiteter Parameter} & \textbf{Art} \\
 \midrule
 \textbf{1} Alphakanal durchgängig 255; 13--35\,\% Fremdkontext &
-eigene Matting-Stufe mit weicher Alphamaske (Signatur~S1) & M \\
+eigene Freistellung mit weicher Alphamaske (Signatur~S1) & M \\
 \textbf{2} drei dunkle, drei helle Bohrungen; Achsverhältnis der Ausschnitte
 0,84--1,14 &
 Gleichverteilung über alle sechs Ausschnitte; Ovalisierung überhaupt vorsehen & M/A \\
@@ -196,7 +197,7 @@ von \code{val}, das p90 von \code{test} wird damit nicht abgedeckt & M/A \\
 immer sichtbar &
 \emph{sichtbarer} Schaft bei 88\,\% der Instanzen (Tabelle~\ref{tab:parameter},
 T5), Anteil gewählt; Schaftmaterial aus der photographischen
-Okkluder-Bibliothek & P/A \\
+Rohrschaft-Bibliothek & P/A \\
 \textbf{9} NN-Abstand Median 1,11--1,26\,\Oe; 6,7\,\% angeschnittene Labels in
 \code{test} &
 Gitterabstände des Layoutmodells; Clusterzentrum darf außerhalb der Leinwand
