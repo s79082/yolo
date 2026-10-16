@@ -312,7 +312,21 @@ Median und p90 des NN-Abstands, der Winkelbereich das Histogramm der
 Nachbarrichtungen und $c_\sigma$ das p10 des NN-Abstands und die
 Berührungsquote (Tabelle~\ref{tab:kalibrierung}; Belegart je Wert in
 Tabelle~\ref{tab:parameter}, Block T4). Ohne den Rauschterm
-$\boldsymbol{\epsilon}_{ij}$ entstünden sichtbar künstliche Reihen. Die
+$\boldsymbol{\epsilon}_{ij}$ entstünden sichtbar künstliche Reihen. Die Form
+dieses Terms ist dagegen eine vereinfachende Annahme: Jede Gitterlage wird
+unabhängig von ihren Nachbarn und in alle Richtungen gleich stark
+normalverteilt verschoben. Ein Gitter mit unabhängigen, identisch verteilten
+Verschiebungen heißt in der Theorie der Punktprozesse \emph{gestörtes Gitter}
+(\emph{perturbed lattice}); definiert ist es etwa in Beispiel~2.11 bei
+\textcite{holroyd2013}.
+\textcite{flimmel2026} verwendet in Abschnitt~4.4 dieselbe Variante mit
+$\mathcal{N}(\mathbf{0}, \sigma^2\mathbf{I})$ als Modell mit nur einem
+Parameter; im Fazit derselben Arbeit (Abschnitt~5) gelten gestörte Gitter als
+leicht zu simulieren und zu kalibrieren, die unabhängig gestörte Variante als
+einfaches Basismodell für regelmäßige Punktmuster, und erst korrelierte
+Verschiebungen machen das Modell deutlich flexibler. Kalibriert wird hier nur die Stärke $\sigma_G$; ob die
+Abweichungen in den Realbildern tatsächlich unabhängig, isotrop und
+normalverteilt sind, wurde nicht geprüft. Die
 Untergrenze der Gitterabstände ist physikalisch begründet, denn zwei Rohre
 können sich nicht durchdringen; die zwei Prozent Spielraum darunter folgen aus
 der modalen Boxkonvention (Tabelle~\ref{tab:parameter}, T4). Das
