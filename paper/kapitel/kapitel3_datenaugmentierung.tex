@@ -439,8 +439,17 @@ null. Ein Abstand, der deutlich über die Messunsicherheit
 (Abschnitt~\ref{sec:bootstrap}) hinausgeht, zeigt deshalb, dass sich die
 Domänen unterscheiden. Ein kleiner Abstand beweist umgekehrt nicht, dass sie
 ähnlich sind, denn das Modell kann gegenüber den vorhandenen Unterschieden
-unempfindlich sein. Der Abstand verrät auch nicht, ob der Unterschied in den
-Bildern oder in den Beschriftungen liegt.
+unempfindlich sein. Ein Gedankenbeispiel: Angenommen, alle synthetischen Bilder
+hätten einen kräftigen Blaustich, den die realen nicht haben. Die
+Bildverteilungen unterscheiden sich dann offensichtlich,
+$\Dom{S}^{X} \neq \Dom{T}^{X}$. Stützt sich das Modell aber allein auf das
+Helligkeitsmuster aus hellem Kranz und dunkler Bohrung und nicht auf die Farbe,
+erkennt es die Rohrenden in beiden Domänen gleich gut, und der Abstand bleibt
+nahe null. Ein Modell, das die Farbe mitverwertet, könnte auf denselben Bildern
+dagegen einen deutlichen Abstand zeigen. Gemessen wird also nicht der
+Unterschied der Domänen selbst, sondern nur der Teil davon, auf den das
+jeweilige Modell reagiert. Der Abstand verrät auch nicht, ob der Unterschied in
+den Bildern oder in den Beschriftungen liegt.
 
 \absatz{Domain Randomization.} Ein verbreiteter Ansatz gegen einen großen
 Sim-to-Real-Abstand ist Domain Randomization. Die Parameter des Generators
