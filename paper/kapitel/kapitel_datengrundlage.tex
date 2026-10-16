@@ -150,8 +150,10 @@ zusammen, welcher Befund welchen Pipelineparameter festlegt. Sie verbindet die
 Messungen mit den Parametern der folgenden Abschnitte und zeigt zugleich,
 welche Parameter \emph{nicht} durch eine Messung gedeckt sind. Die Spalte
 \emph{Art} bezieht sich auf die Begründung des abgeleiteten Parameters, nicht
-auf die des Befunds. Eine Doppelangabe wie \emph{M/A} bedeutet, dass der Befund
-gemessen, der konkrete Zahlenwert des Parameters aber gewählt ist.
+auf die des Befunds. Ein einzelner Buchstabe steht nur, wenn die Quelle den
+Zahlenwert selbst festlegt. Eine Doppelangabe wie \emph{M/A} oder \emph{P/A}
+bedeutet, dass die Quelle das Verfahren begründet, der konkrete Zahlenwert des
+Parameters aber gewählt ist.
 
 \begin{table}[htbp]
 \centering
@@ -172,16 +174,20 @@ eigene Matting-Stufe mit weicher Alphamaske (Signatur~S1) & M \\
 Gleichverteilung über alle sechs Ausschnitte; Ovalisierung überhaupt vorsehen & M/A \\
 \textbf{3} vier Clean Plates der Zieldomäne; Maschendraht und Schotter in den
 Fremdszenen &
-80\,\% Ziehgewicht auf Clean Plates; 10\,\% Negativbilder (Gewichte gewählt) & M/A \\
+80\,\% Ziehgewicht auf Clean Plates, Fremdszenen als harte Negative (Gewicht
+gewählt) & M/A \\
 \textbf{4} Rohrdurchmesser der Clean Plates 16--21\px{} &
-Kopplung von Zoom und Objektgröße (Durchmesserverhältnis 1:1 gewählt) & M/A \\
+Kopplung von Zoom und Objektgröße; der gemessene Durchmesser ist Eingangsgröße,
+die Kopplung selbst ist physikalisch begründet (Durchmesserverhältnis 1:1
+gewählt) & P/A \\
 \textbf{5} Objektdurchmesser 6,4--35,8\px, p05 der beiden Splits 19,1 bzw.\
 12,2\px{} &
 Generatorbereich 12--44\px: untere Grenze $=$ p05 von \code{test}, obere
 $=$ Maximum $+\,25\,\%$ Reserve (Faktor gewählt) & M/A \\
 \textbf{6} Seitenverhältnis p10--p90 $=$ 0,82--1,40 &
 Ovalisierung bei 57\,\% der Instanzen, oblat:prolat $=$ 45:12; Quote als
-Anpassung an das p10--p90-Band gewählt & M/A \\
+Anpassung an das p10--p90-Band gewählt; die Vorzugsrichtung hebt die
+anschließende Rotation wieder auf (Abschnitt~\ref{sec:datensatz}) & M/A \\
 \textbf{7} Größenverhältnis zum Nachbarn: Median 1,05, p90 1,18 (\code{val});
 Median 1,07, p90 1,38 (\code{test}) &
 eine Basisgröße pro Cluster, je Instanz nur $\pm 8\,\%$; abgeleitet aus dem p90
@@ -200,8 +206,8 @@ liegen, Randregel 15\,\% (Wert gewählt) & M/A \\
 Anteil verformter Profile (18\,\%), Schrägansicht (30\,\%), Schlagschatten
 (49\,\%) & A \\
 \textbf{11} je \emph{ein} Bild pro Split &
-Bootstrap-Konfidenzintervalle statt Punktschätzungen
-(Abschnitt~\ref{sec:bootstrap}) & M \\
+räumlicher Block-Bootstrap statt Punktschätzungen \parencite{kuensch1989}
+(Abschnitt~\ref{sec:bootstrap}) & L \\
 \bottomrule
 \end{tabularx}
 \end{table}

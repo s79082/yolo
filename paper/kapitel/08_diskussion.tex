@@ -20,21 +20,29 @@ dem Bootstrap-Intervall; NMS-Schwelle und Test-Time-Augmentation bleiben beim
 Ende-zu-Ende-Kopf wirkungslos, und \code{max\_det} verändert ab 100 den
 Betriebspunkt und ab 200 auch \mAPfifty{} nicht mehr.
 \textbf{An der erzeugten Verteilung kalibriert} sind Objektgrößenbereich,
-Ovalisierungsanteil, Gitterabstände, die Basisgröße je Cluster, das
-Tiefenmodell 75/25 und die Randregel: Die erzeugte Statistik trifft die reale
+Gitterabstände und Gitterrauschen, die Basisgröße je Cluster und das
+Tiefenmodell 75/25: Die erzeugte Statistik trifft die reale
 (Tabelle~\ref{tab:kalibrierung}), ihr Nutzen für die Detektion ist damit aber
-nicht gemessen. \textbf{Nur begründet} sind alle übrigen Entscheidungen,
-darunter die Herkunft der Okkluder, die Matting-Schwelle, Gamma, HSV, Mulde,
-globale Bildstufe, Negativbildanteil sowie Dellen- und Perspektivanteil.
+nicht gemessen. Für den Ovalisierungsanteil war dasselbe beabsichtigt; die
+erzeugte Verteilung verfehlt die reale aber, weil die anschließende Rotation
+die Vorzugsrichtung der Ellipsen aufhebt (Abschnitt~\ref{sec:datensatz}).
+\textbf{Nur begründet} sind alle übrigen Entscheidungen, darunter die Herkunft
+der Okkluder, die Matting-Schwelle, Gamma, HSV, Mulde, Randregel, globale
+Bildstufe, Negativbildanteil sowie Dellen- und Perspektivanteil.
 
 \absatz{Bilanz der Begründungen.} Die Zielsetzung hatte drei zulässige Quellen
 festgelegt und für alles andere die Kennzeichnung als Annahme verlangt.
 Tabelle~\ref{tab:parameter} dokumentiert 37 Transformationen mit 44
-Parameterwerten: 7 sind an den Realdaten gemessen, 8 literaturgestützt, 2
-physikalisch begründet, 11 gemischt und \textbf{16 ausdrücklich als Annahme
-gekennzeichnet}. Rund 64\,\% sind damit auf eine der drei zulässigen Quellen
-zurückgeführt -- die elf gemischten allerdings nur zur Hälfte --, 36\,\% sind
-Annahmen. Diese Bilanz ist nicht nebensächlich: Bei rein synthetischen Trainingsdaten
+Parameterwerten. Nur bei 5 davon legt eine zulässige Quelle den Zahlenwert
+selbst fest: 2 sind gegen die Realmessung kalibriert (Gitterrauschen,
+Tiefenmodell), 1 ist literaturgestützt (Zufallsausschnitt), 1 folgt aus einer
+Symmetrie (horizontale Spiegelung) und 1 aus einer physikalischen Untergrenze
+mit gemessenen Obergrenzen (Gitterabstände). Bei 22 weiteren begründet eine
+Quelle das Verfahren, der Zahlenwert ist aber gesetzt (8 \emph{M/A}, 6
+\emph{P/A}, 8 \emph{L/A}), und \textbf{17 sind ausdrücklich als Annahme
+gekennzeichnet}. Rund 61\,\% der Werte stützen sich damit wenigstens teilweise
+auf eine der drei zulässigen Quellen, als Zahlenwert belegt sind aber nur
+11\,\%; 39\,\% sind reine Annahmen. Diese Bilanz ist nicht nebensächlich: Bei rein synthetischen Trainingsdaten
 ist die Liste dieser 44 Werte die vollständige Beschreibung der
 Trainingsverteilung.
 
