@@ -260,15 +260,61 @@ def fig_imgsz():
 # ---------------------------------------------------------------------------
 # Abbildung 6: Lernkurven
 # ---------------------------------------------------------------------------
-def fig_training(arme=None, datei="fig_training.png", titel=None):
+def _verlauf(lauf):
+    """Kennzahlen des Trainingsverlaufs aus runs/<lauf>/results.csv und args.yaml.
+
+    Die beste Epoche ist die mit dem hoechsten mAP50-95 auf val: Das ist die
+    Fitness, nach der Ultralytics 8.4.117 best.pt waehlt (Gewichte 0/0/0/1 fuer
+    P, R, mAP50, mAP50-95). Epochen sind wie in results.csv ab 1 gezaehlt.
+    close_mosaic schaltet Mosaic ab der Epoche epochs - close_mosaic + 1 ab;
+    endet der Lauf vorher durch Early Stopping, wird dieser Punkt nie erreicht.
+    """
+    p = os.path.join(RUNS, lauf, "results.csv")
+    if not os.path.exists(p):
+        return None
+    rows = [{k.strip(): v for k, v in r.items()}
+            for r in csv.DictReader(open(p))]
+    ep = [int(float(r["epoch"])) for r in rows]
+    m95 = [float(r["metrics/mAP50-95(B)"]) for r in rows]
+    loss = [float(r["train/box_loss"]) for r in rows]
+    i = int(np.argmax(m95))
+    args = {}
+    pa = os.path.join(RUNS, lauf, "args.yaml")
+    if os.path.exists(pa):
+        for z in open(pa):
+            k, _, v = z.partition(":")
+            args[k.strip()] = v.strip()
+    budget = int(args.get("epochs", ep[-1]))
+    close = int(args.get("close_mosaic", 0))
+    nach = m95[i + 1:]
+    lr0 = float(args["lr0"]) if "lr0" in args else None
+    lr_ende = (float(rows[-1]["lr/pg0"]) / lr0
+               if lr0 and "lr/pg0" in rows[-1] else None)
+    return dict(epochen=ep[-1], beste=ep[i], best_map=m95[i], lr_ende=lr_ende,
+                nach_min=min(nach) if nach else None,
+                nach_max=max(nach) if nach else None,
+                loss_beste=loss[i], loss_ende=loss[-1], budget=budget,
+                mosaic_ab=budget - close + 1 if close else None,
+                mosaic_erreicht=bool(close) and ep[-1] > budget - close)
+
+
+def fig_training(arme=None, datei="fig_training.png", titel=None,
+                 beste=False):
+    """Lernkurven; Arm "referenz" steht fuer das Referenzmodell.
+
+    beste=True markiert in allen drei Feldern die Epoche des besten Modells.
+    """
     alle = arme or (A_ARME + [b for b in B_ARME if b[0] != "A1_baseline"])
     farben = {"A0_keine_okklusion": "#9467bd", "A1_baseline": "#2ca02c",
               "A2_starke_okklusion": "#8c564b", "B1_prozedural": "#ff7f0e",
               "B2_prozedural_naiv": "#17becf", "C0_kontrolle": "#2ca02c",
-              "C1_naive_paste": "#d62728"}
+              "C1_naive_paste": "#d62728", "referenz": "#1f77b4"}
     fig, ax = plt.subplots(1, 3, figsize=(13.5, 3.8))
     for arm, lab in alle:
-        lauf = ARME_C[arm]["lauf"] if arm in ARME_C else arm
+        if arm == "referenz":
+            lauf = REFERENZ["lauf"]
+        else:
+            lauf = ARME_C[arm]["lauf"] if arm in ARME_C else arm
         p = os.path.join(RUNS, lauf, "results.csv")
         if not os.path.exists(p):
             continue
@@ -281,6 +327,12 @@ def fig_training(arme=None, datei="fig_training.png", titel=None):
                 continue
             ax[k].plot(ep, [float(r[kk]) for r in rows], lw=1.4,
                        color=farben.get(arm, None), label=lab)
+        v = _verlauf(lauf) if beste else None
+        if v:
+            for k in range(3):
+                ax[k].axvline(v["beste"], color="0.35", ls="--", lw=1,
+                              label=(f"bestes Modell (Epoche {v['beste']})"
+                                     if k == 2 else None))
     for k, t in enumerate(["Trainingsverlust (Box)",
                            "mAP@0,5 auf realem \\code{val}",
                            "mAP@0,5:0,95 auf realem val"]):
@@ -947,17 +999,29 @@ def zahlen():
                              for m in ("mAP50", "mAP50_95")), 1, pp=True)
         e = a.get("best_epoch") or {}
 
-    import csv as _csv
-    _rp = os.path.join(RUNS, REFERENZ["lauf"], "results.csv")
-    if os.path.exists(_rp):
-        _rows = list(_csv.DictReader(open(_rp)))
-        M["refEpochen"] = str(len(_rows))
-        # Fitness wie in Ultralytics 8.4.117: allein mAP50-95 (siehe
-        # _best_epoch in experiment_neu.py)
-        _k95 = next((k for k in _rows[0] if "mAP50-95(B)" in k), None)
-        if _k95:
-            _fit = [float(r[_k95]) for r in _rows]
-            M["refBestEpoche"] = str(int(float(_rows[int(np.argmax(_fit))]["epoch"])))
+    # Trainingsverlauf (Abschnitt 5.3). Fitness wie in Ultralytics 8.4.117:
+    # allein mAP50-95 (siehe _best_epoch in experiment_neu.py und _verlauf).
+    v = _verlauf(REFERENZ["lauf"])
+    if v:
+        M["refEpochen"] = str(v["epochen"])
+        M["refBestEpoche"] = str(v["beste"])
+        put("refVerlaufBest", v["best_map"])
+        put("refVerlaufMin", v["nach_min"])
+        put("refVerlaufMax", v["nach_max"])
+        put("refLossBeste", v["loss_beste"])
+        put("refLossEnde", v["loss_ende"])
+        # Lernrate der letzten Epoche relativ zu lr0: Der Kosinusabfall ist
+        # auf das Epochenbudget ausgelegt, Early Stopping bricht ihn ab.
+        put("refLrEnde", v["lr_ende"], 0, pp=True)
+        if v["mosaic_ab"]:
+            M["refMosaicAb"] = str(v["mosaic_ab"])
+    for arm, tag in {"C0_kontrolle": "CZero", "C1_naive_paste": "COne"}.items():
+        v = _verlauf(ARME_C[arm]["lauf"])
+        if v:
+            M[f"{tag}BestEpoche"] = str(v["beste"])
+            put(f"{tag}LrEnde", v["lr_ende"], 1, pp=True)
+            if v["mosaic_ab"]:
+                M[f"{tag}MosaicAb"] = str(v["mosaic_ab"])
 
     gr = _load("ablationB_groesse.json")
     if gr:
@@ -1094,6 +1158,10 @@ if __name__ == "__main__":
         fig_training(C_ARME, "fig_training_c.png",
                      "Lernkurven der beiden Arme "
                      "(yolo26s-p2, 3000 Bilder, 30 Epochen)")
+        fig_training([("referenz", "Referenzmodell")], "fig_training_ref.png",
+                     "Lernkurven des Referenzmodells "
+                     "(yolo26s-p2, 6000 Bilder, Budget 60 Epochen)",
+                     beste=True)
     tabellen()
     tab_ablation_c()
     tab_hauptergebnis()

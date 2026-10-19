@@ -312,7 +312,8 @@ bringt Objekte an Kachelränder (in \code{test} sind 6,7\,\% der Labels
 angeschnitten) und kombiniert Hintergründe. Boxen bleiben exakt. \\
 \code{close\_mosaic} & 10 &
 Abschalten in den letzten zehn Epochen: Vierfachkacheln sind eine Bildstatistik,
-die es zur Inferenzzeit nie gibt. \\
+die es zur Inferenzzeit nie gibt. Der Referenzlauf erreicht diese Phase wegen
+Early Stopping nicht (Abschnitt~\ref{sec:trainingsverlauf}). \\
 \code{scale} & 0,4 &
 Skalierung $0{,}6$--$1{,}4$, mit der Generatorspanne also Objektgrößen von
 7,2--61,6\px{} (Gleichung~\eqref{eq:effgroesse}). \textbf{Gesetzt}: Der
