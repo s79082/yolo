@@ -295,12 +295,35 @@ Gitterpositionen $S$ Pixel auseinander. Das Verhältnis $d_{\mathrm{eff}}/S$ gib
 deshalb an, wie viele Gitterpositionen ungefähr auf den Durchmesser des Objekts
 fallen. Beide Größen beziehen sich dabei auf die Netzeingabe.
 
-Für ein kreisförmiges Objekt lässt sich genauer angeben, wie viele
-Gitterzentren in ihm liegen. Dazu wird ein regelmäßiges quadratisches Gitter
-angenommen, gegenüber dem das Objekt an einer zufälligen Stelle liegt. Jede
-Gitterzelle hat die Fläche $S^2$ und enthält genau ein Zentrum. Im Mittel über
-alle Lagen trifft der Kreis deshalb so viele Zentren, wie Zellflächen in seine
-Fläche passen. Für die Zahl $Z$ der Zentren im Objekt gilt also
+Genauer lässt sich angeben, wie viele Gitterzentren im Mittel in einem Objekt
+liegen. Gerechnet wird dabei zunächst für ein beliebiges Gebiet $R$ mit Fläche
+$|R|$, weil die Labelzuweisung der Werkzeugkette nicht den Kreis, sondern die
+Box des Objekts prüft (siehe unten). Angenommen wird ein regelmäßiges
+quadratisches Gitter mit der Menge $\Gamma$ der Zentren, gegenüber dem das
+Gebiet an einer zufälligen Stelle liegt: Sein Versatz $u$ zum Gitter ist in
+$[0,S)^2$ gleichverteilt. Ein Zentrum $c$ liegt genau dann im verschobenen
+Gebiet $R+u$, wenn $c-u$ in $R$ liegt, und $c-u$ ist gleichverteilt auf dem
+Quadrat $Q_c = c-[0,S)^2$ mit der Fläche $S^2$. Für die Zahl $Z_R$ der Zentren
+im Gebiet folgt
+\begin{equation}
+  \mathbb{E}[Z_R]
+  =
+  \sum_{c\in\Gamma} \Pr(c-u \in R)
+  =
+  \sum_{c\in\Gamma} \frac{|R\cap Q_c|}{S^{2}}
+  =
+  \frac{|R|}{S^{2}},
+  \label{eq:gridarea}
+\end{equation}
+weil die Quadrate $Q_c$ die Ebene lückenlos und ohne Überlappung bedecken. Im
+Mittel trifft das Gebiet also so viele Zentren, wie Zellflächen in seine Fläche
+passen. Dieselbe Rechnung führt \textcite{tokmachev2024} im Beweis von
+Statement~2 in den Gleichungen~(33) bis~(35) für das Gitter $\mathbb{Z}^2$ und
+nennt das Ergebnis in Gleichung~(1) für jeden konvexen Körper, also auch für
+Kreis und Box. Für den Gitterabstand $S$ statt 1 werden alle Längen durch $S$
+geteilt, die Flächen also durch $S^2$. Für ein kreisförmiges Objekt mit
+Durchmesser $d_{\mathrm{eff}}$ ist $|R| = \pi (d_{\mathrm{eff}}/2)^{2}$, und für
+die Zahl $Z = Z_R$ der Zentren im Objekt gilt
 \begin{equation}
   \mathbb{E}[Z]
   =
@@ -312,7 +335,10 @@ Fläche passen. Für die Zahl $Z$ der Zentren im Objekt gilt also
 Bei einer bestimmten Lage können es mehr oder weniger sein. Im Mittel wächst
 $Z$ quadratisch mit der Objektgröße und fällt quadratisch mit dem Stride. Wird
 der Stride von 8 auf 4 halbiert, liegen also viermal so viele Gitterpositionen
-im Objekt. Darin liegt der Nutzen der zusätzlichen P2-Ebene mit $S=4$, die in
+im Objekt. Dieser Faktor hängt nicht an der Kreisform, denn im Verhältnis
+zweier Strides kürzt sich $|R|$ aus Gleichung~\eqref{eq:gridarea} heraus. Für
+jedes Gebiet liegen auf P2 im Mittel $(8/4)^2 = 4$-mal so viele Zentren wie auf
+P3. Darin liegt der Nutzen der zusätzlichen P2-Ebene mit $S=4$, die in
 der Werkzeugkette ausdrücklich für kleine Objekte vorgesehen ist
 \parencite{ultralyticsdocs} (Abschnitt~\ref{sec:p2kopf}). Für ein Objekt von
 12\px, das 5\,\%-Quantil der erzeugten Objektgrößen
@@ -350,9 +376,23 @@ Version~8.4.117); das gilt für beide Köpfe des Ende-zu-Ende-Modells
 (Abschnitt~\ref{sec:yolo26}). Ohne P2-Ebene würde ein Objekt unter 8\px{} also
 für die Zuweisung auf 16\px{} gestreckt und erhielte trotzdem Kandidaten auf
 P3. Dass ein Objekt im Training ganz ohne Position bleibt, verhindert die
-P2-Ebene deshalb nur im idealisierten Modell. Was tatsächlich bleibt, ist der
-Faktor vier aus Gleichung~\eqref{eq:gridcount}, also eine deutlich feinere
-Abtastung.
+P2-Ebene deshalb nur im idealisierten Modell.
+
+Am Faktor vier ändert die Labelzuweisung dagegen nichts. Für die Box mit
+Breite $w$ und Höhe $h$ ist $|R| = wh$, nach Gleichung~\eqref{eq:gridarea} also
+$\mathbb{E}[Z_R] = wh/S^2$. Das 12-px-Objekt von oben hat in seiner Box auf P3
+im Mittel 2,25 und auf P2 9 Gitterpositionen, gegenüber 1,8 und 7,1 im Kreis.
+Die Streckung vergrößert nur $|R|$, und zwar für die Zentren aller Ebenen
+gleichermaßen, denn die Werkzeugkette prüft sie gemeinsam gegen dieselbe
+gestreckte Box. Ihre Wirkung zeigt sich erst im Vergleich mit einem Modell
+ohne P2-Ebene. Eine Box von $7{,}2\times7{,}2$\px, die untere Grenze aus
+Gleichung~\eqref{eq:effgroesse}, würde dort auf $16\times16$\px{} gestreckt und
+hätte auf P3 genau vier Kandidaten, zwei je Achse. Von ihnen liegen nach
+Gleichung~\eqref{eq:gridarea} im Mittel nur $7{,}2^2/8^2 \approx 0{,}81$ in der
+eigentlichen Box, die übrigen daneben; auf P2 wären es $7{,}2^2/4^2 \approx
+3{,}2$. Die Streckung schafft also Kandidaten neben dem Objekt. Was tatsächlich
+bleibt, ist der Faktor vier aus Gleichung~\eqref{eq:gridarea}, also eine
+deutlich feinere Abtastung des Objekts selbst.
 
 Unabhängig vom Gitter macht eine geringe Objektgröße auch die Bewertung
 empfindlicher. Wird eine quadratische Box der Kantenlänge $d$ um $\delta$ Pixel
