@@ -118,15 +118,19 @@ gut, auf den realen Bildern aber deutlich schlechter.
 
 Wie groß der Abstand ist, ordnet zum einen die Ablation ein
 (Abschnitt~\ref{sec:ablationC}), zum anderen die Stichprobenunsicherheit aus
-Abschnitt~\ref{sec:bootstrap}. Der Wert \zrefSvalMap{} auf \code{sval} liegt
-über den 95\,\%-Intervallen beider Realbilder, $[\zbootValLo;\,\zbootValHi]$
-auf \code{val} und $[\zbootTestLo;\,\zbootTestHi]$ auf \code{test}. Auf beiden
-Splits ist der Abstand also größer als die Messunsicherheit. Nach
-Abschnitt~\ref{sec:sim2real} zeigt er damit, dass sich die Domänen
-unterscheiden, aber nicht, ob in den Bildern oder in den Beschriftungen. Die
-Unsicherheit von \code{sval} selbst ist dabei nicht berücksichtigt; gemessen
-wurde sie nicht, bei 400 Bildern dürfte sie aber deutlich kleiner sein als die
-eines einzelnen Realbilds.
+Abschnitt~\ref{sec:bootstrap}. Auf \code{val} liegt der Wert \zrefSvalMap{}
+von \code{sval} über dem 95\,\%-Intervall $[\zbootValLo;\,\zbootValHi]$. Dort
+ist der Abstand also größer als die Messunsicherheit, und nach
+Abschnitt~\ref{sec:sim2real} zeigt er, dass sich die Domänen unterscheiden,
+aber nicht, ob in den Bildern oder in den Beschriftungen. Auf \code{test} liegt
+derselbe Wert dagegen noch im Intervall $[\zbootTestLo;\,\zbootTestHi]$; der
+Abstand beträgt dort \zsimRealTest\PP{} und ist von der Messunsicherheit nicht
+zu unterscheiden. Nach Abschnitt~\ref{sec:sim2real} heißt das nicht, dass die
+Domänen gleich sind, sondern nur, dass sich auf diesem Bild keine Wirkung
+ihrer Unterschiede auf \mAPfifty{} nachweisen lässt. Die Unsicherheit von
+\code{sval} selbst ist dabei nicht berücksichtigt; gemessen wurde sie nicht,
+bei 400 Bildern dürfte sie aber deutlich kleiner sein als die eines einzelnen
+Realbilds.
 
 \section{Die Inferenzauflösung}
 \label{sec:imgsz}
@@ -339,14 +343,21 @@ Messunsicherheit. Keine synthetische Kennzahl zeigt den Verlust an.
 
 Da je Split nur \emph{ein} Bild vorliegt, ist ein gewöhnlicher Bootstrap über
 Bilder nicht möglich. Verwendet wird deshalb ein räumlicher Block-Bootstrap:
-Das Bild wird in Kacheln zerlegt, aus denen 400-mal mit Zurücklegen neu gezogen
-wird. Gezogen werden ganze Kacheln statt einzelner Objekte, weil benachbarte
-Objekte nicht unabhängig sind; sie teilen Beleuchtung, Schärfe und
-Verdeckungssituation \parencite{kuensch1989,efron1993}. Für \mAPfifty{} ergibt sich \code{val}
+Das Bild wird in $6\times6$ Kacheln zerlegt, aus denen 400-mal mit Zurücklegen
+neu gezogen wird. Gezogen werden ganze Kacheln statt einzelner Objekte, weil
+benachbarte Objekte nicht unabhängig sind; sie teilen Beleuchtung, Schärfe und
+Verdeckungssituation \parencite{kuensch1989,efron1993}. Detektionen und
+Annotationen werden vorher einmal über das ganze Bild zugeordnet wie in
+Abschnitt~\ref{sec:metriken}; danach gehört jeder Treffer zur Kachel seiner
+Annotation und jedes Falsch-Positiv zur Kachel seines Boxmittelpunkts. Nimmt
+man jede Kachel genau einmal, ergibt sich so exakt der berichtete Wert.
+Würde dagegen erst innerhalb der Kacheln zugeordnet, verlöre jedes Paar, das
+auf einer Kachelgrenze liegt, seinen Treffer, und das Intervall läge
+systematisch unter dem berichteten Wert. Für \mAPfifty{} ergibt sich \code{val}
 $\zbootValMean \pm \zbootValStd$ mit 95\,\%-Intervall
-$[\zbootValLo;\,\zbootValHi]$ (\zbootValN{} Kacheln) und \code{test}
+$[\zbootValLo;\,\zbootValHi]$ (\zbootValN{} belegte Kacheln) und \code{test}
 $\zbootTestMean \pm \zbootTestStd$ mit $[\zbootTestLo;\,\zbootTestHi]$
-(\zbootTestN{} Kacheln).
+(\zbootTestN{} belegte Kacheln).
 
 An dieser Größenordnung ist die Ablation zu messen: Kleinere
 Einzeldifferenzen sind Hinweise, keine Nachweise. Belastbar wird eine Aussage

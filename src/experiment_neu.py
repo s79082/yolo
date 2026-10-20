@@ -273,8 +273,8 @@ def cmd_sweep():
 
     # Bootstrap beim nativen Massstab, nicht bei `best`: Alle berichteten
     # Zahlen stehen beim nativen Massstab, und an diesem Intervall werden sie
-    # gemessen. Bei imgsz=1920 waeren die Intervalle deutlich enger
-    # (Breite val 0,042 statt 0,078, test 0,044 statt 0,062).
+    # gemessen. Bei imgsz=1920 waeren die Intervalle enger
+    # (Breite val 0,072 statt 0,086, test 0,050 statt 0,060).
     sys.path.insert(0, os.path.join(ROOT, "src"))
     from experiment import bootstrap_map50               # noqa: E402
     for s in ("val", "test"):
