@@ -317,11 +317,11 @@ im Gebiet folgt
 \end{equation}
 weil die Quadrate $Q_c$ die Ebene lückenlos und ohne Überlappung bedecken. Im
 Mittel trifft das Gebiet also so viele Zentren, wie Zellflächen in seine Fläche
-passen. Dieselbe Rechnung führt \textcite{tokmachev2024} im Beweis von
-Statement~2 in den Gleichungen~(33) bis~(35) für das Gitter $\mathbb{Z}^2$ und
-nennt das Ergebnis in Gleichung~(1) für jeden konvexen Körper, also auch für
-Kreis und Box. Für den Gitterabstand $S$ statt 1 werden alle Längen durch $S$
-geteilt, die Flächen also durch $S^2$. Für ein kreisförmiges Objekt mit
+passen; Abbildung~\ref{abb:gitterflaeche} veranschaulicht die Rechnung. Für
+das Einheitsgitter $\mathbb{Z}^2$ nennt \textcite{tokmachev2024} dieses
+Ergebnis für jeden konvexen Körper, also auch für Kreis und Box, und leitet es
+mit derselben Zerlegung her; beim Gitterabstand $S$ werden lediglich alle
+Flächen durch $S^2$ geteilt. Für ein kreisförmiges Objekt mit
 Durchmesser $d_{\mathrm{eff}}$ ist $|R| = \pi (d_{\mathrm{eff}}/2)^{2}$, und für
 die Zahl $Z = Z_R$ der Zentren im Objekt gilt
 \begin{equation}
@@ -333,18 +333,97 @@ die Zahl $Z = Z_R$ der Zentren im Objekt gilt
   \label{eq:gridcount}
 \end{equation}
 Bei einer bestimmten Lage können es mehr oder weniger sein. Im Mittel wächst
-$Z$ quadratisch mit der Objektgröße und fällt quadratisch mit dem Stride. Wird
-der Stride von 8 auf 4 halbiert, liegen also viermal so viele Gitterpositionen
-im Objekt. Dieser Faktor hängt nicht an der Kreisform, denn im Verhältnis
-zweier Strides kürzt sich $|R|$ aus Gleichung~\eqref{eq:gridarea} heraus. Für
-jedes Gebiet liegen auf P2 im Mittel $(8/4)^2 = 4$-mal so viele Zentren wie auf
-P3. Darin liegt der Nutzen der zusätzlichen P2-Ebene mit $S=4$, die in
+$Z$ quadratisch mit der Objektgröße und fällt quadratisch mit dem Stride. Was
+eine feinere Ebene bringt, zeigt das Verhältnis der Mittelwerte für dasselbe
+Gebiet auf P2 und P3. Nach Gleichung~\eqref{eq:gridarea} ist
+\begin{equation}
+  \frac{\mathbb{E}[Z_R]_{S=4}}{\mathbb{E}[Z_R]_{S=8}}
+  =
+  \frac{|R|/4^{2}}{|R|/8^{2}}
+  =
+  \Bigl(\frac{8}{4}\Bigr)^{2}
+  =
+  4 .
+  \label{eq:gridratio}
+\end{equation}
+Die Fläche $|R|$ kürzt sich heraus, übrig bleibt nur das Verhältnis der
+Strides. Der Faktor vier hängt damit weder von der Form noch von der Größe des
+Gebiets ab; davon hängen nur die absoluten Zahlen ab. Anschaulich kommt auf P3
+ein Zentrum auf $8\times8 = 64$\px$^2$, auf P2 eines auf $4\times4 = 16$\px$^2$:
+Bei halbem Abstand liegen in jeder Richtung doppelt so viele Zentren, auf
+derselben Fläche also viermal so viele. Das gilt für den Mittelwert, in einer
+einzelnen Lage kann das Verhältnis davon abweichen. Darin liegt der Nutzen der
+zusätzlichen P2-Ebene mit $S=4$, die in
 der Werkzeugkette ausdrücklich für kleine Objekte vorgesehen ist
 \parencite{ultralyticsdocs} (Abschnitt~\ref{sec:p2kopf}). Für ein Objekt von
 12\px, das 5\,\%-Quantil der erzeugten Objektgrößen
 (Tabelle~\ref{tab:kalibrierung}), sind das auf P3 im Mittel 1,8 und auf P2 7,1
 Gitterpositionen; die erzeugten Bilder erreichen das Netz unskaliert
 (Abschnitt~\ref{sec:trainingsaufbau}), sodass hier $d_{\mathrm{eff}} = d$ gilt.
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[x=0.17cm,y=0.17cm,
+  zentrum/.style={circle,fill=gray!55,inner sep=0pt,minimum size=3.2pt},
+  treffer/.style={circle,fill=red!75!black,inner sep=0pt,minimum size=4.2pt},
+  ecke/.style={circle,draw=black!70,fill=white,inner sep=0pt,minimum size=3.4pt}]
+  % ---- (a) eine Lage R+u auf dem Gitter (gezeichnet mit u = (3,5; 0,6))
+  \fill[blue!10] (16.5,11.85) circle (6);
+  \draw[gray!60] (0,0) grid[step=8] (32,32);
+  \draw[blue!60!black,thick] (16.5,11.85) circle (6);
+  \foreach \x in {4,12,20,28} \foreach \y in {4,12,20,28}
+    \node[zentrum] at (\x,\y) {};
+  \node[treffer] at (12,12) {};
+  \node[treffer] at (20,12) {};
+  \draw[decorate,decoration={brace,mirror,amplitude=3pt},gray!60!black]
+       (0,-0.8) -- (8,-0.8) node[midway,below=2pt,font=\scriptsize,black] {$S$};
+  \node[font=\footnotesize,anchor=south] at (16,32.6)
+       {(a)~Eine Lage: $Z_R$ Zentren in $R+u$};
+  % ---- (b) R ohne Versatz, Quadrate Q_c und Punkte c-u
+  \begin{scope}[shift={(40,0)}]
+    \fill[gray!12] (12,12) rectangle (20,20);
+    \begin{scope}
+      \clip (13,11.25) circle (6);
+      \fill[blue!10] (4,4) rectangle (12,12);
+      \fill[red!10] (12,4) rectangle (20,12);
+      \fill[red!10] (4,12) rectangle (12,20);
+      \fill[blue!30] (12,12) rectangle (20,20);
+    \end{scope}
+    \draw[gray!60] (0,0) rectangle (32,32);
+    \foreach \v in {4,12,20,28} {
+      \draw[gray!60,dashed] (\v,0) -- (\v,32);
+      \draw[gray!60,dashed] (0,\v) -- (32,\v);
+    }
+    \draw[blue!60!black,thick] (13,11.25) circle (6);
+    \node[font=\scriptsize] at (15.2,14.4) {$R\cap Q_c$};
+    \foreach \x in {4,12,20,28} \foreach \y in {4,12,20,28} {
+      \node[ecke] at (\x,\y) {};
+      \node[zentrum] at (\x-3.5,\y-0.6) {};
+    }
+    \node[treffer] at (8.5,11.4) {};
+    \node[treffer] at (16.5,11.4) {};
+    \draw[-{Latex[length=1.2mm]},black!70] (19.4,19.9) -- (17.2,19.52);
+    \node[font=\scriptsize,anchor=south] at (18.3,20.2) {$-u$};
+    \node[font=\scriptsize,anchor=south west] at (20.3,20.3) {$c$};
+    \node[font=\scriptsize,anchor=north] at (18.0,19.0) {$c-u$};
+    \node[font=\scriptsize] at (13.6,18.6) {$Q_c$};
+    \node[font=\footnotesize,anchor=south] at (16,32.6)
+         {(b)~$R$ fest, Punkte $c-u$};
+  \end{scope}
+\end{tikzpicture}
+\caption[Mittlere Zahl der Gitterzentren in einem Gebiet]{Idee von
+Gleichung~\eqref{eq:gridarea}, gezeichnet für ein kreisförmiges Gebiet $R$.
+(a)~Eine Lage: Das Gebiet ist um den Versatz $u$ gegen das Gitter verschoben;
+$Z_R$ ist die Zahl der Gitterzentren darin (rot). (b)~Dasselbe Gebiet ohne
+Versatz. Jedes Zentrum $c$ (offener Kreis) ist die Ecke seines Quadrats
+$Q_c = c-[0,S)^2$ (gestrichelt, eines grau hinterlegt), der Punkt $c-u$ liegt
+im Quadrat. Rot sind die Punkte in $R$, also genau die Treffer aus~(a). Läuft
+$u$ über alle Lagen, durchläuft $c-u$ sein Quadrat gleichmäßig und trifft $R$
+mit der Wahrscheinlichkeit $|R\cap Q_c|/S^2$. Die Stücke $R\cap Q_c$ aller
+Quadrate setzen $R$ lückenlos zusammen, im Mittel liegen also $|R|/S^2$
+Zentren im Gebiet.}
+\label{abb:gitterflaeche}
+\end{figure}
 
 Ob ein Objekt überhaupt ein Gitterzentrum enthält, hängt außerdem von seiner
 Lage ab. Am ungünstigsten ist es, wenn der Objektmittelpunkt genau in der Mitte
@@ -391,7 +470,7 @@ hätte auf P3 genau vier Kandidaten, zwei je Achse. Von ihnen liegen nach
 Gleichung~\eqref{eq:gridarea} im Mittel nur $7{,}2^2/8^2 \approx 0{,}81$ in der
 eigentlichen Box, die übrigen daneben; auf P2 wären es $7{,}2^2/4^2 \approx
 3{,}2$. Die Streckung schafft also Kandidaten neben dem Objekt. Was tatsächlich
-bleibt, ist der Faktor vier aus Gleichung~\eqref{eq:gridarea}, also eine
+bleibt, ist der Faktor vier aus Gleichung~\eqref{eq:gridratio}, also eine
 deutlich feinere Abtastung des Objekts selbst.
 
 Unabhängig vom Gitter macht eine geringe Objektgröße auch die Bewertung
