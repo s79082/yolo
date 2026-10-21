@@ -78,21 +78,6 @@ bitgleich reproduziert, sind Masken und Okkluder mit eingecheckt
 (\code{assets/masks}, \code{assets/bars}); alle Aufrufe stehen zusätzlich in
 \code{tools/run\_bereinigt.sh}.
 
-Alle Metriken der Kapitel~\ref{kap:auswertung} und~\ref{kap:diskussion} stehen
-nicht als Ziffern im Quelltext der Arbeit, sondern als Makros in
-\code{paper/kapitel/zahlen.tex}. Diese Datei erzeugt \code{src/report\_neu.py}
-wie alle Ergebnistabellen unmittelbar aus den Ergebnisdateien; ein Wert, für den
-kein Lauf vorliegt, erscheint im übersetzten Dokument als \textbf{??}.
-
-Zwei Eigenheiten der Ausführungsumgebung erzwingen Trainingsparameter, die sonst
-anders zu setzen wären. Mit \code{opencv-python}~5.0.0.93 und \code{torch}~2.13
-blockiert der DataLoader reproduzierbar beim ersten Batch, sobald
-\code{workers > 0} gesetzt ist; alle Läufe verwenden deshalb \code{workers=0}.
-Außerdem war die GPU während der Läufe durch einen Fremdprozess zu rund 80 von
-98\,GB belegt und der Arbeitsspeicher zeitweise fast voll; daher gelten
-\code{batch=8} und \code{cache='disk'} (Abschnitt~\ref{sec:trainingsaufbau}).
-Beide Werte gelten für alle Läufe gleich.
-
 \section{Ergänzende Messwerte}
 \label{sec:anhangbericht}
 
