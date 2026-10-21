@@ -124,9 +124,28 @@ def kumulative_stufen(profiles, bars, bgs):
     return st, n, len(boxes)
 
 
+def profil(profiles, name):
+    return next(p for p in profiles if p["name"] == name)
+
+
+# Ausgewaehlte Ziehungen fuer T2: neben der stets aktiven Rotation greift je
+# nur eine Transformation, und zwar nahe am Rand ihres Bereichs.  Gefunden
+# durch Mitschreiben der Zufallszahlen von render_instance ueber die Seeds
+# 0..19999; zufaellige Seeds zeigen meist nur schwache Ovalisierung und fast
+# nie eine Delle (P = 0,18).
+T2_ZIEHUNGEN = (
+    11710,   # nur Rotation, 180 Grad
+    7755,    # Ovalisierung 0,66
+    7131,    # Delle: ein Sektor, Breite 0,30 rad, Tiefe 0,30
+    9514,    # Perspektive, Eckversatz bis 8,7 %
+)
+
+
 def detail_geometrie(profiles, bgs):
     """T2: dieselbe Quelle, fuenf Ziehungen der Instanzgeometrie."""
-    prof = profiles[0]
+    # cutted_9 traegt ein Glanzlicht auf dem Kranz, an dem die Drehung
+    # sichtbar wird; bei einem gleichmaessigen Kranz sieht man sie nicht.
+    prof = profil(profiles, "cutted_9.png")
     src = prof["rgba"]
     D = 100          # Zieldurchmesser der Instanz in dieser Abbildung
     K = 190          # Kachelgroesse
@@ -134,16 +153,17 @@ def detail_geometrie(profiles, bgs):
                     src[:, :, 3].astype(np.float32) / 255,
                     np.full((*src.shape[:2], 3), 235, np.uint8))
     # Quellausschnitt auf denselben Objektdurchmesser bringen wie die
-    # Ziehungen, sonst wirkt er groesser als sie.
+    # Ziehungen, sonst wirkt er groesser als sie.  Kubisch wie in
+    # render_instance, sonst sieht die Quelle als einzige Kachel pixelig aus.
     sc = D / prof["d_src"]
-    roh = cv2.resize(roh, None, fx=sc, fy=sc, interpolation=cv2.INTER_AREA)
+    roh = cv2.resize(roh, None, fx=sc, fy=sc, interpolation=cv2.INTER_CUBIC)
     q = np.full((K, K, 3), 235, np.float32)
     ry, rx = (K - roh.shape[0]) // 2, (K - roh.shape[1]) // 2
     q[max(0, ry):max(0, ry) + min(K, roh.shape[0]),
       max(0, rx):max(0, rx) + min(K, roh.shape[1])] = roh[:K, :K]
     tiles = [q]
-    for k in range(4):
-        rng = np.random.default_rng(400 + k)
+    for seed in T2_ZIEHUNGEN:
+        rng = np.random.default_rng(seed)
         bgr, a = G.render_instance(prof, D, rng)
         t = auf_grund(bgr, a, np.full((*a.shape, 3), 235, np.uint8))
         if max(t.shape[:2]) > K:
@@ -157,15 +177,25 @@ def detail_geometrie(profiles, bgs):
 
 
 def detail_photometrie(profiles, bgs):
-    """T3: derselbe Instanzausschnitt in vier Bearbeitungsstufen."""
-    prof = profiles[3]
+    """T3: derselbe Instanzausschnitt in vier Bearbeitungsstufen.
+
+    Wie bei T2 sind kraeftige Ziehungen ausgewaehlt, damit jeder Schritt
+    sichtbar wird: Die Photometrie dunkelt ab (Helligkeit 0,72, Gamma 1,34),
+    der Farbangleich zieht die dunkle Instanz zum hellen Clean Plate zurueck
+    (alpha_mu 0,45, alpha_sigma 0,35), die Einbettung zeichnet weich
+    (sigma 1,10) und rauscht (Faktor 0,90), der Schatten faellt nach unten
+    (kappa 0,45).  Auf einem dunklen Hintergrund hebt der Farbangleich eine
+    dunkle Instanz kaum an.
+    """
+    prof = profil(profiles, "cutted_7.png")
     rng = np.random.default_rng(77)
     bgr0, a0 = G.render_instance(prof, 130, rng)
     h, w = a0.shape
     ph, pw = h + 60, w + 60
-    grund = bgs[0]["img"]
-    gy = min(400, grund.shape[0] - ph - 1)
-    gx = min(600, grund.shape[1] - pw - 1)
+    grund = next(b["img"] for b in bgs
+                 if b["path"].endswith("img3884_cutted.png"))
+    gy = min(620, grund.shape[0] - ph - 1)
+    gx = min(420, grund.shape[1] - pw - 1)
     gp = grund[gy:gy + ph, gx:gx + pw].astype(np.float32)
 
     def tile(bgr, a, schatten=False):
@@ -173,7 +203,7 @@ def detail_photometrie(profiles, bgs):
         y0 = (ph - a.shape[0]) // 2
         x0 = (pw - a.shape[1]) // 2
         if schatten:
-            G.cast_shadow(out, a, x0, y0, np.random.default_rng(5))
+            G.cast_shadow(out, a, x0, y0, np.random.default_rng(1074))
         roi = out[y0:y0 + a.shape[0], x0:x0 + a.shape[1]]
         m = a[:, :, None]
         out[y0:y0 + a.shape[0], x0:x0 + a.shape[1]] = \
@@ -181,12 +211,12 @@ def detail_photometrie(profiles, bgs):
         return out
 
     t1 = tile(bgr0, a0)
-    b2, a2 = G.photometric(bgr0.copy(), a0.copy(), np.random.default_rng(21))
+    b2, a2 = G.photometric(bgr0.copy(), a0.copy(), np.random.default_rng(60))
     t2 = tile(b2, a2)
-    b3 = G.harmonize(b2.copy(), a2, gp, np.random.default_rng(22))
+    b3 = G.harmonize(b2.copy(), a2, gp, np.random.default_rng(588))
     t3 = tile(b3, a2)
     b4, a4 = G.embed_realism(b3.copy(), a2.copy(), gp,
-                             np.random.default_rng(23))
+                             np.random.default_rng(2745))
     t4 = tile(b4, a4, schatten=True)
     speichern("stufe_T3_photometrie.png", kacheln([t1, t2, t3, t4]))
 

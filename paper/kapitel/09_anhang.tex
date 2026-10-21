@@ -394,17 +394,18 @@ Okkluder und die abgedunkelten Mulden.}
 \vspace{6pt}
 \includegraphics[width=\textwidth]{abbildungen/stufe_T3_photometrie.png}
 \caption[Instanzgeometrie und Photometrie im Detail]{Die Stufen T2 und T3,
-vergrößert. \emph{Oben (T2 Instanzgeometrie),
-von links nach rechts:} der Quellausschnitt und vier Ziehungen aus $p(t)$ --
-Rotation über den vollen Kreis, Skalierung, Ovalisierung, Delle, Perspektive.
-Alle fünf Kacheln zeigen dasselbe Objekt bei gleichem Durchmesser.
-\emph{Unten (T3 Photometrie), von links nach rechts:} dieselbe Instanz auf
-demselben Hintergrund -- roh eingefügt, dann mit Photometrie, dann mit
-Farbangleich, dann mit Einbettung und Schlagschatten. Der Farbangleich nach
-Gleichung~\eqref{eq:harmonize} verschiebt die Verteilung nur teilweise; die
-Einbettung ergänzt Kantenweichzeichnung, Rauschangleich und Schlagschatten. Für die Darstellung ist der
-Zieldurchmesser auf 100\px{} gesetzt; im Datensatz liegt er bei 12--44\px.
-Erzeugt mit \code{paper/tools/fig\_stufen.py}.}
+vergrößert. Damit jede Transformation erkennbar ist, sind kräftige statt
+zufälliger Ziehungen aus $p(t)$ gewählt (Bereiche in
+Tabelle~\ref{tab:parameter}). \emph{Oben (T2 Instanzgeometrie), von links nach
+rechts:} der Quellausschnitt, dann neben der stets aktiven Rotation je eine
+Transformation -- Rotation allein um $180^\circ$ (das Glanzlicht wandert nach
+rechts unten), Ovalisierung 0,66, Delle mit 30\,\% Tiefe, Perspektive.
+\emph{Unten (T3 Photometrie):} dieselbe Instanz auf einem Clean Plate -- roh,
+nach abdunkelnder Photometrie, nach Farbangleich
+(Gleichung~\eqref{eq:harmonize}), der sie nur teilweise zum helleren
+Hintergrund zurückzieht, und nach Einbettung mit Unschärfe, Rauschen,
+Kantenweichzeichnung und Schlagschatten. Zieldurchmesser 100 bzw.\ 130\px, im
+Datensatz 12--44\px. Erzeugt mit \code{paper/tools/fig\_stufen.py}.}
 \label{abb:stufendetail}
 \end{figure}
 
