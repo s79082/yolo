@@ -17,22 +17,22 @@ Farbverläufe, tiefere auf Texturen, Objektteile und ganze Objekte
 dass sich auch sehr tiefe Netze noch trainieren lassen
 \parencite{krizhevsky2012,he2016}.
 
-\absatz{Schrittweite und Objektgröße.} Für diese Arbeit ist vor allem ein
+\absatz{Stride und Objektgröße.} Für diese Arbeit ist vor allem ein
 Aspekt wichtig: Das Netz verringert die räumliche Auflösung schrittweise, früher
-meist durch Pooling, heute überwiegend durch Faltungen mit Schrittweite $s=2$.
+meist durch Pooling, heute überwiegend durch Faltungen mit Stride $s=2$.
 Die \emph{Schrittweite} (engl.\ \emph{stride}) gibt an, um wie viele Pixel das
 Filterfenster zwischen zwei Auswertungen weiterrückt. Bei $s=1$ wird der Kernel
 an jeder Position ausgewertet, und die Ausgabe ist bei passender Randauffüllung
 so groß wie die Eingabe. Bei $s=2$ wird nur jede zweite Position in Zeilen- und
 Spaltenrichtung ausgewertet, Breite und Höhe der Ausgabe halbieren sich also.
 Allgemein hat die Ausgabe einer Schicht mit Kernelgröße $k$, Randauffüllung $p$
-und Schrittweite $s$ bei einer Eingabebreite $W$ die Breite
+und Stride $s$ bei einer Eingabebreite $W$ die Breite
 $\lfloor (W+2p-k)/s \rfloor + 1$ \parencite{dumoulin2016}; mit den üblichen
 Werten $k=3$ und $p=1$ werden bei $s=2$ aus 1024 Positionen 512.
 
-Die Schrittweiten hintereinanderliegender Stufen multiplizieren sich. Nach
+Die Strides hintereinanderliegender Stufen multiplizieren sich. Nach
 $\ell$ halbierenden Stufen liegen benachbarte Positionen der Merkmalskarte
-deshalb $S = 2^{\ell}$ Bildpixel auseinander. Diese Gesamtschrittweite wird
+deshalb $S = 2^{\ell}$ Bildpixel auseinander. Dieser Abstand wird
 ebenfalls als \emph{Stride} der Merkmalsebene bezeichnet. Ein Objekt mit
 Durchmesser $d$ überspannt auf einer solchen Ebene nur etwa $d/S$ Positionen;
 je kleiner dieses Verhältnis ist, desto weniger Positionen hat der Detektor, um
@@ -68,8 +68,8 @@ groben Ebenen weiter.
 
 Der Kopf arbeitet dadurch auf mehreren Ebenen, die jeweils für einen anderen
 Größenbereich zuständig sind. Die Standardkonfiguration verwendet P3, P4 und P5
-mit den Gesamtschrittweiten $S\in\{8,16,32\}$. Die Ziffer im Namen ist der
-Exponent: Ebene P$\ell$ hat die Schrittweite $S=2^{\ell}$
+mit den Strides $S\in\{8,16,32\}$. Die Ziffer im Namen ist der
+Exponent: Ebene P$\ell$ hat den Stride $S=2^{\ell}$
 \parencite{lin2017fpn}. Für kleine Objekte kann zusätzlich eine feinere
 P2-Ebene mit $S=4$ verwendet werden. Abbildung~\ref{abb:pyramide} zeigt die
 Gittergrößen bei einer Eingabe von $1024\times1024$ Pixeln. P2 allein hat mehr
@@ -136,9 +136,9 @@ kostet, Abschnitt~\ref{sec:trainingsaufbau}.
 \caption[Merkmalsebenen des Detektionskopfes]{Merkmalsebenen des
 Detektionskopfes bei einer Eingabe von $1024\times1024$ Pixeln; die
 Seitenlänge der Quadrate ist proportional zur Gittergröße. Jede Zelle einer
-Ebene mit Schrittweite $S$ entspricht einem Bildbereich von $S \times S$
+Ebene mit Stride $S$ entspricht einem Bildbereich von $S \times S$
 Pixeln. Die Standardkonfiguration nutzt \textbf{P3--P5}, die hier trainierten
-Modelle zusätzlich die rot gestrichelte Ebene \textbf{P2} mit Schrittweite~4.}
+Modelle zusätzlich die rot gestrichelte Ebene \textbf{P2} mit Stride~4.}
 \label{abb:pyramide}
 \end{figure}
 
