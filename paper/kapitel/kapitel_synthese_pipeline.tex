@@ -132,23 +132,17 @@ neu bestimmt werden muss, darunter die Rotation über den vollen Kreis, die
 Perspektive und die Verdeckung. Das Training ergänzt nur, was \emph{bildweit}
 wirkt und die Boxen nicht verfälscht (Abschnitt~\ref{sec:trainparam}).
 
-Die Leinwand ist $1024\times1024$ Pixel groß, genau wie die
-Trainingsauflösung. Nach Anforderung~A2 ist das gewollt: Die synthetischen
-Bilder werden beim Einlesen \emph{nicht} skaliert, und die kalibrierte
-Größenverteilung kommt unverändert beim Netz an. Erst die Skalierungs- und
-Mosaic-Augmentierung im Training verändert die effektiven Größen
-(Abschnitt~\ref{sec:trainparam}). Die folgenden Absätze erklären die fünf
-Stellen, an denen die Modellierung über die bloße Wahl eines Parameters
-hinausgeht, und zum Schluss die Sichtbarkeitsrechnung, aus der die Labels
-entstehen.
+Die Leinwand ist mit $1024\times1024$ Pixeln so groß wie die
+Trainingsauflösung; die kalibrierte Größenverteilung kommt also unskaliert beim
+Netz an, erst Skalierung und Mosaic im Training verändern sie
+(Abschnitt~\ref{sec:trainparam}).
 
 Die Synthese läuft in neun Stufen ab: Hintergrund (T1), Instanzgeometrie (T2),
 Photometrie (T3), Layout (T4), Rohrschaft (T5), Okklusion (T6),
 Sichtbarkeitsrechnung (T7), globale Bildstufe (T8) und Negativbilder (T9).
 Tabelle~\ref{tab:parameter} im Anhang führt alle 37 Transformationen dieser
-Stufen mit Parameterbereich, Begründung und Belegart auf; ihre Anteile sind
-keine Sollwerte, sondern im Erzeugungsbericht gezählte Ist-Werte
-(Abschnitt~\ref{sec:anhangbericht}).
+Stufen mit Parameterbereich, gezähltem Ist-Anteil, Begründung und Belegart
+auf.
 
 \begin{figure}[htbp]
 \centering
@@ -205,17 +199,12 @@ z \sim \mathcal{U}\!\left[\max\!\left(z_{\min},\;
 \qquad d_{\text{Basis}} = d_{\text{Rohr}} \cdot z .
 \label{eq:zoom}
 \end{equation}
-Der Zielbereich $[d_{\min}, d_{\max}] = [12, 44]$\px{} reicht vom
-5\,\%-Quantil von \code{test} (12,2\px) bis zum größten Objekt in \code{val}
-(35,8\px) plus rund 25\,\% Reserve (Tabelle~\ref{tab:statistik}, Befund~5). Die Deckelung
-$[z_{\min}, z_{\max}] = [0{,}55;\,2{,}20]$ ist \emph{gesetzt}. Sie verhindert,
-dass eine Clean Plate bis zur Unkenntlichkeit vergrößert wird oder so stark
-verkleinert, dass ihre Rohre zu einer bloßen Textur werden. Der
-Rohrdurchmesser $d_{\text{Rohr}}$ wird für jede Clean Plate einzeln über den
-Struktur-Tensor gemessen (\code{src/occluders.py}, Abschnitt~\ref{sec:matting}).
-So sind Objektgröße und Hintergrundmaßstab gekoppelt, wie es Anforderung~A3
-verlangt. Dass die Stirnflächen dabei denselben Durchmesser bekommen wie die
-Rohre im Hintergrund, ist eine Annahme (Tabelle~\ref{tab:parameter}, T1).
+Der Zielbereich $[d_{\min}, d_{\max}] = [12, 44]$\px{} folgt aus Befund~5
+(Tabelle~\ref{tab:befunde}). Die gesetzte Deckelung
+$[z_{\min}, z_{\max}] = [0{,}55;\,2{,}20]$ verhindert, dass eine Clean Plate bis
+zur Unkenntlichkeit vergrößert wird oder ihre Rohre zur bloßen Textur
+schrumpfen. Den Rohrdurchmesser $d_{\text{Rohr}}$ misst der Struktur-Tensor für
+jede Clean Plate einzeln (\code{src/occluders.py}, Abschnitt~\ref{sec:matting}).
 
 Die Deckelung hat eine Nebenwirkung: Bei den Clean Plates mit 16 und 18\px{}
 Rohrdurchmesser greift $z_{\max}$, Basisdurchmesser über 39,6\px{} entstehen
@@ -253,24 +242,20 @@ Mittelwert, der letzte Term verschiebt die mittlere Helligkeit ein Stück in
 Richtung des Hintergrunds. Die Angleichstärken werden je Instanz als
 $\alpha_\mu \sim \mathcal{U}[0{,}10;\,0{,}45]$ und
 $\alpha_\sigma \sim \mathcal{U}[0;\,0{,}35]$ gezogen. Das Streuungsverhältnis
-wird auf $[r_{\min}, r_{\max}] = [0{,}6;\,1{,}6]$ begrenzt, damit eine sehr
-glatte oder sehr unruhige Einfügestelle den Objektkontrast nicht zu stark
-verändert. Mit $\alpha_\mu = \alpha_\sigma = 1$ ergäbe sich der vollständige
-Reinhard-Transfer. Er wird nicht verwendet, weil er den Albedo-Unterschied
-zwischen dunkler Bohrung und hellem Kranz einebnen würde, an dem das Objekt
-überhaupt zu erkennen ist. Angeglichen werden
-soll nur der Unterschied in Beleuchtung und Weißabgleich, nicht die Objektfarbe
-selbst; die vier Grenzen der Angleichstärken sind gesetzt
-(Tabelle~\ref{tab:parameter}).
+wird auf $[r_{\min}, r_{\max}] = [0{,}6;\,1{,}6]$ begrenzt. Der vollständige
+Reinhard-Transfer ($\alpha_\mu = \alpha_\sigma = 1$) würde auch den
+Albedo-Unterschied zwischen dunkler Bohrung und hellem Kranz einebnen, an dem
+das Objekt zu erkennen ist; angeglichen werden sollen nur Beleuchtung und
+Weißabgleich.
 
 \absatz{Rauschschätzung.} Das lokale Rauschniveau wird als Streuung des
 Hochpassrests geschätzt, $\hat{\sigma} = \operatorname{std}(g -
 \operatorname{median}_{3\times3}(g))$ \parencite[vgl.][]{immerkaer1996}, und
 geht ohne Normierungsfaktor nur als \emph{relatives} Maß ein: Eingefügt wird
 Rauschen der Stärke $\max(0{,}5,\,\hat{\sigma}\cdot\mathcal{U}[0{,}5;\,1{,}25])$.
-Die Untergrenze von 0,5 und die Begrenzung von $\sigma_b/\sigma_i$ auf
-$[0{,}6;\,1{,}6]$ fangen nur entartete Schätzwerte ab, etwa bei einem völlig
-gleichmäßigen Hintergrundfleck, und zählen deshalb nicht zu den in
+Die Untergrenze von 0,5 und die Begrenzung von $\sigma_b/\sigma_i$ fangen
+nur entartete Schätzwerte ab, etwa bei einem völlig gleichmäßigen
+Hintergrundfleck, und zählen deshalb nicht zu den in
 Tabelle~\ref{tab:parameter} bilanzierten Werten.
 
 \absatz{Layoutmodell.} Die Objektzentren eines Clusters mit Basisdurchmesser
@@ -282,62 +267,47 @@ p_{ij} = i\,g_1\,\mathbf{e}_1 + j\,g_2\,\mathbf{e}_2 + \mathbf{c}
 \sigma_G^2\, \mathbf{I}\big),
 \label{eq:layout}
 \end{equation}
-Die Gitterabstände liegen in $g_1 \in [g_1^-, g_1^+]\,d_0$ und
-$g_2 \in [g_2^-, g_2^+]\,d_0$, der Winkel zwischen den beiden Gitterrichtungen
-in $[\gamma_{\min}, \gamma_{\max}]$, und die Rauschstärke beträgt
-$\sigma_G = c_\sigma\,d_0$. Verwendet werden
-$[g_1^-, g_1^+] = [0{,}98;\,1{,}60]$, $[g_2^-, g_2^+] = [0{,}98;\,1{,}85]$,
-$[\gamma_{\min}, \gamma_{\max}] = [55^\circ;\,125^\circ]$ und
-$c_\sigma = 0{,}17$. Die Obergrenzen der Gitterabstände und $c_\sigma$ sind
-nicht frei gesetzt, sondern iterativ so eingestellt, dass die erzeugte
-Anordnung die Kenngrößen der Realbilder trifft: die Gitterabstände Median und
-p90 des NN-Abstands, $c_\sigma$ das p10 des NN-Abstands und die
-Berührungsquote (Tabelle~\ref{tab:kalibrierung}; Belegart je Wert in
-Tabelle~\ref{tab:parameter}, Block T4). Der Winkelbereich ist am Histogramm
-der realen Nachbarrichtungen ausgerichtet, aber gesetzt; mit den erzeugten
-Richtungen verglichen wurde er nicht. Ohne den Rauschterm
-$\boldsymbol{\epsilon}_{ij}$ entstünden sichtbar künstliche Reihen. Seine Form
-ist eine vereinfachende Annahme: Jede Gitterlage wird unabhängig und in alle
-Richtungen gleich stark normalverteilt verschoben. Ein solches Gitter heißt in
-der Theorie der Punktprozesse \emph{gestörtes Gitter} (\emph{perturbed
-lattice}, Beispiel~2.11 bei \textcite{holroyd2013});
-\textcite{flimmel2026} verwendet diese Variante in Abschnitt~4.4 als Modell
-mit nur einem Parameter und nennt sie im Fazit (Abschnitt~5) ein einfaches
-Basismodell, das erst mit korrelierten Verschiebungen deutlich flexibler wird.
-Kalibriert wird hier
-nur $\sigma_G$; ob die realen Abweichungen unabhängig, isotrop und
-normalverteilt sind, wurde nicht geprüft. Die
-Untergrenze der Gitterabstände ist physikalisch begründet, denn zwei Rohre
-können sich nicht durchdringen; die zwei Prozent Spielraum darunter folgen aus
-der modalen Boxkonvention (Tabelle~\ref{tab:parameter}, T4). Das
-Clusterzentrum $\mathbf{c}$ darf außerhalb der Leinwand liegen, damit auch am
-Bildrand angeschnittene Objekte entstehen (Befund~9).
+mit $g_1 \in [0{,}98;\,1{,}60]\,d_0$, $g_2 \in [0{,}98;\,1{,}85]\,d_0$, einem
+Winkel von $55^\circ$--$125^\circ$ zwischen $\mathbf{e}_1$ und $\mathbf{e}_2$ und
+$\sigma_G = 0{,}17\,d_0$. Die Obergrenzen der Gitterabstände und $\sigma_G$ sind
+iterativ so eingestellt, dass die erzeugte Anordnung die Realbilder trifft: die
+Gitterabstände Median und p90 des NN-Abstands, $\sigma_G$ dessen p10 und die
+Berührungsquote (Tabelle~\ref{tab:kalibrierung}). Der Winkelbereich ist am
+Histogramm der realen Nachbarrichtungen ausgerichtet, aber gesetzt und nicht
+gegen die erzeugten Richtungen geprüft. Die Untergrenze der Abstände ist
+physikalisch, denn zwei Rohre durchdringen sich nicht; die zwei Prozent
+Spielraum darunter folgen aus der modalen Boxkonvention.
 
+Ohne den Rauschterm $\boldsymbol{\epsilon}_{ij}$ entstünden sichtbar künstliche
+Reihen. Seine Form ist eine ungeprüfte Annahme: Jede Gitterlage wird unabhängig
+und isotrop normalverteilt verschoben, kalibriert ist nur $\sigma_G$. Ein
+solches \emph{gestörtes Gitter} (\emph{perturbed lattice};
+\cite[Beispiel~2.11]{holroyd2013}) verwendet
+\textcite[Abschnitte~4.4 und~5]{flimmel2026} als Modell mit nur einem Parameter
+und nennt es ein einfaches Basismodell, das erst mit korrelierten Verschiebungen
+deutlich flexibler wird. Das Clusterzentrum $\mathbf{c}$ darf außerhalb der
+Leinwand liegen, damit auch am Bildrand angeschnittene Objekte entstehen
+(Befund~9).
 
-\absatz{Sichtbarkeitsrechnung und Labels.}\label{sec:sichtbarkeit} In einem
-Copy-Paste-Generator kann ein Objekt von später eingefügten Schichten teilweise
-oder ganz verdeckt werden. Deshalb wird für \emph{jede} Instanz berechnet, wie
-viel von ihr am Ende sichtbar ist. Grundlage ist die Alpha-Komposition nach
-\textcite{porter1984}: An jedem Pixel bleibt von Instanz $i$ der Anteil übrig,
-den keine der später gezeichneten Schichten $j$ abdeckt. Summiert über alle
-Pixel ergibt sich daraus der sichtbare Anteil $v_i$:
+\absatz{Sichtbarkeitsrechnung und Labels.}\label{sec:sichtbarkeit} Später
+eingefügte Schichten können ein Objekt teilweise oder ganz verdecken. Für
+\emph{jede} Instanz wird deshalb der sichtbare Anteil $v_i$ berechnet: Nach der
+Alpha-Komposition \parencite{porter1984} bleibt an jedem Pixel von Instanz $i$
+übrig, was keine später gezeichnete Schicht $j$ abdeckt, gleich ob Profil,
+Rohrschaft oder Fremdkörper:
 \begin{equation}
 \alpha_i^{\text{sichtbar}} = \alpha_i \prod_{j > i} \big(1 - \alpha_j\big),
 \qquad
-v_i = \frac{\textstyle\sum \alpha_i^{\text{sichtbar}}}{\textstyle\sum \alpha_i},
+v_i = \frac{\textstyle\sum \alpha_i^{\text{sichtbar}}}{\textstyle\sum \alpha_i}.
 \label{eq:sichtbarkeit}
 \end{equation}
-Das Produkt läuft über \emph{alle} später gezeichneten Schichten, also auch
-über andere Profile, Rohrschäfte und Fremdkörper.
-
 Ein Label wird verworfen, wenn weniger als 30\,\% des Objekts sichtbar sind,
-wenn weniger als 15\,\% seiner Fläche im Bild liegen oder wenn die sichtbare
-Box kleiner als 5\px{} ist. Die Schwellen sind gesetzt; sie übertragen die
-Annotationsdefinition aus Abschnitt~\ref{sec:annotation}, nach der
-ausschließlich die sichtbare Stirnfläche annotiert ist, auf verdeckte und
+weniger als 15\,\% seiner Fläche im Bild liegen oder die sichtbare Box kleiner
+als 5\px{} ist. Die Schwellen sind gesetzt und übertragen die
+Annotationsdefinition (Abschnitt~\ref{sec:annotation}) auf verdeckte und
 angeschnittene Instanzen (Anforderung~A1). Ein Objekt ohne Label bleibt im Bild
-und ist an dieser Stelle ein korrektes hartes Negativ. Vergeben wird immer die
-\emph{modale} Box, also die Box um den sichtbaren Teil.
+und ist dort ein korrektes hartes Negativ; vergeben wird immer die \emph{modale}
+Box.
 
 \section{Der erzeugte Datensatz}
 \label{sec:datensatz}
