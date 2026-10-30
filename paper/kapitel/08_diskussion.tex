@@ -24,7 +24,7 @@ Test-Time-Augmentation ausführt, und \code{max\_det} verändert ab 100 den
 Betriebspunkt und ab 200 auch \mAPfifty{} nicht mehr.
 \textbf{An der erzeugten Verteilung kalibriert} sind Objektgrößenbereich,
 Gitterabstände und Gitterrauschen, die Basisgröße je Cluster und das
-Tiefenmodell 75/25: Die erzeugte Statistik trifft die reale
+Tiefenmodell 75/25: Die erzeugte Statistik stimmt mit der realen überein
 (Tabelle~\ref{tab:kalibrierung}), ihr Nutzen für die Detektion ist damit aber
 nicht gemessen. Für den Ovalisierungsanteil war dasselbe beabsichtigt; die
 erzeugte Verteilung verfehlt die reale aber, weil die anschließende Rotation
@@ -84,7 +84,8 @@ der sechs zeigt eine mit Laub oder Rost gefüllte Bohrung, und genau solche
 Enden übersieht das Modell auf \code{val} (Abschnitt~\ref{sec:bootstrap}). Auf
 die geringe Formvielfalt stützt sich auch die Wahl der Modellgröße
 \enquote{s} (Abschnitt~\ref{sec:trainingsaufbau}); dass mehr Kapazität hier vor
-allem auswendig lernen würde, ist plausibel \parencite{zhang2017rethinking},
+allem zum Memorieren der Trainingsdaten führen würde, ist plausibel
+\parencite{zhang2017rethinking},
 aber nicht gemessen. \emph{(2)} Nur diffuses Licht im Quellmaterial: Harte
 Schlagschatten, Gegenlicht, Nässe und Schnee fehlen vollständig und werden nur
 approximativ über die globale photometrische Stufe angenähert. Ob das die
@@ -107,7 +108,7 @@ Daraus folgen breite Konfidenzintervalle: $[\zbootValLo;\,\zbootValHi]$ auf
 \code{val} und $[\zbootTestLo;\,\zbootTestHi]$ auf \code{test}, also drei bis
 vier Prozentpunkte Halbbreite -- Unterschiede unterhalb dieser Größe sind nicht
 entscheidbar; beide Bilder zeigen dieselbe Objektart bei ähnlichem
-Wetter, die Ergebnisse sagen also nichts über andere Zaunhersteller,
+Wetter, die Ergebnisse erlauben also keine Aussage über andere Zaunhersteller,
 Rohrdurchmesser oder Lichtsituationen. Schließlich wird \code{val} doppelt
 verwendet -- für die Modellauswahl samt Early Stopping \emph{und} als
 Bewertungssplit. Unabhängig ist \code{val} damit nicht.
@@ -131,7 +132,7 @@ belastbaren Zahlen sind die \code{test}-Zahlen.
 reduzierte Budget: 3000 Bilder und 30 Epochen sind aus der Rechenzeit gewählt,
 nicht aus einem Konvergenzkriterium. Es ist für beide Arme gleich und verzerrt
 den Vergleich deshalb nur, wenn die Arme verschieden schnell konvergieren; ihre
-besten Modelle stammen immerhin aus verschiedenen Epochen
+besten Modelle stammen allerdings aus verschiedenen Epochen
 (\zCZeroBestEpoche{} und \zCOneBestEpoche). Sicher begrenzt es die absolute
 Höhe der Zahlen; ein Effekt, der sich erst nach 60 Epochen zeigte, bliebe
 unentdeckt.
@@ -151,8 +152,8 @@ in der Reihenfolge, in der sie anzugehen wären:
 \begin{enumerate}[itemsep=3pt,leftmargin=1.6em]
   \item \textbf{Labelkonvention angleichen.} Die Generatorboxen werden um den
   auf \code{val} gemessenen Fehlbetrag aufgeweitet (Tabelle~\ref{tab:boxsens}).
-  Wie viel das bringen kann, zeigt die Sensitivitätsrechnung auf \code{test},
-  eine Obergrenzenschätzung: bis zu \zsensTestGain\PP{} mehr \mAPseven. An der
+  Den möglichen Gewinn schätzt die Sensitivitätsrechnung auf \code{test} nach
+  oben ab: bis zu \zsensTestGain\PP{} mehr \mAPseven. An der
   Leitgröße
   \mAPfifty{} ändert das nichts. Zuerst anzugehen ist es trotzdem, weil die
   Modellauswahl nach \mAPall{} erfolgt (Abschnitt~\ref{sec:trainingsaufbau})
@@ -189,7 +190,7 @@ auf \code{test}, das weder im Quellmaterial vorkommt noch zur Modellauswahl
 dient, zählen am $F_1$-optimalen Betriebspunkt von \znPredTest{} Detektionen
 nur \zfpTest{} als falsch-positiv,
 \zfpDoppelTest{} davon als zweite Box auf einer bereits erkannten Stirnfläche. Für
-eine Anwendung, für die kein einziges handannotiertes Trainingsbild existiert,
+eine Anwendung, für die kein handannotiertes Trainingsbild existiert,
 ist das ein tragfähiges Ergebnis.
 
 \absatz{Antwort auf die Forschungsfrage.} Die Forschungsfrage aus
@@ -219,13 +220,13 @@ Testbild. Im Einzelnen:
   \item[H3 Objektgröße: bestätigt.] Bei \code{imgsz}~640 kommen die Objekte
   auf \code{val} nur noch mit \mbox{3--9\px} im Netz an, und \mAPfifty{} fällt auf
   \zswValNiedrig. Sobald der Objektmedian im Netzeingang etwa 17\px{}
-  erreicht, ändert sich auf beiden Splits kaum noch etwas
-  (Abschnitt~\ref{sec:imgsz}). Der Effekt übersteigt das Bootstrap-Intervall
+  erreicht, bleiben die Unterschiede auf beiden Splits innerhalb der
+  Messunsicherheit (Abschnitt~\ref{sec:imgsz}). Der Effekt übersteigt das Bootstrap-Intervall
   um ein Vielfaches.
 \end{description}
 
 Gültig ist diese Antwort für die beiden untersuchten Aufnahmen; über andere
-Stapel, Hersteller und Lichtsituationen sagt sie nichts
+Stapel, Hersteller und Lichtsituationen erlaubt sie keine Aussage
 (Abschnitt~\ref{sec:grenzen}).
 
 Methodisch tragen drei Einsichten:
@@ -235,29 +236,31 @@ Methodisch tragen drei Einsichten:
   Hypothese.} Jede Entscheidung über eine Transformation ist eine Aussage
   darüber, welche Invarianzen in der Zieldomäne gelten. Die Begründungspflicht
   (Messung, physikalische Randbedingung, Literatur oder ausgewiesene Annahme)
-  ist deshalb keine Formalität, sondern das eigentliche Handwerk. Sie hat
-  zudem einen Nebeneffekt, den diese Arbeit nutzt: Wer jede Begründung
-  ausschreibt, macht sichtbar, welche davon noch nie geprüft wurde.
-  \item \textbf{Sorgfalt beim Einfügen war hier kein Feinschliff, und die
-  synthetische Validierung zeigt nicht an, wenn sie fehlt.} Werden die
+  ist deshalb keine Formalität, sondern der methodische Kern der Arbeit. Sie
+  hat zudem einen Nebeneffekt, den diese Arbeit nutzt: Werden alle
+  Begründungen ausgeschrieben, wird sichtbar, welche davon ungeprüft sind.
+  \item \textbf{Die Einbettung der eingefügten Objekte wirkte sich auf dem
+  Testbild deutlich aus, und die synthetische Validierung zeigt nicht an, wenn
+  sie fehlt.} Werden die
   Maßnahmen gegen die Signaturen S1--S5 und der Schlagschatten abgeschaltet,
   ändert sich \mAPfifty{} auf dem Testbild um $\zablCTestGap$\PP, auf dem
   \emph{eigenen} synthetischen Split desselben Arms aber nur um
   $\zablCSvalGap$\PP; auf dem zweiten Realbild bleibt der Unterschied
-  innerhalb der Messunsicherheit. Der Schaden zeigt sich erst in der
-  Übertragung, an den synthetischen Daten ist er nicht zu sehen. Wer eine
-  Copy-Paste-Pipeline an ihren eigenen Bildern misst, misst die falsche Größe.
+  innerhalb der Messunsicherheit. Der Verlust zeigt sich erst bei der
+  Übertragung; auf den synthetischen Daten ist er nicht messbar. Eine Bewertung
+  einer Copy-Paste-Pipeline allein an ihren eigenen Bildern misst daher die
+  falsche Größe.
   Nötig sind beschriftete Realbilder, und zwar aus mehr als einer
   Aufnahmeserie: Auf \code{val} allein wäre der Effekt nicht nachweisbar
   gewesen.
   \item \textbf{Die Objektgröße im Netzeingang dominiert, und die
   Labelkonvention ist Teil des Messinstruments.} Auf dem Testbild liegen
-  zwischen \code{imgsz}~640 und dem Optimum \zswTestGain\PP{} \mAPfifty, gut
-  das Dreifache des Effekts der Einbettung auf demselben Bild; welche Auflösung
+  zwischen \code{imgsz}~640 und dem Optimum \zswTestGain\PP{} \mAPfifty, mehr
+  als das Dreifache des Effekts der Einbettung auf demselben Bild; welche Auflösung
   passt, legt der Größenbereich des Generators fest. Ein systematischer
   Größenversatz von rund zwei Pixeln zwischen Generatorlabel und
   Handannotation verschiebt außerdem \mAPseven{} auf dem Testbild von
   \zsensTestMapSOrig{} auf \zsensTestMapSNeu, ohne dass sich am Modell etwas
-  ändert. Wer Lokalisierungsmetriken bei 20-px-Objekten berichtet, muss beide
-  Größen zuerst kennen.
+  ändert. Bei Lokalisierungsmetriken für 20-px-Objekte müssen beide Größen
+  bekannt sein.
 \end{enumerate}

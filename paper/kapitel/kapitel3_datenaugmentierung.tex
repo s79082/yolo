@@ -79,7 +79,7 @@ Labeltransformation $\tau_t$, weil sich dort leicht unbemerkte Fehler
 einschleichen. Eine Helligkeitsänderung lässt die Box unverändert. Nach einer
 Rotation muss die Box dagegen aus der gedrehten Objektform neu bestimmt werden.
 Gelingt das nur näherungsweise, entsteht Labelrauschen, und bei kleinen
-Objekten betrifft schon eine kleine Abweichung einen spürbaren Teil der
+Objekten betrifft schon eine kleine Abweichung einen erheblichen Anteil der
 Objektfläche.
 
 \absatz{Invarianz statt bloßer Vielfalt.} Augmentierung zeigt dem Modell
@@ -119,8 +119,8 @@ Kompressionsartefakte hinzu.
 
 Verfahren wie Cutout \parencite{devries2017cutout}, Random Erasing
 \parencite{zhong2020erasing} und Hide-and-Seek \parencite{singh2017hideseek}
-verdecken zufällig gewählte Bildbereiche, damit das Modell auch mit
-unvollständiger Information zurechtkommt. In den Stapelaufnahmen ist Verdeckung
+verdecken zufällig gewählte Bildbereiche, damit das Modell robust gegenüber
+unvollständiger Bildinformation wird. In den Stapelaufnahmen ist Verdeckung
 aber keine künstliche Störung, denn die Stirnflächen werden dort tatsächlich von
 Rohren, Gitterstäben und Schatten verdeckt. Die Pipeline löscht deshalb keine
 zufälligen Rechtecke, sondern fügt plausible Okkluder in die Szene ein. So
@@ -129,8 +129,8 @@ das Zusammenspiel von Vorder- und Hintergrund gezielt steuern.
 
 \absatz{Augmentierung und Synthese.} Bei der klassischen Augmentierung ist jedes
 Trainingsbild ein reales Foto $x_i$, aus dem Transformationen weitere Varianten
-$t(x_i)$ erzeugen. Alles, was das Modell über reale Bilder lernt, steckt also im
-Originalbild. In dieser Arbeit wird jede Szene dagegen aus Einzelteilen
+$t(x_i)$ erzeugen. Alles, was das Modell über reale Bilder lernen kann, ist also
+im Originalbild enthalten. In dieser Arbeit wird jede Szene dagegen aus Einzelteilen
 zusammengesetzt. Die Vielfalt der Trainingsdaten kommt dann nicht mehr aus
 vielen realen Ausgangsbildern, sondern aus der Verteilung $p(t)$ selbst. Wie
 diese Verteilung aufgebaut ist, wird deshalb im Folgenden genauer betrachtet.
@@ -337,8 +337,8 @@ die Zahl $Z = Z_R$ der Zentren im Objekt gilt
   \label{eq:gridcount}
 \end{equation}
 Bei einer bestimmten Lage können es mehr oder weniger sein. Im Mittel wächst
-$Z$ quadratisch mit der Objektgröße und fällt quadratisch mit dem Stride. Was
-eine feinere Ebene bringt, zeigt das Verhältnis der Mittelwerte für dasselbe
+$Z$ quadratisch mit der Objektgröße und fällt quadratisch mit dem Stride. Den
+Nutzen einer feineren Ebene zeigt das Verhältnis der Mittelwerte für dasselbe
 Gebiet auf P2 und P3. Nach Gleichung~\eqref{eq:gridarea} ist
 \begin{equation}
   \frac{\mathbb{E}[Z_R]_{S=4}}{\mathbb{E}[Z_R]_{S=8}}
@@ -447,8 +447,8 @@ hängt zusätzlich davon ab, wie es Merkmale berechnet und Trainingspositionen
 zuweist; die Zuweisung bei sehr kleinen Objekten ist ein eigenes
 Forschungsthema \parencite{zhang2020atss,xu2022rfla}.
 
-Für die verwendete Werkzeugkette lässt sich das genauer sagen, und es schwächt
-die Rechnung ab. Ihre Labelzuweisung prüft nicht, ob ein Gitterzentrum im
+Für die verwendete Werkzeugkette lässt sich die Aussage präzisieren; sie fällt
+dabei schwächer aus. Ihre Labelzuweisung prüft nicht, ob ein Gitterzentrum im
 kreisförmigen Objekt liegt, sondern ob es in dessen Box liegt; ein
 achsenparalleles Quadrat kann damit erst unterhalb von $S$ statt $S\sqrt{2}$
 ohne Gitterzentrum bleiben. Zudem streckt sie jede Box, deren Breite oder Höhe
@@ -494,12 +494,13 @@ Entscheidend ist also der relative Fehler $\delta/d$, nicht der absolute. Ein
 Versatz von 2\px{} entspricht etwa dem Unterschied zwischen Generatorlabel und
 Handannotation, der in Abschnitt~\ref{sec:boxversatz} gemessen wird. Er senkt
 die IoU bei einem 20\px{} großen Objekt auf 0,82, bei einem 200\px{} großen nur
-auf 0,98. Derselbe Pixelfehler kostet beim kleinen Objekt also etwa neunmal so
-viel IoU. Für einen Größenfehler gilt Ähnliches: Ist die Box zentriert, aber um
+auf 0,98. Derselbe Pixelfehler senkt die IoU beim kleinen Objekt also etwa
+neunmal so stark. Für einen Größenfehler gilt Ähnliches: Ist die Box zentriert, aber um
 $\delta$ zu klein, gilt $\IoU = (1-\delta/d)^{2}$, bei 20\px{} also 0,81. Für
 kleine $\delta/d$ sind beide Ausdrücke ungefähr gleich $1 - 2\delta/d$. Weil
-\mAPall{} über Schwellen bis 0,95 mittelt, schlagen deshalb schon wenige Pixel
-Lokalisierungsfehler bei kleinen Objekten deutlich auf die Kennzahl durch.
+\mAPall{} über Schwellen bis 0,95 mittelt, wirken sich bei kleinen Objekten
+deshalb schon Lokalisierungsfehler von wenigen Pixeln deutlich auf die Kennzahl
+aus.
 
 Für die Trainingsdaten bedeutet das zweierlei. Erstens müssen die Labels sehr
 genau sein, denn bei Objekten von wenigen Dutzend Pixeln ist ein Labelfehler von
@@ -571,7 +572,7 @@ erkennt es die Rohrenden in beiden Domänen gleich gut, und der Abstand bleibt
 nahe null. Ein Modell, das die Farbe mitverwertet, könnte auf denselben Bildern
 dagegen einen deutlichen Abstand zeigen. Gemessen wird also nicht der
 Unterschied der Domänen selbst, sondern nur der Teil davon, auf den das
-jeweilige Modell reagiert. Der Abstand verrät auch nicht, ob der Unterschied in
+jeweilige Modell reagiert. Der Abstand zeigt auch nicht, ob der Unterschied in
 den Bildern oder in den Beschriftungen liegt.
 
 \absatz{Domain Randomization.} Ein verbreiteter Ansatz gegen einen großen
@@ -579,7 +580,8 @@ Sim-to-Real-Abstand ist Domain Randomization. Die Parameter des Generators
 werden dabei absichtlich breit und auch unrealistisch variiert, damit die reale
 Welt dem Modell nur als eine weitere Variante erscheint \parencite{tobin2017}
 und das Netz die wesentlichen Merkmale des Objekts lernen muss
-\parencite{tremblay2018}. Die Breite hat ihren Preis. \textcite{prakash2019}
+\parencite{tremblay2018}. Diese Breite ist jedoch mit Nachteilen verbunden.
+\textcite{prakash2019}
 berichten aus der Fahrzeugdetektion, dass das Verfahren wegen der vielen
 Variation große Datenmengen braucht, dass das Netz die richtigen Merkmale oft
 nur schwer findet und dass ohne Szenenkontext kleine Fahrzeuge nicht erkannt
@@ -608,11 +610,12 @@ eingefügtes Objekt reagiert, und einer, der die Stirnfläche selbst erkennt,
 liefern auf synthetischen Bildern dieselben Boxen. In dieser Arbeit entspricht
 \code{sval} dem i.i.d.-Test, die realen Bilder entsprechen dem o.o.d.-Test.
 Eine gelernte Abkürzung zeigt sich deshalb erst im Sim-to-Real-Abstand: Das
-Modell ist auf \code{sval} gut, auf den realen Bildern aber deutlich schlechter.
+Modell erreicht auf \code{sval} hohe Werte, auf den realen Bildern aber deutlich
+niedrigere.
 
 Mehr Zufallsvariation hilft gegen eine solche Abkürzung nicht, solange sie das
 betreffende Merkmal nicht selbst verändert, denn ein Merkmal, das in jedem
-synthetischen Bild steckt, wird durch weitere Ziehungen aus derselben
+synthetischen Bild vorhanden ist, wird durch weitere Ziehungen aus derselben
 Verteilung nicht seltener. Auch nach \textcite{geirhos2020} verschwinden
 Gelegenheiten zu Abkürzungen selten durch mehr Daten; wirksam ist dagegen, die
 Trainingsdaten so zu verändern, dass eine bestimmte Abkürzung nicht mehr

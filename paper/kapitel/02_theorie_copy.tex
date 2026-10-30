@@ -77,7 +77,7 @@ Positionen als P3, P4 und P5 zusammen. Wichtig ist aber nicht diese Zahl,
 sondern der kleinere Stride, mit dem kleine Objekte feiner abgetastet werden.
 
 Der Head besteht nur aus Faltungen und sagt an jeder Position jeder Ebene zwei
-Dinge vorher: eine Klassenkonfidenz, hier also, wie wahrscheinlich an dieser
+Größen vorher: eine Klassenkonfidenz, hier also, wie wahrscheinlich an dieser
 Stelle eine Stirnfläche liegt, und die Lage der zugehörigen Box. Beides
 berechnet er in getrennten Zweigen mit eigenen Gewichten, er ist also
 \emph{entkoppelt} \parencite{ge2021yolox}. Außerdem ist er \emph{ankerfrei}:
@@ -158,10 +158,10 @@ Zähler.
 
 \absatz{Hohe Objektdichte.} Die Profile liegen dicht nebeneinander, und ihre
 Boxen überlappen entsprechend stark. Für klassische NMS ist das ein Dilemma: Ein
-niedriger Schwellenwert unterdrückt auch echte Nachbarobjekte, ein hoher lässt
-Duplikate stehen. Die NMS-freie Inferenz von YOLO26 umgeht diese Entscheidung.
+niedriger Schwellenwert unterdrückt auch echte Nachbarobjekte, ein hoher behält
+Duplikate bei. Die NMS-freie Inferenz von YOLO26 umgeht diese Entscheidung.
 Die eigentliche Schwierigkeit bleibt aber, denn das Modell muss eng
-benachbarte, teilweise verdeckte Objekte weiterhin auseinanderhalten.
+benachbarte, teilweise verdeckte Objekte weiterhin voneinander unterscheiden.
 
 \absatz{Verdeckung.} Verkippte Zäune verdecken benachbarte Stirnflächen
 teilweise, und Gitterknoten, Maschenöffnungen und Schattenspalten sehen einer

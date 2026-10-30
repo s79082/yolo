@@ -93,7 +93,8 @@ Generatorlabel und Handannotation}, der in Abschnitt~\ref{sec:boxversatz}
 aufgeschlüsselt wird. \mAPall{} ist bei dieser Objektgröße daher weniger ein
 Maß für die Detektionsqualität als für Pixelauflösung und Labelkonvention;
 diese Feststellung gilt für alle folgenden Tabellen. Wo das Modell auf beiden
-Realbildern trifft und wo es sich irrt, zeigt Abbildung~\ref{abb:qualitativ} in
+Realbildern richtig und wo es falsch detektiert, zeigt
+Abbildung~\ref{abb:qualitativ} in
 Abschnitt~\ref{sec:bootstrap}.
 
 \absatz{Sim-to-Real-Abstand.}\label{sec:simtoreal}
@@ -121,8 +122,8 @@ Der Abstand bei \mAPfifty{} geht also nicht auf die Boxgröße zurück. Andere
 Unterschiede der Beschriftung kann er aber enthalten, etwa welche teilverdeckten
 Enden überhaupt ein Label erhalten (Abschnitt~\ref{sec:sichtbarkeit}). Auf \code{test} zeigt er auch nicht das
 Muster, das bei reinem Artefaktlernen zu erwarten wäre: Hätte das Netz eine der
-Signaturen S1--S6 als Abkürzung gelernt, wäre es auf \code{sval} zwar ebenso
-gut, auf den realen Bildern aber deutlich schlechter.
+Signaturen S1--S6 als Abkürzung gelernt, würde es auf \code{sval} zwar ähnliche
+Werte erreichen, auf den realen Bildern aber deutlich niedrigere.
 
 Wie groß der Abstand ist, ordnet zum einen die Ablation ein
 (Abschnitt~\ref{sec:ablationC}), zum anderen die Stichprobenunsicherheit aus
@@ -161,8 +162,8 @@ jedes Objekt mit dem Verhältnis $M/N$ aus Netzeingabe und Bildkantenlänge. Fü
 \code{val} ist $N = 2459$\px{} (Tabelle~\ref{tab:statistik}), bei $M = 640$ also
 $M/N = 0{,}26$. Die 12--36\px{} großen Objekte kommen dann nur noch mit
 3--9\px{} im Netz an, und der Rückruf bricht auf \zswValNiedrigRec{} ein. Das
-Modell lokalisiert die Objekte also nicht nur schlechter, es \emph{findet} sie
-gar nicht mehr. Auf \code{test} ist der Einbruch mit \zswTestGain\,Prozentpunkten kleiner,
+Modell lokalisiert die Objekte also nicht nur ungenauer, sondern \emph{findet}
+die meisten von ihnen nicht mehr. Auf \code{test} ist der Einbruch mit \zswTestGain\,Prozentpunkten kleiner,
 weil das Bild nur 1600\px{} breit ist und deshalb weniger stark verkleinert
 wird.
 
@@ -208,7 +209,7 @@ dennoch beim nativen Maßstab (Abschnitt~\ref{sec:metriken}).
 
 Die übrigen Inferenzparameter sind unkritisch: Der NMS-Schwellwert wirkt beim
 Ende-zu-Ende-Modell nicht, weil keine NMS läuft (Abschnitt~\ref{sec:yolo26}).
-Die Test-Time-Augmentation führt die Werkzeugkette bei diesem Modell gar nicht
+Die Test-Time-Augmentation führt die Werkzeugkette bei diesem Modell nicht
 aus, sie fällt mit einer Warnung auf die einfache Vorhersage zurück
 (\code{\_predict\_augment} in \code{ultralytics/nn/tasks.py},
 Version~8.4.117). Der Parameter \code{max\_det} verändert ab 100 den
@@ -229,7 +230,7 @@ Tabelle~\ref{tab:imgszvoll} im Anhang.}
 \section{Die Ablation: Wie viel trägt die Einbettung?}
 \label{sec:ablationC}
 
-\absatz{Warum diese Frage.} Die Ablation prüft keine einzelne Stufe, sondern
+\absatz{Motivation.} Die Ablation prüft keine einzelne Stufe, sondern
 das Leitprinzip der Pipeline (Kapitel~\ref{kap:pipeline}), das das
 Einfügen selbst betrifft. Jede Stufe, die gegen eine der Signaturen
 S1--S6 gerichtet ist, kostet Rechenzeit und wird mit demselben Argument
@@ -268,8 +269,9 @@ dieselbe Verteilung der Szenen, nur ohne Einbettung
 (Abbildung~\ref{abb:einbettung}).
 
 \absatz{Eine Einschränkung vorab.} Das Bündel lässt sich nicht auflösen. Sechs
-Maßnahmen werden gemeinsam abgeschaltet, und welche davon wie viel beiträgt,
-sagt der Versuch nicht. Außerdem ist die Zuordnung zu den Signaturen nicht ganz sauber: S1--S5 sind
+Maßnahmen werden gemeinsam abgeschaltet, und welchen Anteil jede einzelne am
+Effekt hat, lässt sich aus dem Versuch nicht ablesen. Außerdem ist die Zuordnung
+zu den Signaturen nicht vollständig trennscharf: S1--S5 sind
 vollständig abgeschaltet, von S6 dagegen nur der Schlagschatten -- die
 physikalisch plausiblen Okkluder, die andere Hälfte dieser Signatur, bleiben
 in beiden Armen aktiv. Die JPEG-Requantisierung wiederum betrifft nicht nur die
@@ -314,10 +316,10 @@ und die Streuung des Trainings ist bei je einem Lauf unbekannt
 Effekts als seine genaue Größe.
 
 \absatz{Synthetisch unverändert, real schlechter.} Auf seinem \emph{eigenen} synthetischen
-Validierungssplit ist C1 von C0 praktisch nicht zu unterscheiden (\zCOneSval{}
+Validierungssplit ist C1 von C0 kaum zu unterscheiden (\zCOneSval{}
 gegen \zCZeroSval{} \mAPfifty, $\zablCSvalGap$\PP). Der naiv eingeklebte
 Trainingssatz ist also keine schwerere Aufgabe, das Netz löst ihn ebenso gut.
-Nur überträgt sich das Gelernte schlechter: Der Sim-to-Real-Abstand wächst auf
+Allerdings überträgt sich das Gelernte schlechter: Der Sim-to-Real-Abstand wächst auf
 \code{test} von \zgapCZeroTest{} auf \zgapCOneTest\PP, also auf mehr als das
 Vierfache, auf \code{val} dagegen nur von \zgapCZeroVal{} auf
 \zgapCOneVal\PP.
@@ -333,8 +335,8 @@ Abstand unter sonst gleichen Bedingungen mehr als viermal so groß. Auf
 
 \absatz{Was der Versuch über den \emph{Mechanismus} nicht sagt.} Naheliegend
 ist die Deutung, das Netz habe die Einklebespur als Abkürzung gelernt. Im
-Trainingsbild trägt schließlich jedes gelabelte Objekt diese Spur und sonst
-nichts, sie hängt also perfekt mit dem Label zusammen. Das Fehlermuster am
+Trainingsbild trägt jedes gelabelte Objekt diese Spur und sonst kein
+Bildbereich; sie ist also vollständig mit dem Label korreliert. Das Fehlermuster am
 $F_1$-optimalen Betriebspunkt ist auf den beiden Splits aber verschieden. Auf
 \code{test} fallen die Treffer von 80 auf 67, und zugleich steigt die Zahl der
 Falsch-Positiven von 5 auf 16; die Precision sinkt von \zCZeroTestPrec{} auf
@@ -344,23 +346,24 @@ Detektionen: C1 tauscht dort Rückruf gegen Precision, und \mAPfifty{} ändert
 sich kaum.
 
 Für den Verlust kommen mehrere Erklärungen in Frage. Die eine ist die Abkürzung:
-Das Netz sucht die Einklebespur, findet sie im Realbild nicht und meldet
-weniger -- das entspricht dem Muster auf \code{val}. Die andere ist eine
-gewöhnliche Domänenlücke: Ohne Angleich \emph{sehen} die Trainingsobjekte
-schlicht anders aus als reale Rohrenden -- schärfer, kontrastreicher, mit
-dunklerer Bohrung --, und das Netz hat ein zu enges Erscheinungsmodell gelernt,
-das echte Enden übersieht und an anderer Stelle anschlägt -- das entspricht
+Das Netz reagiert auf die Einklebespur, die im Realbild fehlt, und liefert dort
+weniger Detektionen -- das entspricht dem Muster auf \code{val}. Die andere ist eine
+gewöhnliche Domänenlücke: Ohne Angleich unterscheiden sich die Trainingsobjekte
+in ihrer \emph{Erscheinung} deutlich von realen Rohrenden -- schärfer,
+kontrastreicher, mit dunklerer Bohrung --, und das Netz hat ein zu enges
+Erscheinungsmodell gelernt, das echte Enden übersieht und an anderen Stellen
+Falsch-Positive erzeugt -- das entspricht
 eher dem Muster auf \code{test}. Zwei weitere Umstände können das Muster
 mitprägen. Die Objektausschnitte stammen aus derselben Aufnahmeserie wie
 \code{val} (Abschnitt~\ref{sec:valtest}); naiv eingeklebt tragen sie bereits
-dessen Beleuchtung und Kamera, sodass auf \code{val} auch ohne Angleich wenig zu
-verlieren ist. Und weil C1 keine JPEG-Requantisierung erhält, kann ein Teil des
+dessen Beleuchtung und Kamera, sodass der fehlende Angleich auf \code{val}
+weniger ins Gewicht fällt. Und weil C1 keine JPEG-Requantisierung erhält, kann ein Teil des
 Verlusts auf die Kompression der Realbilder zurückgehen statt auf die
 Einbettung im engeren Sinn. Trennen kann der Versuch diese Erklärungen nicht:
 Das Abschalten der Einbettung erzeugt die künstliche Kante, verfälscht die
-Erscheinung des Objekts selbst und nimmt zugleich die Kompressionsvariation
-weg. Belegt ist damit in je einem Lauf, \emph{dass} das Bündel auf dem Testbild
-wirkt und dass sein Fehlen an den synthetischen Daten nicht zu sehen ist, aber
+Erscheinung des Objekts selbst und entfernt zugleich die
+Kompressionsvariation. Belegt ist damit in je einem Lauf, \emph{dass} das Bündel auf dem Testbild
+wirkt und dass sich sein Fehlen auf den synthetischen Daten nicht zeigt, aber
 nicht, auf welchem Weg der Verlust entsteht. Einen Versuch, der das trennt,
 nennt Abschnitt~\ref{sec:grenzen}.
 
@@ -440,7 +443,7 @@ Quellmaterial selbst.
 (magenta in Abbildung~\ref{abb:qualitativ}): Sie
 treffen ein schon erkanntes Rohrende mit $\mathrm{IoU} \geq 0{,}50$, zählen
 aber als Fehler, weil die Zuordnungsregel je annotierter Fläche nur einen
-Treffer zulässt \parencite{lin2014coco}, und bleiben stehen, weil der Kopf
+Treffer zulässt \parencite{lin2014coco}, und werden nicht entfernt, weil der Kopf
 NMS-frei arbeitet und der Inferenzparameter \code{iou} deshalb ohne Wirkung
 bleibt (Abschnitt~\ref{sec:yolo26}); \zfpOhneTest{} überlappt keine
 Annotation (rot). Auf \code{val} sind es \zfpVal{} bei \znPredVal{} Detektionen; der

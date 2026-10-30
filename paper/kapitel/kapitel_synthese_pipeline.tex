@@ -30,8 +30,8 @@ Abbildung~\ref{abb:pipeline} zeigt, woher die Bausteine kommen und in welcher
 Reihenfolge sie verarbeitet werden.
 
 Die Pipeline verfolgt vor allem ein Ziel: Sie soll \emph{die Abkürzungen
-schließen, über die ein CNN \enquote{hier wurde etwas eingeklebt} statt
-\enquote{hier ist ein Rohrende} lernen könnte,} soweit sie sich als Signaturen
+ausschließen, über die ein CNN die Spuren des Einfügens statt der Stirnfläche
+selbst lernen könnte,} soweit sie sich als Signaturen
 benennen lassen (Tabelle~\ref{tab:signaturen}). Gegen eine solche Abkürzung
 hilft nach Abschnitt~\ref{sec:sim2real} nicht mehr Variation, sondern nur, den
 systematischen Unterschied zwischen eingefügten und originalen Pixeln zu
@@ -79,8 +79,8 @@ Stufenparametern.}
 (Befund~1); direkt eingefügt, erzeugten sie Signatur~S1. Freigestellt wird
 deshalb mit einem Ellipsenmodell $(c_x, c_y, r_x, r_y, \theta)$, das zuerst grob
 auf einem Raster und dann numerisch an die radiale Kantenenergie angepasst wird
-(\code{src/matting.py}). Die Optimierung landet dabei auf dem \emph{Grat} des
-hellen Kranzes und nicht auf seiner Außenkante. Deshalb wird der Radius
+(\code{src/matting.py}). Die Optimierung konvergiert dabei gegen den \emph{Grat}
+des hellen Kranzes und nicht gegen seine Außenkante. Deshalb wird der Radius
 anschließend korrigiert: Aus dem mittleren Radialprofil wird der Radius
 bestimmt, bei dem die Helligkeit auf 25\,\% der Kantenamplitude über dem
 Hintergrundniveau abgefallen ist.
@@ -92,9 +92,9 @@ das Merkmal verloren, an dem das Netz das Objekt erkennt. Ein etwa 1\px{}
 breiter Saum aus Hintergrund fällt dagegen nach Kantenweichzeichnung und
 Farbangleich kaum auf. Die Aufweitung ist auf $[1{,}02;\,1{,}10]$ begrenzt. Bei
 fünf der sechs Ausschnitte liegt der ermittelte Faktor ohnehin bei 1,00--1,05;
-nur beim kontrastarmen sechsten käme sonst 1,19 heraus, und die Maske würde
-Hintergrund einschließen. Das Ergebnis sind weiche Alphamasken mit rund
-1,1\px{} Übergangsbreite. Das ist gewollt, denn auch in einer realen Aufnahme
+nur beim kontrastarmen sechsten ergäbe sich ohne diese Begrenzung ein Faktor von
+1,19, und die Maske würde Hintergrund einschließen. Das Ergebnis sind weiche Alphamasken mit rund
+1,1\px{} Übergangsbreite. Das ist beabsichtigt, denn auch in einer realen Aufnahme
 hat ein 25\px{} großes Objekt keine pixelscharfe Kontur.
 
 \absatz{Rohrschaft-Bibliothek.} Ein prozedural \emph{gezeichneter} Balken hätte
@@ -240,7 +240,7 @@ k = 1 + \alpha_\sigma\!\left(\operatorname{clip}\!\left(
 \label{eq:harmonize}
 \end{equation}
 Der Faktor $k$ verändert den Kontrast des Objekts um seinen eigenen
-Mittelwert, der letzte Term verschiebt die mittlere Helligkeit ein Stück in
+Mittelwert, der letzte Term verschiebt die mittlere Helligkeit teilweise in
 Richtung des Hintergrunds. Die Angleichstärken werden je Instanz als
 $\alpha_\mu \sim \mathcal{U}[0{,}10;\,0{,}45]$ und
 $\alpha_\sigma \sim \mathcal{U}[0;\,0{,}35]$ gezogen. Das Streuungsverhältnis
@@ -272,7 +272,8 @@ p_{ij} = i\,g_1\,\mathbf{e}_1 + j\,g_2\,\mathbf{e}_2 + \mathbf{c}
 mit $g_1 \in [0{,}98;\,1{,}60]\,d_0$, $g_2 \in [0{,}98;\,1{,}85]\,d_0$, einem
 Winkel von $55^\circ$--$125^\circ$ zwischen $\mathbf{e}_1$ und $\mathbf{e}_2$ und
 $\sigma_G = 0{,}17\,d_0$. Die Obergrenzen der Gitterabstände und $\sigma_G$ sind
-iterativ so eingestellt, dass die erzeugte Anordnung die Realbilder trifft: die
+iterativ so eingestellt, dass die erzeugte Anordnung die Statistik der
+Realbilder reproduziert: die
 Gitterabstände Median und p90 des NN-Abstands, $\sigma_G$ dessen p10 und die
 Berührungsquote (Tabelle~\ref{tab:kalibrierung}). Der Winkelbereich ist am
 Histogramm der realen Nachbarrichtungen ausgerichtet, aber gesetzt und nicht
@@ -389,8 +390,9 @@ liegt der Median bei 1,00 und das p10 mit 0,78 unter beiden realen Werten.
 Die Ursache ist die Reihenfolge in Stufe T2: Die Ovalisierung erzeugt
 überwiegend breite Ellipsen (oblat:prolat $=$ 45:12, Befund~6), die
 anschließende Rotation über den vollen Kreis richtet sie aber beliebig aus.
-Die gemessene Vorzugsrichtung kommt deshalb im Datensatz nicht an, und der aus
-der Messung abgeleitete Ovalisierungsanteil trifft die reale Verteilung nicht.
+Die gemessene Vorzugsrichtung bleibt deshalb im Datensatz nicht erhalten, und
+der aus der Messung abgeleitete Ovalisierungsanteil verfehlt die reale
+Verteilung.
 Dass jede Instanz unabhängig gedreht wird,
 ist eine Annahme (Tabelle~\ref{tab:parameter}, T2). Ob die fehlende
 Vorzugsrichtung die Detektion beeinflusst, wurde nicht gemessen.

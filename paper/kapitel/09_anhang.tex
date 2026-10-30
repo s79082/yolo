@@ -191,7 +191,7 @@ ja -- Kern des Verfahrens (Abschnitt~\ref{sec:sim2real}) \\
 \begin{longtable}{@{}L{0.195\textwidth}L{0.065\textwidth}L{0.525\textwidth}L{0.05\textwidth}@{}}
 \caption[Alle Transformationen der Pipeline]{Alle 37 Transformationen der
 Pipeline mit Parameterbereich, gemessenem Ist-Anteil und Begründung. \emph{S}
-verweist auf die geschlossene Abkürzung aus Abschnitt~\ref{sec:sim2real},
+verweist auf die zugehörige Signatur aus Abschnitt~\ref{sec:sim2real},
 \emph{Art} auf die Belegart nach Tabelle~\ref{tab:befunde}: \emph{M} = Messung
 an den Realdaten (eine bloße Beobachtung genügt nicht), \emph{P} =
 physikalische Randbedingung, \emph{L} = Literatur, \emph{A} = Annahme. Ein
@@ -227,17 +227,17 @@ Kleinrotation $\pm6^\circ$ (Zoom 1,06) & 34,3\,\% & Die Rohrlinien sind nie exak
 Rotation $0$--$360^\circ$ & 100\,\% & Über Aufnahmen hinweg haben Rohrenden keine kanonische Orientierung: Kamerarollwinkel und Stapelausrichtung sind beliebig, und die Richtung des Glanzlichts hängt vom Sonnenstand ab. Das begründet volle Rotationsinvarianz, nicht aber die \emph{unabhängige} Drehung jeder Instanz: Innerhalb einer Aufnahme sind die Boxen überwiegend breiter als hoch (Median $w/h$ 1,08 bzw.\ 1,09, Tabelle~\ref{tab:statistik}). Weil die Drehung nach der Ovalisierung wirkt, hebt sie deren Vorzugsrichtung auf; das erzeugte Seitenverhältnis hat den Median 1,00 (Tabelle~\ref{tab:kalibrierung}, Abschnitt~\ref{sec:datensatz}). & P/A \\
 Skalierung auf 12--44\px{} (Abschnitt~\ref{sec:modellentscheidungen}) & 100\,\% & Untere Grenze p05 von \code{test} (12,2\px), obere das größte Objekt in \code{val} (35,8\px) plus rund 25\,\% Reserve; der Reservefaktor ist gewählt (Befund~5). Ist-Verteilung der Labels aller 6000 Bilder p05/Median/p95 = 12,0/23,5/40,4\px{} (Tabelle~\ref{tab:kalibrierung} misst an 1500 Bildern). Verkleinerung flächentreu, weil bilineare Interpolation Aliasing im Objekt zurückließe. & M/A (S3) \\
 Ovalisierung 0,66--0,97 bzw.\ 1,03--1,30 & 56,9\,\% & Gemessenes Seitenverhältnis p10--p90 = 0,82--1,40; über die Hälfte der echten Boxen weicht um $\geq5\,\%$ vom Quadrat ab. Oblat dominiert (45:12), weil Schrägansicht die Höhe verkürzt. Die Quote ist gewählt (Befund~6). & M/A \\
-Delle, 1--2 Sektoren, Tiefe 10--30\,\% & 17,9\,\% & Mechanisch beschädigte Enden; Dellen sind nicht annotiert. 18\,\% lässt das Modell die Verformung regelmäßig sehen, ohne die Rundheit als Merkmal zu verwässern. & A \\
+Delle, 1--2 Sektoren, Tiefe 10--30\,\% & 17,9\,\% & Mechanisch beschädigte Enden; Dellen sind nicht annotiert. Mit 18\,\% kommt die Verformung im Training regelmäßig vor, ohne die Rundheit als Merkmal abzuschwächen. & A \\
 Perspektive, Homographie $\pm9\,\%$ & 30,1\,\% & Bei Schrägblick wird der Kranz einseitig \emph{breiter} (sichtbare Rohrinnenwand); anisotrope Skalierung kann das nicht abbilden. & A \\
 \addlinespace
 \multicolumn{4}{@{}l}{\textbf{T3 -- Photometrie und Einbettungsrealismus} \hfill\emph{je Instanz}}\\
-Helligkeit $\times0{,}70$--$1{,}35$ & 99,7\,\% & Stirnflächen liegen in praller Sonne oder tiefem Schatten; gemessen ist die Spannweite der Ausschnitte (Kranz-p90 123--162 Grauwerte, Faktor 1,32). Der Faktorbereich greift mit 1,93 darüber hinaus. & M/A \\
+Helligkeit $\times0{,}70$--$1{,}35$ & 99,7\,\% & Stirnflächen liegen in direktem Sonnenlicht oder im Schatten; gemessen ist die Spannweite der Ausschnitte (Kranz-p90 123--162 Grauwerte, Faktor 1,32). Der Faktorbereich greift mit 1,93 darüber hinaus. & M/A \\
 Gamma $0{,}75$--$1{,}35$ & 79,7\,\% & Gamma statt Kontrast, weil es die nichtlineare Tonwertkurve verschiedener Kameras abbildet \parencite{grossberg2003} und das Verhältnis Bohrung $\leftrightarrow$ Kranz verändert. & L/A \\
 HSV: Ton $\pm16^\circ$ (OpenCV: $\pm8$ H-Einheiten), Sättigung $\times0{,}45$--$1{,}60$ & 69,7\,\% & Verzinkter Stahl ist neutralgrau, nimmt aber Farbstiche an (Flugrost, Moos, Himmelsreflex); Farbtonhub moderat, da große Sprünge unphysikalisch wären. & A \\
 Farbangleich an den lokalen Hintergrund, Gl.~\eqref{eq:harmonize} & 84,7\,\% & Ohne Angleich bliebe zwischen Objekt und Umgebung ein Farb- und Helligkeitsversatz, den ein CNN als Einfügemarke lernen könnte. Partieller Statistiktransfer \parencite{reinhard2001,tsai2017}. & L/A (S2) \\
 \quad Angleichstärken $\alpha_\mu \in [0{,}10;\,0{,}45]$, $\alpha_\sigma \in [0;\,0{,}35]$ & -- & Deutlich unter 1 gedeckelt, damit der Transfer partiell bleibt und der Albedo-Unterschied Bohrung/Kranz erhalten wird (Abschnitt~\ref{sec:synthese}). & A \\
 Unschärfeangleich $\sigma$ 0,25--1,10\px & 59,8\,\% & Das skalierte Objekt ist glatter oder schärfer als das Zielbild, und reale Objekte liegen je nach Stapeltiefe außerhalb der Schärfeebene \parencite{popescu2005}. & L/A (S3) \\
-Rauschangleich (Abschnitt~\ref{sec:modellentscheidungen}) & 69,7\,\% & Beim Verkleinern sinkt das Rauschen, der eingeklebte Bereich wäre messbar sauberer. Niveau \emph{pro Einfügestelle} über den Hochpassrest geschätzt \parencite{immerkaer1996} (Hintergründe: 6,8--15,2 Grauwerte Hochpassstreuung). & L/A (S4) \\
+Rauschangleich (Abschnitt~\ref{sec:modellentscheidungen}) & 69,7\,\% & Beim Verkleinern sinkt das Rauschen, der eingefügte Bereich wäre messbar rauschärmer. Niveau \emph{pro Einfügestelle} über den Hochpassrest geschätzt \parencite{immerkaer1996} (Hintergründe: 6,8--15,2 Grauwerte Hochpassstreuung). & L/A (S4) \\
 \quad Streufaktor $\mathcal{U}[0{,}5;\,1{,}25]$ & -- & Variiert das eingefügte Niveau um die lokale Schätzung, damit der Einsatz nicht exakt die Hintergrundstatistik trifft. & A \\
 Alphakante weichzeichnen $\sigma$ 0,4--1,0\px & 100\,\% & Immer -- eine pixelharte Silhouette gibt es bei 25\px-Objekten in echten Aufnahmen nicht. Das Intervall liegt unterhalb der 1,1\px{} Übergangsbreite, die die Alphamaske bereits mitbringt (Abschnitt~\ref{sec:matting}). & P/A (S1) \\
 Schlagschatten, $\kappa$ 0,18--0,45 & 49,4\,\% & Ohne Kontaktschatten \enquote{schwebt} ein eingeklebtes Objekt sichtbar; rund 50\,\%, weil bei diffusem Licht etwa die Hälfte der realen Objekte keinen sichtbaren Schatten wirft. & A (S6) \\
@@ -248,7 +248,7 @@ gescherte Gitterpackung, 1--3 Cluster, Gl.~\eqref{eq:layout} & 100\,\% & Kalibri
 \quad Gitterrauschen $\sigma$ & -- & $\sigma = 0{,}17\,d_0$, \emph{an der erzeugten Statistik gegen die Realmessung kalibriert}: Der Wert setzt p10 und Berührungsquote (Tabelle~\ref{tab:kalibrierung}); ohne diesen Term entstünden sichtbar künstliche Reihen. & M \\
 \quad Winkel zwischen $\mathbf{e}_1$ und $\mathbf{e}_2$: $55^\circ$--$125^\circ$ & 100\,\% & Scherung des Gitters, ausgerichtet am Histogramm der Nachbarrichtungen (näherungsweise isotrop, Häufung $90$--$150^\circ$). & M/A \\
 \quad Clusterorientierung $\varphi$ & 100\,\% & Absolute Lage des Gitters im Bild: $\varphi \sim \mathcal{U}[60^\circ;\,150^\circ]$ in 60\,\% der Cluster, sonst $\mathcal{U}[0^\circ;\,180^\circ]$. & A \\
-\quad Clustergröße $n_1 \le 13$, $n_2 \le 6$ & -- & Steuert Nachbarzahl und Objektzahl je Bild (erzeugt: 22,7 Objekte je Bild); die Realbilder geben keine Clusterausdehnung her. & A \\
+\quad Clustergröße $n_1 \le 13$, $n_2 \le 6$ & -- & Steuert Nachbarzahl und Objektzahl je Bild (erzeugt: 22,7 Objekte je Bild); aus den Realbildern lässt sich keine Clusterausdehnung ableiten. & A \\
 abgedunkelte Mulde je Cluster & 0,87 je Bild & Die Stirnflächen liegen vor dem verschatteten Stapelinneren; ohne Abdunklung stünden die dunklen Bohrungen im Kontrast zu isoliert. & P/A \\
 \addlinespace
 \multicolumn{4}{@{}l}{\textbf{T5 -- Rohrschaft} \hfill\emph{je Instanz}}\\
@@ -258,14 +258,14 @@ Helligkeitsangleich des Schafts, $\kappa$ 0,35--0,75 & 100\,\% & Die Bibliothek 
 Tiefenmodell: 75\,\% ganz hinten, 25\,\% eingereiht & -- & An der erzeugten Statistik kalibriert: Mit zufälliger Tiefenordnung stieg der synthetische NN-Abstand auf $1{,}55\,\Oe$, rund 40\,\% über dem realen Wert; mit 75/25 liegt er bei $1{,}18\,\Oe$. & M \\
 \addlinespace
 \multicolumn{4}{@{}l}{\textbf{T6 -- Okklusion} \hfill\emph{Anteile je Bild}}\\
-quer liegende echte Rohrstangen, 1--6 Stück & 58,6\,\% & Rohre vor dem Stapel, in den Realbildern zu sehen; Breite $0{,}55$--$1{,}35\,\Oe$. Zu 80\,\% durch ein Cluster gelegt statt ins Leere, weil eine Verdeckung ohne getroffenes Objekt keinen Trainingsnutzen hat. & A \\
+quer liegende echte Rohrstangen, 1--6 Stück & 58,6\,\% & Rohre vor dem Stapel, in den Realbildern zu sehen; Breite $0{,}55$--$1{,}35\,\Oe$. Zu 80\,\% durch ein Cluster gelegt statt an eine Stelle ohne Objekte, weil eine Verdeckung ohne getroffenes Objekt keinen Trainingsnutzen hat. & A \\
 Fremdkörper (z.\,B.\ Laub, Draht), 1--4 Stück & 32,5\,\% & Als zufällige Flecken aus den Hintergründen selbst geschnitten, mit weicher Maske aus geglättetem Rauschen -- gleiches Quellmaterial, also gleiche Sensorsignatur; dasselbe ungeprüfte Argument wie bei den Okkludern (Abschnitt~\ref{sec:matting}). & A \\
 \addlinespace
 \multicolumn{4}{@{}l}{\textbf{T8 -- Globale Bildstufe} \hfill\emph{Anteile je Bild}}\\
 Helligkeit/Kontrast $\times0{,}80$--$1{,}22$, Offset $\pm18$ & 90,2\,\% & Wetter- und Belichtungsvariation über das ganze Bild. Alle sieben Quellaufnahmen entstanden bei diffusem Licht; eine Spannweite realer Belichtungen ließ sich daran nicht messen. & A \\
 HSV: Ton $\pm12^\circ$, Sättigung $\times0{,}60$--$1{,}40$, Hellwert $\times0{,}85$--$1{,}15$ & 70,6\,\% & Bewölkt bis Abendsonne; wegen des durchweg diffusen Lichts der einzige -- approximative -- Ersatz für die fehlende Beleuchtungsvielfalt. Anders als in T3 wirkt sie auf das gesamte Bild und verschiebt deshalb auch den Hellwert. & A \\
-Defokus $\sigma$ 0,3--1,0\px & 34,9\,\% & Der Autofokus trifft bei Stapelaufnahmen oft die falsche Ebene; Defokusunschärfe zählt zu den Standardkorruptionen der Robustheitsliteratur \parencite{hendrycks2019}. & L/A \\
-Bewegungsunschärfe, Kern 3--8\px & 9,9\,\% & Verwacklung aus der Hand; niedriger Anteil, weil moderne Mobiltelefone kurz belichten. & A \\
+Defokus $\sigma$ 0,3--1,0\px & 34,9\,\% & Bei Stapelaufnahmen kann der Autofokus auf eine andere Tiefenebene scharfstellen als die der Stirnflächen; Defokusunschärfe zählt zu den Standardkorruptionen der Robustheitsliteratur \parencite{hendrycks2019}. & L/A \\
+Bewegungsunschärfe, Kern 3--8\px & 9,9\,\% & Verwacklung bei Freihandaufnahmen; niedriger Anteil, weil moderne Mobiltelefone kurz belichten. & A \\
 Sensorrauschen $\sigma$ 1,0--5,0 & 79,7\,\% & Vereinheitlicht das Rauschniveau über das ganze Bild; Training mit Rauschen wirkt zugleich als Tikhonov-Regularisierung \parencite{bishop1995} und gehört zu den Standardkorruptionen \parencite{hendrycks2019}. & L/A \\
 Vignettierung 10--35\,\% & 25,8\,\% & Weitwinkelobjektive; erzwingt zusätzlich Positionsinvarianz der Helligkeit. Anders als Unschärfe, Rauschen und JPEG gehört Vignettierung nicht zu den in der Robustheitsliteratur untersuchten Korruptionen. & A \\
 JPEG-Requantisierung $q \in [55, 95]$, sonst $q = 95$ & 85\,\%$^\ast$ & Jedes Bild wird als JPEG gespeichert; alle Pixel teilen so dieselbe $8\times8$-Blockteilung \parencite{wallace1992jpeg}, gestörte Blockmuster gelten in der Bildforensik als Manipulationsspur \parencite{farid2009}. Das Raster der Hintergrundfotos geht schon durch die Neuabtastung in T1 verloren; die variable Qualität wirkt daher vor allem als Degradation, eine der Standardkorruptionen \parencite{hendrycks2019}. & L/A (S5) \\
@@ -331,7 +331,7 @@ Sichtbarkeitsregel des Generators bei 30\,\% aussortiert
 erzeugten Bildern in 67,3\,\% der Bilder mit mindestens einem Label eine boxfreie Fläche
 (\code{src/cutmix\_flaechen.py}); beide Angaben beziehen sich auf
 Ultralytics~8.4.117 und sind implementierungsabhängig. Verdeckung entsteht
-stattdessen im Generator physikalisch korrekt. \\
+stattdessen im Generator auf physikalisch plausible Weise. \\
 \code{erasing} & 0,0 &
 \textbf{Aus.} Random Erasing \parencite{zhong2020erasing} wirkt in der
 Werkzeugkette nur bei der Klassifikation; die Funktion übernimmt die
@@ -408,7 +408,7 @@ JPEG-Requantisierung wirken auf das \emph{fertige} Bild und damit auf
 eingefügte und originale Pixel gleichermaßen -- das ist ihr Zweck, denn ein
 Unterschied in genau diesen Größen wäre eine Abkürzung im Sinne von
 Tabelle~\ref{tab:signaturen}. (b)~Ein Negativbild: 9,7\,\% der Bilder enthalten
-kein einziges Objekt. Gezeigt ist der schwierige Fall -- ein Rohrstapel
+kein Objekt. Gezeigt ist der schwierige Fall -- ein Rohrstapel
 \emph{ohne} sichtbare Stirnflächen, also genau der Kontext, in dem Fehlalarme
 entstehen. Erzeugt mit \code{paper/tools/fig\_stufen.py}.}
 \label{abb:stufenglobal}

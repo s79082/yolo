@@ -22,8 +22,8 @@
 \label{sec:trainingsaufbau}
 
 \absatz{Datenaufteilung.} Trainiert wird auf synthetischen Bildern, validiert
-auf dem \emph{realen} \code{val}-Bild (98 Objekte). Das ist Absicht: Die
-Modellauswahl muss auf der Zieldomäne erfolgen, sonst fiele die Wahl auf das
+auf dem \emph{realen} \code{val}-Bild (98 Objekte). Diese Aufteilung ist
+beabsichtigt: Die Modellauswahl muss auf der Zieldomäne erfolgen, sonst fiele die Wahl auf das
 Modell, das am besten zu den eigenen Renderartefakten passt. \code{test}
 (89 Objekte) dient ausschließlich der
 Endbewertung. Ein vierter Split \code{sval} aus 400 synthetischen Bildern mit
@@ -85,7 +85,7 @@ durch einen Vergleich bestimmt; kleinere oder größere Varianten wurden nicht
 trainiert. Begründet ist sie allein mit der Datenlage: Der Datensatz hat nur
 eine Klasse und sechs zugrunde liegende Objektinstanzen, die Formvielfalt ist
 also klein, und tiefe Netze haben genug Kapazität, um selbst zufällige Labels
-auswendig zu lernen \parencite{zhang2017rethinking}. Dass ein größeres Modell
+zu memorieren \parencite{zhang2017rethinking}. Dass ein größeres Modell
 deshalb die synthetischen Eigenheiten eher lernt und schlechter auf reale Bilder
 überträgt, ist eine Annahme. Der \emph{P2-Kopf} folgt aus der
 Auflösungsrechnung in Abschnitt~\ref{subsec:kleine-objekte}. Er halbiert den
@@ -95,10 +95,11 @@ Maßstab liegt sie damit unter allen Objektgrößen in \code{val} und \code{test
 Entscheidend ist dabei der Faktor vier in der Zahl der Gitterpositionen je
 Objekt; dass ein Objekt ganz ohne Position bleibt, verhindert die
 Labelzuweisung der Werkzeugkette auch ohne P2-Kopf
-(Abschnitt~\ref{subsec:kleine-objekte}). Parameter kostet der P2-Kopf nicht, die \code{-p2}-Variante hat sogar 2,9\,\%
-weniger als das Basismodell, und der Rechenaufwand steigt bei $640\times640$ nur
-von 22,7 auf 26,6~GFLOPs. Teurer wird der Speicher: Die P2-Karte hat viermal so
-viele Positionen wie P3 und hob den Speicherbedarf in den eigenen Läufen bei
+(Abschnitt~\ref{subsec:kleine-objekte}). Die Parameterzahl erhöht der P2-Kopf
+nicht, die \code{-p2}-Variante hat 2,9\,\% weniger Parameter als das
+Basismodell, und der Rechenaufwand steigt bei $640\times640$ nur von 22,7 auf
+26,6~GFLOPs. Deutlich steigt dagegen der Speicherbedarf: Die P2-Karte hat
+viermal so viele Positionen wie P3 und hob ihn in den eigenen Läufen bei
 \code{imgsz}=1024 und Batch~8 von etwa 6 auf etwa 12~GB.
 
 Ausgangspunkt sind COCO-vortrainierte Gewichte. Die vortrainierten Filter der
@@ -169,8 +170,8 @@ Auf den 6000 erzeugten Bildern findet die Werkzeugkette in 67,3\,\% der
 Bilder mit mindestens einem Label eine boxfreie Fläche
 (\code{src/cutmix\_flaechen.py}).
 \code{erasing} wirkt in der Werkzeugkette nur bei der Klassifikation und
-\code{copy\_paste} nur mit Segmentierungsmasken; beides übernimmt hier ohnehin
-der Generator, und zwar physikalisch korrekt. Die vollständige Tabelle mit Begründung je
+\code{copy\_paste} nur mit Segmentierungsmasken; beides leistet hier bereits
+der Generator auf physikalisch plausible Weise. Die vollständige Tabelle mit Begründung je
 Parameter steht im Anhang (Tabelle~\ref{tab:trainaug}).
 
 Generator und Trainingsskalierung wirken bei der Objektgröße zusammen. Liegt
@@ -201,7 +202,7 @@ sind unabhängig vom Ausgang der Ablation.
 
 \emph{Erstens} fällt der Trainingsverlust bis zur letzten Epoche, von kleinen
 Schwankungen abgesehen, während die Metrik auf dem realen \code{val}-Bild
-deutlich früher flach wird und beim naiv eingeklebten Arm nach ihrem Höchstwert
+deutlich früher stagniert und beim naiv eingeklebten Arm nach ihrem Höchstwert
 (\mAPall{}, Epoche~\zCOneBestEpoche) sogar wieder sinkt. Naheliegend ist, darin
 den Sim-to-Real-Abstand in zeitlicher Form zu sehen: Ab dem Knick verbessert
 das Modell vermutlich überwiegend seine Anpassung an Eigenschaften der
@@ -215,8 +216,8 @@ Modell wählen.
 ab der zweiten Epoche unter dem der Kontrolle (C0), obwohl beide Arme aus derselben
 Layoutverteilung ziehen und fast gleich viele Objekte labeln. Das ist für sich
 genommen kein Qualitätsurteil -- ein niedriger Trainingsverlust auf
-synthetischen Daten sagt nichts über die Zieldomäne --, aber es passt dazu, dass
-der Eingriff gewirkt hat: Ohne Einbettung heben sich die eingefügten Objekte
+synthetischen Daten erlaubt keine Aussage über die Zieldomäne --, ist aber
+damit vereinbar, dass der Eingriff gewirkt hat: Ohne Einbettung heben sich die eingefügten Objekte
 deutlicher von ihrer Umgebung ab, und dieselbe Aufgabe wird leichter.
 
 \emph{Drittens} verläuft die Kurve auf dem realen Bild deutlich unruhiger als der
