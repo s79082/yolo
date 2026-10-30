@@ -3,29 +3,41 @@
 \markboth{Kurzfassung}{Kurzfassung}
 \thispagestyle{plain}
 
-An gestapelten mobilen Bauzaunfeldern sind die Stirnflächen der Rahmenrohre zu
-detektieren: kleine, nahezu identische Kreisringe in dichter Packung und
-wechselseitiger Verdeckung. Da annotierte Trainingsdaten fehlen, wird
-\emph{ausschließlich} auf synthetischen Bildern trainiert, erzeugt aus wenigen
-Objektausschnitten und Hintergrundaufnahmen. Im Mittelpunkt steht damit die
-\textbf{Synthese-Pipeline}: Jeder ihrer Parameter ist durch eine Messung an den
-Realdaten, eine physikalische Randbedingung oder die Literatur begründet oder
-als Annahme ausgewiesen. Auf einem realen Testbild, das weder im Quellmaterial
-vorkommt noch zur Modellauswahl dient, erreicht der Detektor ein \mAPfifty{} von
+Mobile Bauzaunfelder werden auf Baustellen und in Mietparks liegend gestapelt.
+Ein Foto der Stirnseite wäre der naheliegende Weg, einen solchen Stapel
+automatisch zu erfassen, doch jede Auswertung beginnt mit einer scheinbar
+einfachen Aufgabe: die Enden der Rahmenrohre im Bild zu finden. Für einen
+Objektdetektor ist sie alles andere als einfach. Rund hundert nahezu identische
+Kreisringe von 6 bis 36 Pixeln Durchmesser liegen dicht gepackt, verdecken sich
+gegenseitig und ähneln Gitterknoten und Maschenöffnungen. Vor allem aber
+existiert kein einziges annotiertes Trainingsbild, und hunderte Bilder mit je
+rund hundert winzigen Boxen von Hand zu beschriften, ist im Rahmen einer
+Abschlussarbeit nicht leistbar.
+
+Diese Arbeit geht deshalb den umgekehrten Weg: Der Detektor lernt
+\emph{ausschließlich} aus synthetischen Bildern, zusammengesetzt aus nur sechs
+ausgeschnittenen Rohrenden und sieben Hintergrundaufnahmen. Die
+\textbf{Synthese-Pipeline} erweitert also keinen vorhandenen Datensatz, sie
+erzeugt ihn überhaupt erst und legt damit fest, was das Netz über die reale
+Welt erfahren kann. Entsprechend streng wird sie begründet: Jeder ihrer
+Parameter stützt sich auf eine Messung an den Realdaten, eine physikalische
+Randbedingung oder die Literatur oder ist ausdrücklich als Annahme ausgewiesen.
+Auf einem realen Testbild, das weder im Quellmaterial vorkommt noch zur
+Modellauswahl dient, erreicht der Detektor ein \mAPfifty{} von
 \textbf{\zrefTestMap}.
 
-Eine kontrollierte Ablation mit je einem Trainingslauf weist darauf hin, worauf
-es bei der Synthese ankommt: Ohne Einbettung, also ohne Angleich der
-eingefügten Objekte an ihre Umgebung und ohne variable JPEG-Kompression des
-fertigen Bildes, verliert der Detektor auf dem Testbild rund 14 Prozentpunkte
-\mAPfifty{}, auf synthetischen Validierungsbildern ist davon kaum etwas zu
-sehen. Auf dem zweiten, zur Modellauswahl verwendeten Realbild, das aus
-derselben Aufnahmeserie stammt wie die Objektausschnitte, bleibt der
-Unterschied innerhalb der Messunsicherheit. Am stärksten wirkt die Objektgröße
-im Netzeingang, die der Größenbereich des Generators und die Inferenzauflösung
-gemeinsam festlegen: Ist die Auflösung zu niedrig, bricht die Detektion ein.
-Die niedrigen Werte bei strengeren
-IoU-Schwellen gehen großenteils auf einen systematischen Größenversatz zurück:
-Der Generator legt seine Boxen enger um die Objekte als die Handannotation.
-Bei programmatisch erzeugten Labels wird damit sogar die Frage, wo genau eine
-Box endet, zu einer messbaren Einflussgröße.
+Wo die eigentlichen Fallstricke liegen, zeigt erst der Blick auf reale Bilder.
+Werden die eingefügten Objekte nicht in ihre Umgebung eingebettet -- keine
+weiche Kante, kein Angleich von Farbe, Schärfe und Rauschen, kein Schatten,
+keine variable JPEG-Kompression --, verliert der Detektor in einer Ablation mit
+je einem Trainingslauf auf dem Testbild rund 14 Prozentpunkte \mAPfifty{}. Auf
+den synthetischen Validierungsbildern ist davon kaum etwas zu sehen, und auch
+auf dem zweiten Realbild, das aus derselben Aufnahmeserie stammt wie die
+Objektausschnitte, bleibt der Unterschied innerhalb der Messunsicherheit: Wer
+eine solche Pipeline nur an ihren eigenen Bildern prüft, übersieht den Schaden.
+Am stärksten wirkt die Objektgröße im Netzeingang, die der Größenbereich des
+Generators und die Inferenzauflösung gemeinsam festlegen; ist die Auflösung zu
+niedrig, bricht die Detektion ein. Bei Objekten dieser Größe wird schließlich
+sogar die Frage, wo genau eine Box endet, zur messbaren Einflussgröße: Der
+Generator legt seine Boxen um rund zwei Pixel enger als die Handannotation, und
+das erklärt einen großen Teil der niedrigen Werte bei strengen IoU-Schwellen.
