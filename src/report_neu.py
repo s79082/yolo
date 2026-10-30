@@ -561,6 +561,7 @@ def tab_hauptergebnis():
          r"$c^*$ ist die $F_1$-optimale Konfidenzschwelle, $P$ und $R$ sind "
          r"Precision und Rückruf an diesem Betriebspunkt.}",
          r"\label{tab:hauptergebnis}", r"\footnotesize",
+         r"\setlength{\tabcolsep}{4pt}",
          r"\begin{tabular}{@{}lrrrrrrr@{}}", r"\toprule",
          r"\textbf{Split} & \mAPfifty{} & \mAPseven{} & \mAPall{} & "
          r"\textbf{bestes $F_1$} & $c^*$ & $P$\,/\,$R$ & \textbf{mittl.\ IoU} \\",
