@@ -14,14 +14,17 @@ als Annahme ausgewiesen. Auf einem realen Testbild, das weder im Quellmaterial
 vorkommt noch zur Modellauswahl dient, erreicht der Detektor ein \mAPfifty{} von
 \textbf{\zrefTestMap}.
 
-Eine kontrollierte Ablation zeigt, worauf es bei der Synthese ankommt: Ohne
-Einbettung, also ohne Angleich der eingefügten Objekte an ihre Umgebung,
-verliert der Detektor auf dem Testbild rund 14 Prozentpunkte \mAPfifty{}, auf
-synthetischen Validierungsbildern ist davon kaum etwas zu sehen. Auf dem
-zweiten, zur Modellauswahl verwendeten Realbild bleibt der Unterschied
-innerhalb der Messunsicherheit. Den größten Einzeleffekt hat keine
-Augmentierungsentscheidung, sondern die Inferenzauflösung, die festlegt, wie
-groß die Objekte beim Netz ankommen. Die niedrigen Werte bei strengeren
+Eine kontrollierte Ablation mit je einem Trainingslauf weist darauf hin, worauf
+es bei der Synthese ankommt: Ohne Einbettung, also ohne Angleich der
+eingefügten Objekte an ihre Umgebung und ohne variable JPEG-Kompression des
+fertigen Bildes, verliert der Detektor auf dem Testbild rund 14 Prozentpunkte
+\mAPfifty{}, auf synthetischen Validierungsbildern ist davon kaum etwas zu
+sehen. Auf dem zweiten, zur Modellauswahl verwendeten Realbild, das aus
+derselben Aufnahmeserie stammt wie die Objektausschnitte, bleibt der
+Unterschied innerhalb der Messunsicherheit. Am stärksten wirkt die Objektgröße
+im Netzeingang, die der Größenbereich des Generators und die Inferenzauflösung
+gemeinsam festlegen: Ist die Auflösung zu niedrig, bricht die Detektion ein.
+Die niedrigen Werte bei strengeren
 IoU-Schwellen gehen großenteils auf einen systematischen Größenversatz zurück:
 Der Generator legt seine Boxen enger um die Objekte als die Handannotation.
 Bei programmatisch erzeugten Labels wird damit sogar die Frage, wo genau eine

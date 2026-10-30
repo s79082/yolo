@@ -31,8 +31,11 @@ $t_{\IoU}$ überdeckt; jede Ground-Truth-Box kann höchstens einmal getroffen
 werden. Daraus folgen
 \emph{Precision} $P$, \emph{Recall} $R$ und deren harmonisches Mittel $F_1$;
 berichtet wird stets das beste $F_1$ über alle Konfidenzschwellen samt der
-zugehörigen Schwelle $c^*$, also der Betriebspunkt, der in einer Anwendung zu
-wählen wäre. \emph{mAP} ist die Fläche unter der Precision-Recall-Kurve
+zugehörigen Schwelle $c^*$. Diese Schwelle wird je Split nachträglich bestimmt,
+für \code{test} also auf dem Testbild selbst; in einer Anwendung wäre sie wie
+die Auflösung (Abschnitt~\ref{sec:imgsz}) auf \code{val} zu wählen. Die
+$F_1$-Werte sind deshalb als obere Schranke des erreichbaren Betriebspunkts zu
+lesen. \emph{mAP} ist die Fläche unter der Precision-Recall-Kurve
 \parencite{everingham2010}; \mAPfifty{} verwendet $t_{\IoU} = 0{,}5$,
 \mAPseven{} $t_{\IoU} = 0{,}75$ und \mAPall{} den Mittelwert über
 $t_{\IoU} = 0{,}50; \dots; 0{,}95$ nach
@@ -47,8 +50,11 @@ Größen gibt die Standardfunktion der Werkzeugkette nicht aus. Zur Absicherung
 wurde sie gegen die Referenzimplementierung geprüft: \code{val}
 \zxcValEigen/\zxcValEigenA{} gegen \zxcValUlt/\zxcValUltA{} und \code{test}
 \zxcTestEigen/\zxcTestEigenA{} gegen \zxcTestUlt/\zxcTestUltA{}
-(\mAPfifty{}/\mAPall{}); die Abweichung von höchstens \zxcMaxDiff\,Prozentpunkten ist
-durch Detailunterschiede in der AP-Interpolation erklärbar.
+(\mAPfifty{}/\mAPall{}). Die Abweichung von höchstens \zxcMaxDiff\,Prozentpunkten
+geht vermutlich auf die Zuordnung zurück: Beide Implementierungen interpolieren
+die AP über 101 Punkte, die Werkzeugkette ordnet Detektionen aber nach IoU statt
+nach Konfidenz zu (\code{match\_predictions} in
+\code{ultralytics/engine/validator.py}, Version~8.4.117).
 
 Zwei Angaben gelten für alle folgenden Zahlen. \emph{Erstens} wird, wo nichts
 anderes steht, beim \textbf{nativen Maßstab} ausgewertet: \code{imgsz} gleich
@@ -108,10 +114,11 @@ Arbeit nicht erklären kann. Belastbar sind deshalb nur die Aussagen über
 \mAPfifty{} und den $F_1$-Betriebspunkt, auf die sich die Leitgröße aus
 Abschnitt~\ref{sec:metriken} ohnehin beschränkt.
 
-Bei \mAPfifty{} spielt die Labelkonvention keine Rolle: Werden die Boxen
+Bei \mAPfifty{} spielt der Größenversatz keine Rolle: Werden die Boxen
 aufgeweitet, steigt \mAPfifty{} nicht, auf \code{test} sinkt es sogar leicht.
-Der Abstand bei \mAPfifty{} misst also keine Labelkonvention, sondern den
-Unterschied zwischen den Domänen. Auf \code{test} zeigt er auch nicht das
+Der Abstand bei \mAPfifty{} geht also nicht auf die Boxgröße zurück. Andere
+Unterschiede der Beschriftung kann er aber enthalten, etwa welche teilverdeckten
+Enden überhaupt ein Label erhalten (Abschnitt~\ref{sec:sichtbarkeit}). Auf \code{test} zeigt er auch nicht das
 Muster, das bei reinem Artefaktlernen zu erwarten wäre: Hätte das Netz eine der
 Signaturen S1--S6 als Abkürzung gelernt, wäre es auf \code{sval} zwar ebenso
 gut, auf den realen Bildern aber deutlich schlechter.
@@ -135,24 +142,26 @@ Realbilds.
 \section{Die Inferenzauflösung}
 \label{sec:imgsz}
 
-Die Inferenzauflösung ist der einzige Hyperparameter, der nach dem Training noch
-frei ist, und deshalb der einzige, dessen Wert gemessen und nicht begründet
-wird. Dafür wird kein Modell neu trainiert. Dasselbe Modell wird bei zehn
-Auflösungen ausgewertet, neun festen Stufen zwischen 640 und 2464\px{} und dem
-nativen Maßstab des jeweiligen Splits.
+Die Inferenzauflösung ist der wirksamste Parameter, der nach dem Training noch
+frei ist; ihr Wert wird gemessen und nicht begründet. Dafür wird kein Modell neu
+trainiert. Dasselbe Modell wird bei neun Auflösungen zwischen 640 und
+2464\px{} ausgewertet; unter ihnen ist für jeden Split auch der native Maßstab
+(2464 für \code{val}, 1600 für \code{test}).
 
 
 Von \code{imgsz}~640 auf \zswValBestAt{} steigt \mAPfifty{} auf \code{val} von
-\zswValNiedrig{} auf \zswValBest. Mit \zswValGain\PP{} ist das der größte
-gemessene Einzeleffekt der Arbeit, größer als jede einzelne Entscheidung in der
-Augmentierungspipeline. Die Erklärung ist rein geometrisch und folgt aus
+\zswValNiedrig{} auf \zswValBest. Mit \zswValGain\,Prozentpunkten ist das die
+größte gemessene Spanne der Arbeit. Mit einer Ablationsdifferenz ist sie
+allerdings nicht direkt vergleichbar, denn sie schließt eine bewusst ungünstige
+Einstellung ein, und einzelne Entscheidungen der Augmentierungspipeline wurden
+nicht abliert. Die Erklärung ist rein geometrisch und folgt aus
 Abschnitt~\ref{subsec:kleine-objekte}: Nach Gleichung~\eqref{eq:deff} schrumpft
 jedes Objekt mit dem Verhältnis $M/N$ aus Netzeingabe und Bildkantenlänge. Für
 \code{val} ist $N = 2459$\px{} (Tabelle~\ref{tab:statistik}), bei $M = 640$ also
 $M/N = 0{,}26$. Die 12--36\px{} großen Objekte kommen dann nur noch mit
 3--9\px{} im Netz an, und der Rückruf bricht auf \zswValNiedrigRec{} ein. Das
 Modell lokalisiert die Objekte also nicht nur schlechter, es \emph{findet} sie
-gar nicht mehr. Auf \code{test} ist der Einbruch mit \zswTestGain\PP{} kleiner,
+gar nicht mehr. Auf \code{test} ist der Einbruch mit \zswTestGain\,Prozentpunkten kleiner,
 weil das Bild nur 1600\px{} breit ist und deshalb weniger stark verkleinert
 wird.
 
@@ -196,9 +205,12 @@ unverändert auf \code{test} zu übertragen, denn eine eigene Wahl für
 \code{test} wäre eine Optimierung auf dem Testsatz; berichtet wird hier
 dennoch beim nativen Maßstab (Abschnitt~\ref{sec:metriken}).
 
-Die übrigen Inferenzparameter sind unkritisch: NMS-Schwellwert und
-Test-Time-Augmentation wirken beim NMS-freien Ende-zu-Ende-Modell nicht
-(Abschnitt~\ref{sec:yolo26}), \code{max\_det} verändert ab 100 den
+Die übrigen Inferenzparameter sind unkritisch: Der NMS-Schwellwert wirkt beim
+Ende-zu-Ende-Modell nicht, weil keine NMS läuft (Abschnitt~\ref{sec:yolo26}).
+Die Test-Time-Augmentation führt die Werkzeugkette bei diesem Modell gar nicht
+aus, sie fällt mit einer Warnung auf die einfache Vorhersage zurück
+(\code{\_predict\_augment} in \code{ultralytics/nn/tasks.py},
+Version~8.4.117). Der Parameter \code{max\_det} verändert ab 100 den
 Betriebspunkt und ab 200 auch \mAPfifty{} nicht mehr, und FP16 liefert
 identische Metrikwerte (\code{src/experiment.py infer}).
 
@@ -238,14 +250,18 @@ Tabelle~\ref{tab:budgets} trainiert und deshalb nur untereinander vergleichbar
   Gegenmaßnahmen: harte Alphakante statt weicher (S1), kein Farbangleich
   (S2), kein Unschärfeangleich (S3), kein Rauschangleich (S4), keine
   JPEG-Requantisierung (S5), kein Schlagschatten. Die gemessenen Ist-Anteile
-  fallen entsprechend von 0,847 / 0,599 / 0,695 / 0,494 auf \textbf{0,000}
-  (Erzeugungsbericht, Abschnitt~\ref{sec:anhangbericht}).
+  von Farb-, Unschärfe- und Rauschangleich und Schlagschatten fallen
+  entsprechend von 0,847, 0,599, 0,695 und 0,494 auf \textbf{0,000}
+  (Erzeugungsberichte der beiden Arme; Abschnitt~\ref{sec:anhangbericht} gibt
+  den des Referenzdatensatzes wieder).
 \end{description}
 
 \noindent Alles andere bleibt unverändert: Layoutmodell, Instanzgeometrie,
 photometrische Variation je Instanz, Rohrschäfte und Okkluder aus der
 Rohrschaft-Bibliothek,
-Negativbildanteil und die globale Bildstufe. C1 entspricht damit dem
+Negativbildanteil und die globale Bildstufe bis auf die JPEG-Requantisierung,
+die dort liegt (Tabelle~\ref{tab:parameter}, T8): C1 speichert jedes Bild mit
+der festen Qualität 95. C1 entspricht damit dem
 \enquote{Copy-Paste ohne Sorgfalt}, gegen das die Pipeline entworfen ist:
 dieselbe Verteilung der Szenen, nur ohne Einbettung
 (Abbildung~\ref{abb:einbettung}).
@@ -255,8 +271,12 @@ Maßnahmen werden gemeinsam abgeschaltet, und welche davon wie viel beiträgt,
 sagt der Versuch nicht. Außerdem ist die Zuordnung zu den Signaturen nicht ganz sauber: S1--S5 sind
 vollständig abgeschaltet, von S6 dagegen nur der Schlagschatten -- die
 physikalisch plausiblen Okkluder, die andere Hälfte dieser Signatur, bleiben
-in beiden Armen aktiv. Für S1 und S5 führt der Erzeugungsbericht zudem keinen
-Zähler; ihr Beleg ist der Quelltext (\code{src/generate.py}), nicht eine
+in beiden Armen aktiv. Die JPEG-Requantisierung wiederum betrifft nicht nur die
+eingefügten Objekte: Weil das Blockraster der Hintergründe schon durch die
+Neuabtastung verloren geht, wirkt sie vor allem als Degradation des ganzen
+Bildes (Tabelle~\ref{tab:parameter}, T8), und C1 sieht deshalb auch keine
+stärker komprimierten Bilder. Für S1 und S5 führt der Erzeugungsbericht zudem
+keinen Zähler; ihr Beleg ist der Quelltext (\code{src/generate.py}), nicht eine
 Messung am erzeugten Datensatz.
 
 \begin{figure}[htbp]
@@ -273,19 +293,24 @@ Abkürzung verwenden kann. Erzeugt mit \code{src/report\_neu.py}.}
 
 \input{kapitel/tab_ablation_c}
 
-\absatz{Ergebnis.} Ohne Einbettung ändert sich auf dem unberührten \code{test}
-\mAPfifty{} um \textbf{$\zablCTestGap$\PP} (\zCOneTestMap{} gegen
-\zCZeroTestMap), $F_1$ um $\zablCTestGapFf$\PP{} und der Rückruf um
-$\zablCTestGapRec$\PP; auf \code{val} sind es $\zablCValGap$, $\zablCValGapFf$
-und $\zablCValGapRec$\PP{} (Tabelle~\ref{tab:ablationC}). Beide Splits
-zeigen in allen drei Kennzahlen in dieselbe Richtung, aber in sehr
-unterschiedlicher Größe. Auf \code{test} ist der Effekt rund fünfmal so groß
-wie die Halbbreite des 95\,\%-Bootstrap-Intervalls
-($[\zbootTestLo;\,\zbootTestHi]$, also rund 3\PP;
-Abschnitt~\ref{sec:bootstrap}). Auf \code{val} liegt er bei \mAPfifty{} und
-$F_1$ innerhalb dieser Halbbreite ($[\zbootValLo;\,\zbootValHi]$, rund
-4\PP); größer ist dort nur der Rückgang des Rückrufs, dem eine höhere
-Precision gegenübersteht.
+\absatz{Ergebnis.} Ohne Einbettung ändert sich auf \code{test}, dessen
+Ergebnisse in keine Entscheidung eingehen, \mAPfifty{} um
+\textbf{$\zablCTestGap$\PP} (\zCOneTestMap{} gegen \zCZeroTestMap), $F_1$ um
+$\zablCTestGapFf$\PP{} und der Rückruf um $\zablCTestGapRec$\PP; auf \code{val}
+sind es $\zablCValGap$ und $\zablCValGapFf$\PP{} bei \mAPfifty{} und $F_1$
+(Tabelle~\ref{tab:ablationC}) sowie $\zablCValGapRec$\PP{} beim Rückruf. Beide
+Splits zeigen in allen drei Kennzahlen in dieselbe Richtung, aber in sehr
+unterschiedlicher Größe. Einen Anhaltspunkt für die Größenordnung gibt die
+Halbbreite des 95\,\%-Bootstrap-Intervalls des Referenzmodells
+(Abschnitt~\ref{sec:bootstrap}): auf \code{test} rund 3\PP{}
+($[\zbootTestLo;\,\zbootTestHi]$), auf \code{val} rund 4\PP{}
+($[\zbootValLo;\,\zbootValHi]$). Auf \code{test} ist der Effekt rund fünfmal so
+groß, auf \code{val} liegt er bei \mAPfifty{} und $F_1$ darunter; größer ist
+dort nur der Rückgang des Rückrufs, dem eine höhere Precision gegenübersteht.
+Ein Intervall für die Differenz der beiden Arme selbst wurde nicht berechnet,
+und die Streuung des Trainings ist bei je einem Lauf unbekannt
+(Abschnitt~\ref{sec:grenzen}). Belastbar ist deshalb eher die Richtung des
+Effekts als seine genaue Größe.
 
 \absatz{Synthetisch unverändert, real schlechter.} Auf seinem \emph{eigenen} synthetischen
 Validierungssplit ist C1 von C0 praktisch nicht zu unterscheiden (\zCOneSval{}
@@ -298,7 +323,7 @@ Vierfache, auf \code{val} dagegen nur von \zgapCZeroVal{} auf
 
 Auf \code{test} tritt damit genau das Muster auf, das
 Abschnitt~\ref{sec:hauptergebnis} als Kennzeichen von Artefaktlernen
-beschrieben und für das Referenzmodell ausgeschlossen hatte: synthetisch nahezu
+beschrieben und beim Referenzmodell nicht gefunden hatte: synthetisch nahezu
 unverändert, real deutlich schlechter. Erst dieser Vergleich gibt der Aussage
 über das Referenzmodell einen Maßstab. Sein Abstand auf \code{test} beträgt
 \zsimRealTest\PP{} und liegt in der Größenordnung der Kontrolle; bei C1 ist derselbe
@@ -317,26 +342,33 @@ Falsch-Positiven dagegen von 9 auf 4, bei insgesamt \emph{weniger}
 Detektionen: C1 tauscht dort Rückruf gegen Precision, und \mAPfifty{} ändert
 sich kaum.
 
-Für den Verlust kommen zwei Erklärungen in Frage. Die eine ist die Abkürzung:
+Für den Verlust kommen mehrere Erklärungen in Frage. Die eine ist die Abkürzung:
 Das Netz sucht die Einklebespur, findet sie im Realbild nicht und meldet
 weniger -- das entspricht dem Muster auf \code{val}. Die andere ist eine
 gewöhnliche Domänenlücke: Ohne Angleich \emph{sehen} die Trainingsobjekte
 schlicht anders aus als reale Rohrenden -- schärfer, kontrastreicher, mit
 dunklerer Bohrung --, und das Netz hat ein zu enges Erscheinungsmodell gelernt,
 das echte Enden übersieht und an anderer Stelle anschlägt -- das entspricht
-eher dem Muster auf \code{test}. Trennen kann der Versuch die beiden nicht,
-weil das Abschalten der Einbettung zweierlei zugleich bewirkt: Es erzeugt die
-künstliche Kante \emph{und} verfälscht die Erscheinung des Objekts selbst.
-Belegt ist damit, \emph{dass} die Einbettung auf dem Testbild wirkt und dass
-ihr Fehlen an den synthetischen Daten nicht zu sehen ist, aber nicht, auf
-welchem der beiden Wege der Verlust entsteht. Einen Versuch, der das trennt,
+eher dem Muster auf \code{test}. Zwei weitere Umstände können das Muster
+mitprägen. Die Objektausschnitte stammen aus derselben Aufnahmeserie wie
+\code{val} (Abschnitt~\ref{sec:valtest}); naiv eingeklebt tragen sie bereits
+dessen Beleuchtung und Kamera, sodass auf \code{val} auch ohne Angleich wenig zu
+verlieren ist. Und weil C1 keine JPEG-Requantisierung erhält, kann ein Teil des
+Verlusts auf die Kompression der Realbilder zurückgehen statt auf die
+Einbettung im engeren Sinn. Trennen kann der Versuch diese Erklärungen nicht:
+Das Abschalten der Einbettung erzeugt die künstliche Kante, verfälscht die
+Erscheinung des Objekts selbst und nimmt zugleich die Kompressionsvariation
+weg. Belegt ist damit in je einem Lauf, \emph{dass} das Bündel auf dem Testbild
+wirkt und dass sein Fehlen an den synthetischen Daten nicht zu sehen ist, aber
+nicht, auf welchem Weg der Verlust entsteht. Einen Versuch, der das trennt,
 nennt Abschnitt~\ref{sec:grenzen}.
 
 \absatz{Konsequenz für die Pipeline.} Die Einbettungsstufen sind damit die
-erste Gruppe von Maßnahmen, deren Nutzen nicht nur begründet, sondern gemessen
-ist, und zwar auf dem Testbild: Ohne sie verliert Copy-Paste-Synthese dort rund
-14 Prozentpunkte \mAPfifty; auf \code{val} bleibt der Unterschied innerhalb der
-Messunsicherheit. Keine synthetische Kennzahl zeigt den Verlust an.
+einzige Gruppe von Maßnahmen, deren Nutzen nicht nur begründet, sondern
+gemessen ist, wenn auch nur auf dem Testbild und in je einem Lauf: Ohne sie
+verlor das Modell dort rund 14 Prozentpunkte \mAPfifty; auf \code{val} bleibt
+der Unterschied innerhalb der Messunsicherheit. Der eigene synthetische
+Validierungssplit zeigt den Verlust nicht an.
 
 \section{Statistische Belastbarkeit und Fehleranalyse}
 \label{sec:bootstrap}
@@ -360,11 +392,11 @@ $\zbootTestMean \pm \zbootTestStd$ mit $[\zbootTestLo;\,\zbootTestHi]$
 (\zbootTestN{} belegte Kacheln).
 
 An dieser Größenordnung ist die Ablation zu messen: Kleinere
-Einzeldifferenzen sind Hinweise, keine Nachweise. Belastbar wird eine Aussage
-erst, wenn sie \emph{konsistent} ist, also über mehrere Metriken und beide
-Splits in dieselbe Richtung zeigt, was bei reinem Rauschen unwahrscheinlich
-wäre. Der Auflösungseffekt von \zswValGain\PP{} übersteigt das
-Intervall dagegen um ein Vielfaches.
+Einzeldifferenzen sind Hinweise, keine Nachweise. Zeigt eine Differenz auf
+beiden Splits in dieselbe Richtung, stützt das ihre Richtung. Mehrere Metriken
+desselben Bildes zählen dabei nicht als unabhängige Belege, weil \mAPfifty{},
+$F_1$ und Rückruf auf denselben Detektionen beruhen. Der Auflösungseffekt von
+\zswValGain\,Prozentpunkten übersteigt das Intervall dagegen um ein Vielfaches.
 
 \absatz{Falsch-Negative.} Am $F_1$-optimalen Betriebspunkt bleiben auf
 \code{test} \zfnTest{} Objekte unentdeckt, auf \code{val} \zfnVal. Auf
@@ -373,8 +405,10 @@ Intervall dagegen um ein Vielfaches.
 es einen zweiten Fehlertyp: Enden mit ungewöhnlicher Erscheinung, auf
 \code{test} ein Ende ohne sichtbaren hellen Kranz, auf \code{val} vor allem
 Enden, deren Bohrung mit Laub oder Rost gefüllt ist und deshalb kaum dunkler
-erscheint als der Kranz. Solche Enden kommen unter den sechs Quellobjekten
-nicht vor; hier liegt die verbleibende Domänenlücke im Quellmaterial selbst.
+erscheint als der Kranz. Eine helle Bohrung haben zwar drei der sechs
+Quellobjekte (Abschnitt~\ref{sec:quellmaterial}), eine mit Laub oder Rost
+gefüllte aber keines; hier liegt eine verbleibende Domänenlücke im
+Quellmaterial selbst.
 
 \absatz{Falsch-Positive.} Auf \code{test} sind sie selten: \zfpTest{} bei
 \znPredTest{} Detektionen. Davon sind \zfpDoppelTest{} \emph{Zweitboxen}: Sie
@@ -396,8 +430,8 @@ Berichtet wird ohne diesen Schritt.
 \label{sec:boxversatz}
 
 Der \mAPseven{}-Wert von \zrefTestMapS{} auf \code{test} steht auffällig neben
-einem \mAPfifty{} von \zrefTestMap: Das Modell \emph{findet} praktisch jedes
-Objekt, schätzt seine Boxgröße aber systematisch zu klein.
+einem \mAPfifty{} von \zrefTestMap: Das Modell \emph{findet} die meisten
+Objekte, schätzt ihre Boxgröße aber systematisch zu klein.
 Tabelle~\ref{tab:boxversatz} vergleicht für jede Detektion, die eindeutig auf
 einem annotierten Objekt liegt ($\mathrm{IoU} > 0{,}3$), die vorhergesagte mit
 der annotierten Boxgröße.
@@ -410,10 +444,12 @@ Promille genau (\zboxSvalRatio); auf den realen Bildern liegt sie mit
 Zentrumsversatz bleibt dabei mit rund \zboxTestCtr{} Objektdurchmessern im
 Bereich der Annotationsgenauigkeit: Es ist ein Größen-, kein Positionsfehler.
 Weil das Modell auf dem synthetischen Split die Boxgröße nahezu exakt
-reproduziert, liegt die Ursache nicht in der Boxregression, sondern in der
-\emph{Labelkonvention}: Die Generatorboxen folgen der $\alpha > 0{,}5$-Kontur
-der Alphamaske (Abschnitt~\ref{sec:sichtbarkeit}), die Handannotation
-umschließt das Objekt großzügiger. Anforderung~A1 ist damit nur
+reproduziert, liegt die Ursache vermutlich nicht in der Boxregression, sondern
+in der \emph{Labelkonvention}: Die Generatorboxen folgen der
+$\alpha > 0{,}5$-Kontur der Alphamaske (Abschnitt~\ref{sec:sichtbarkeit}), die
+Handannotation umschließt das Objekt großzügiger. Ausschließen lässt sich
+nicht, dass auch die andere Erscheinung realer Objektkanten die vorhergesagten
+Boxen verkleinert. Anforderung~A1 ist damit nur
 \emph{annähernd} erfüllt; der Restversatz beträgt messbar \zboxValOff{} bis
 \zboxTestOff\px.
 
@@ -424,7 +460,7 @@ Werden alle vorhergesagten Boxen um den gemessenen medianen Fehlbetrag von
 \textbf{\zsensTestMapANeu}, während \mAPfifty{} von \zsensTestMapOrig{} auf
 \zsensTestMapNeu{} leicht \emph{fällt} und das $F_1$ mit \zsensTestFfNeu{}
 unverändert bleibt (Tabelle~\ref{tab:boxsens} im Anhang). Die Aufteilung ist
-damit eindeutig: \mAPseven{} und \mAPall{} auf \code{test} messen zu einem
+damit deutlich: \mAPseven{} und \mAPall{} auf \code{test} messen zu einem
 erheblichen Teil eine Konventionsdifferenz und nicht die Detektionsgüte,
 während \mAPfifty{} und das $F_1$ davon unberührt bleiben. Das rechtfertigt
 die Festlegung aus Abschnitt~\ref{sec:metriken}, \mAPfifty{} als Leitgröße zu

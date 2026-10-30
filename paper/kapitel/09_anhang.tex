@@ -197,8 +197,10 @@ an den Realdaten (eine bloße Beobachtung genügt nicht), \emph{P} =
 physikalische Randbedingung, \emph{L} = Literatur, \emph{A} = Annahme. Ein
 einzelner Buchstabe steht, wenn die Quelle den Zahlenwert selbst festlegt; bei
 \emph{M/A}, \emph{P/A} und \emph{L/A} begründet sie nur das Verfahren, und die
-Zahlenwerte sind gesetzt. Welche Parameter abliert oder kalibriert sind, fasst
-Abschnitt~\ref{sec:tragend} zusammen.}
+Zahlenwerte sind gesetzt. Bei den Gitterabständen steht \emph{P/M}: Die
+Untergrenze folgt aus der Physik, die Obergrenzen aus der Messung. Welche
+Parameter abliert oder kalibriert sind, fasst Abschnitt~\ref{sec:tragend}
+zusammen.}
 \label{tab:parameter}\\
 \toprule
 \textbf{Transformation} & \textbf{Ist} & \textbf{Begründung} & \textbf{Art} \\
@@ -223,7 +225,7 @@ Kleinrotation $\pm6^\circ$ (Zoom 1,06) & 34,3\,\% & Die Rohrlinien sind nie exak
 \addlinespace
 \multicolumn{4}{@{}l}{\textbf{T2 -- Instanzgeometrie} \hfill\emph{Anteile je gerenderter Instanz}}\\
 Rotation $0$--$360^\circ$ & 100\,\% & Über Aufnahmen hinweg haben Rohrenden keine kanonische Orientierung: Kamerarollwinkel und Stapelausrichtung sind beliebig, und die Richtung des Glanzlichts hängt vom Sonnenstand ab. Das begründet volle Rotationsinvarianz, nicht aber die \emph{unabhängige} Drehung jeder Instanz: Innerhalb einer Aufnahme sind die Boxen überwiegend breiter als hoch (Median $w/h$ 1,08 bzw.\ 1,09, Tabelle~\ref{tab:statistik}). Weil die Drehung nach der Ovalisierung wirkt, hebt sie deren Vorzugsrichtung auf; das erzeugte Seitenverhältnis hat den Median 1,00 (Tabelle~\ref{tab:kalibrierung}, Abschnitt~\ref{sec:datensatz}). & P/A \\
-Skalierung auf 12--44\px{} (Abschnitt~\ref{sec:modellentscheidungen}) & 100\,\% & Untere Grenze p05 von \code{test} (12,2\px), obere das größte Objekt in \code{val} (35,8\px) plus rund 25\,\% Reserve; der Reservefaktor ist gewählt (Befund~5). Ist-Verteilung p05/Median/p95 = 12,0/23,5/40,4\px. Verkleinerung flächentreu, weil bilineare Interpolation Aliasing im Objekt zurückließe. & M/A (S3) \\
+Skalierung auf 12--44\px{} (Abschnitt~\ref{sec:modellentscheidungen}) & 100\,\% & Untere Grenze p05 von \code{test} (12,2\px), obere das größte Objekt in \code{val} (35,8\px) plus rund 25\,\% Reserve; der Reservefaktor ist gewählt (Befund~5). Ist-Verteilung der Labels aller 6000 Bilder p05/Median/p95 = 12,0/23,5/40,4\px{} (Tabelle~\ref{tab:kalibrierung} misst an 1500 Bildern). Verkleinerung flächentreu, weil bilineare Interpolation Aliasing im Objekt zurückließe. & M/A (S3) \\
 Ovalisierung 0,66--0,97 bzw.\ 1,03--1,30 & 56,9\,\% & Gemessenes Seitenverhältnis p10--p90 = 0,82--1,40; über die Hälfte der echten Boxen weicht um $\geq5\,\%$ vom Quadrat ab. Oblat dominiert (45:12), weil Schrägansicht die Höhe verkürzt. Die Quote ist gewählt (Befund~6). & M/A \\
 Delle, 1--2 Sektoren, Tiefe 10--30\,\% & 17,9\,\% & Mechanisch beschädigte Enden; Dellen sind nicht annotiert. 18\,\% lässt das Modell die Verformung regelmäßig sehen, ohne die Rundheit als Merkmal zu verwässern. & A \\
 Perspektive, Homographie $\pm9\,\%$ & 30,1\,\% & Bei Schrägblick wird der Kranz einseitig \emph{breiter} (sichtbare Rohrinnenwand); anisotrope Skalierung kann das nicht abbilden. & A \\
@@ -257,7 +259,7 @@ Tiefenmodell: 75\,\% ganz hinten, 25\,\% eingereiht & -- & An der erzeugten Stat
 \addlinespace
 \multicolumn{4}{@{}l}{\textbf{T6 -- Okklusion} \hfill\emph{Anteile je Bild}}\\
 quer liegende echte Rohrstangen, 1--6 Stück & 58,6\,\% & Rohre vor dem Stapel, in den Realbildern zu sehen; Breite $0{,}55$--$1{,}35\,\Oe$. Zu 80\,\% durch ein Cluster gelegt statt ins Leere, weil eine Verdeckung ohne getroffenes Objekt keinen Trainingsnutzen hat. & A \\
-Fremdkörper (Laub, Draht, Schnee), 1--4 Stück & 32,5\,\% & Aus den Hintergründen selbst geschnitten, mit weicher Maske aus geglättetem Rauschen -- gleiches Quellmaterial, also gleiche Sensorsignatur; dasselbe ungeprüfte Argument wie bei den Okkludern (Abschnitt~\ref{sec:matting}). & A \\
+Fremdkörper (z.\,B.\ Laub, Draht), 1--4 Stück & 32,5\,\% & Als zufällige Flecken aus den Hintergründen selbst geschnitten, mit weicher Maske aus geglättetem Rauschen -- gleiches Quellmaterial, also gleiche Sensorsignatur; dasselbe ungeprüfte Argument wie bei den Okkludern (Abschnitt~\ref{sec:matting}). & A \\
 \addlinespace
 \multicolumn{4}{@{}l}{\textbf{T8 -- Globale Bildstufe} \hfill\emph{Anteile je Bild}}\\
 Helligkeit/Kontrast $\times0{,}80$--$1{,}22$, Offset $\pm18$ & 90,2\,\% & Wetter- und Belichtungsvariation über das ganze Bild. Alle sieben Quellaufnahmen entstanden bei diffusem Licht; eine Spannweite realer Belichtungen ließ sich daran nicht messen. & A \\

@@ -37,9 +37,11 @@ die nicht zu vermischen sind (Tabelle~\ref{tab:budgets}). Das
 werden (Abschnitt~\ref{sec:hauptergebnis}). Die \textbf{Ablationsarme} nutzen
 jeweils 3000~Bilder und 30~Epochen. Dieses kleinere Budget ist eine Konzession an
 die Rechenzeit -- mehrere Läufe statt einem --, und es ist \emph{für alle Arme
-identisch}. Es begrenzt damit die absolute Höhe der Ablationszahlen, nicht ihren
-Vergleich untereinander; Ablationszahlen sind deshalb ausschließlich mit
-Ablationszahlen zu vergleichen, nie mit denen des Referenzmodells.
+identisch}. Es begrenzt damit vor allem die absolute Höhe der Ablationszahlen;
+Ablationszahlen sind deshalb ausschließlich mit Ablationszahlen zu vergleichen,
+nie mit denen des Referenzmodells. Den Vergleich der Arme untereinander lässt es
+unverzerrt, solange beide ähnlich schnell konvergieren
+(Abschnitt~\ref{sec:grenzen}).
 
 \begin{table}[htbp]
 \centering
@@ -114,10 +116,11 @@ Werkzeugkette ist die Fitness allein \mAPall{} (\code{Metric.fitness} in
 \emph{Trainings}auflösung \code{imgsz}=1024, alle berichteten Zahlen werden
 dagegen beim nativen Maßstab gemessen (2459 bzw.\ 1600\px, vom Netz auf ein
 Vielfaches von 32 aufgefüllt). Ausgewählt und bewertet wird also bei
-unterschiedlicher Auflösung. Das ist vertretbar, weil die Rangfolge der Epochen
-kaum von der Auflösung abhängt und eine zweite Validierung je Epoche viel
-Rechenzeit kosten würde. Es bleibt aber eine Annahme, die für alle Läufe
-gleichermaßen gilt.
+unterschiedlicher Auflösung und nach unterschiedlicher Kennzahl, denn die
+Leitgröße der Bewertung ist \mAPfifty{} (Abschnitt~\ref{sec:metriken}).
+Vertretbar ist das nur unter der Annahme, dass die Rangfolge der Epochen davon
+kaum abhängt. Geprüft ist sie nicht, denn eine zweite Validierung je Epoche
+hätte viel Rechenzeit gekostet; sie gilt aber für alle Läufe gleichermaßen.
 
 \absatz{Eingabegröße.} Die Eingabegröße \code{imgsz}=1024 entspricht der
 Leinwandgröße des Generators. Die synthetischen Bilder werden beim Einlesen also
@@ -165,13 +168,15 @@ also genau das, was die Sichtbarkeitsregel des Generators mit ihrer Grenze von
 Auf den 6000 erzeugten Bildern findet die Werkzeugkette in 67,3\,\% der
 Bilder mit mindestens einem Label eine boxfreie Fläche
 (\code{src/cutmix\_flaechen.py}).
-\code{erasing} und \code{copy\_paste} entfallen, weil der Generator beides
-physikalisch korrekt übernimmt. Die vollständige Tabelle mit Begründung je
+\code{erasing} wirkt in der Werkzeugkette nur bei der Klassifikation und
+\code{copy\_paste} nur mit Segmentierungsmasken; beides übernimmt hier ohnehin
+der Generator, und zwar physikalisch korrekt. Die vollständige Tabelle mit Begründung je
 Parameter steht im Anhang (Tabelle~\ref{tab:trainaug}).
 
-Generator und Trainingsskalierung wirken bei der Objektgröße zusammen. Erzeugt
-der Generator Objekte im Bereich $[d_{\min}, d_{\max}]$ und skaliert das
-Training um einen Faktor aus $[1-a,\,1+a]$, so sieht das Netz Objektgrößen aus
+Generator und Trainingsskalierung wirken bei der Objektgröße zusammen. Liegt
+der Basisdurchmesser des Generators im Bereich $[d_{\min}, d_{\max}]$ und
+skaliert das Training um einen Faktor aus $[1-a,\,1+a]$, so sieht das Netz
+Basisdurchmesser aus
 \begin{equation}
   \big[\,d_{\min}\,(1-a),\;\; d_{\max}\,(1+a)\,\big].
   \label{eq:effgroesse}
@@ -179,8 +184,9 @@ Training um einen Faktor aus $[1-a,\,1+a]$, so sieht das Netz Objektgrößen aus
 Mit $[d_{\min}, d_{\max}] = [12, 44]$\px{} (Gleichung~\eqref{eq:zoom},
 Abschnitt~\ref{sec:modellentscheidungen}) und $a = 0{,}4$ sind das
 $12 \cdot 0{,}6 = 7{,}2$ bis $44 \cdot 1{,}4 = 61{,}6$\px. Von den vier
-Objekten unter 12\px, die \code{test} enthält und die der Generator selbst
-nicht erzeugt (Abschnitt~\ref{sec:valtest}), sind damit drei abgedeckt; das
+Objekten unter 12\px{} in \code{test} (Abschnitt~\ref{sec:valtest}), deren
+Größe der Generator nur über Instanzstreuung, Verdeckung und Anschnitt erreicht
+(Abschnitt~\ref{sec:datensatz}), liegen damit drei in diesem Bereich; das
 kleinste liegt mit 6,4\px{} knapp darunter. Nach oben reicht
 die Spanne auch für stark hochskalierte Bilder. Bei sehr niedriger
 Inferenzauflösung kommen die Objekte dagegen noch kleiner als 7,2\px{} im Netz
@@ -196,20 +202,21 @@ sind unabhängig vom Ausgang der Ablation.
 \emph{Erstens} fällt der Trainingsverlust bis zur letzten Epoche, von kleinen
 Schwankungen abgesehen, während die Metrik auf dem realen \code{val}-Bild
 deutlich früher flach wird und beim naiv eingeklebten Arm nach ihrem Höchstwert
-(\mAPall{}, Epoche~\zCOneBestEpoche) sogar wieder sinkt. Das ist der
-Sim-to-Real-Abstand in zeitlicher Form: Ab dem Knick verbessert das Modell
-überwiegend seine Anpassung an Eigenschaften der synthetischen Daten, die in der
-Zieldomäne nicht gelten. Deshalb ist es methodisch notwendig, das beste
-Modell über den \emph{realen} Validierungssplit auszuwählen; eine synthetische
-Validierung wählte das Modell aus der letzten Epoche und damit das am stärksten
-überangepasste.
+(\mAPall{}, Epoche~\zCOneBestEpoche) sogar wieder sinkt. Naheliegend ist, darin
+den Sim-to-Real-Abstand in zeitlicher Form zu sehen: Ab dem Knick verbessert
+das Modell vermutlich überwiegend seine Anpassung an Eigenschaften der
+synthetischen Daten, die in der Zieldomäne nicht gelten; wie stark die Streuung
+der Realmetrik den Knick mitprägt, bleibt offen (siehe drittens). Deshalb wird
+das beste Modell über den \emph{realen} Validierungssplit ausgewählt; eine
+synthetische Validierung würde vermutlich ein späteres, stärker angepasstes
+Modell wählen.
 
 \emph{Zweitens} liegt der Trainingsverlust des naiv eingeklebten Arms (C1)
 ab der zweiten Epoche unter dem der Kontrolle (C0), obwohl beide Arme aus derselben
 Layoutverteilung ziehen und fast gleich viele Objekte labeln. Das ist für sich
 genommen kein Qualitätsurteil -- ein niedriger Trainingsverlust auf
-synthetischen Daten sagt nichts über die Zieldomäne --, aber es zeigt, dass der
-Eingriff gewirkt hat: Ohne Einbettung heben sich die eingefügten Objekte
+synthetischen Daten sagt nichts über die Zieldomäne --, aber es passt dazu, dass
+der Eingriff gewirkt hat: Ohne Einbettung heben sich die eingefügten Objekte
 deutlicher von ihrer Umgebung ab, und dieselbe Aufgabe wird leichter.
 
 \emph{Drittens} verläuft die Kurve auf dem realen Bild deutlich unruhiger als der
@@ -246,8 +253,8 @@ Box-Trainingsverlust auf den synthetischen Daten, Mitte und rechts \mAPfifty{}
 und \mAPall{} auf dem realen \code{val}-Bild nach jeder Epoche -- gemessen bei
 \code{imgsz}=1024 und deshalb systematisch unter den in
 Kapitel~\ref{kap:auswertung} berichteten Werten. Der Knick zwischen fallendem
-Verlust und flacher Realmetrik markiert den Punkt, ab dem weiteres Training
-überwiegend synthetische Eigenheiten anpasst.}
+Verlust und flacher Realmetrik markiert vermutlich den Punkt, ab dem weiteres
+Training überwiegend synthetische Eigenheiten anpasst.}
 \label{abb:training}
 \end{figure}
 

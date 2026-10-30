@@ -4,20 +4,23 @@
 \section{Was ist belegt, was ist nur begründet?}
 \label{sec:tragend}
 
-Kapitel~\ref{kap:pipeline} hat gezeigt, dass die Pipeline die Anforderungen A1
---A6 erfüllt. Das ist eine Aussage über den Entwurf, nicht über die Wirkung.
+Kapitel~\ref{kap:pipeline} hat gezeigt, wie die Pipeline die Anforderungen
+A1--A6 umsetzt; A1 ist danach nur annähernd erfüllt
+(Abschnitt~\ref{sec:boxversatz}). Das ist eine Aussage über den Entwurf, nicht
+über die Wirkung.
 Für eine belastbare Bilanz ist zwischen Entscheidungen zu unterscheiden, deren
 Nutzen \emph{gemessen} wurde, und solchen, die lediglich \emph{begründet} sind.
 Von stark nach schwach geordnet ergeben sich vier Stufen.
 
 \textbf{Abliert}, also in eigenen Trainingsläufen geprüft, die sich nur in
 dieser einen Größe unterscheiden, ist allein das Bündel der
-Einbettungsmaßnahmen gegen S1--S5 samt Schlagschatten
+Einbettungsmaßnahmen gegen S1--S5 samt Schlagschatten, in je einem Lauf
 (Abschnitt~\ref{sec:ablationC}); welche Einzelmaßnahme darin wie viel trägt,
 ist offen. \textbf{Ohne Neutraining gemessen} sind die Inferenzparameter
 (Abschnitt~\ref{sec:imgsz}). Nur die Auflösung zeigt dabei einen Effekt über
-dem Bootstrap-Intervall; NMS-Schwelle und Test-Time-Augmentation bleiben beim
-Ende-zu-Ende-Kopf wirkungslos, und \code{max\_det} verändert ab 100 den
+dem Bootstrap-Intervall. NMS-Schwelle und Test-Time-Augmentation greifen beim
+Ende-zu-Ende-Kopf nicht, weil die Werkzeugkette dort weder eine NMS noch die
+Test-Time-Augmentation ausführt, und \code{max\_det} verändert ab 100 den
 Betriebspunkt und ab 200 auch \mAPfifty{} nicht mehr.
 \textbf{An der erzeugten Verteilung kalibriert} sind Objektgrößenbereich,
 Gitterabstände und Gitterrauschen, die Basisgröße je Cluster und das
@@ -43,8 +46,9 @@ Quelle das Verfahren, der Zahlenwert ist aber gesetzt (8 \emph{M/A}, 6
 gekennzeichnet}. Rund 61\,\% der Werte stützen sich damit wenigstens teilweise
 auf eine der drei zulässigen Quellen, als Zahlenwert belegt sind aber nur
 11\,\%; 39\,\% sind reine Annahmen. Diese Bilanz ist nicht nebensächlich: Bei rein synthetischen Trainingsdaten
-ist die Liste dieser 44 Werte die vollständige Beschreibung der
-Trainingsverteilung.
+beschreibt die Liste dieser 44 Werte den größten Teil der Trainingsverteilung;
+hinzu kommen die gesetzten Schwellen von Freistellung und Sichtbarkeitsrechnung
+(Abschnitte~\ref{sec:matting} und~\ref{sec:sichtbarkeit}).
 
 Gemessen an diesen 44 Werten ist ein einziges abliertes Bündel wenig. Die
 Begründungen tragen den Entwurf, experimentell belegt ist daraus ein
@@ -60,15 +64,14 @@ Realobjekte 6--36\px{} groß sind (Abschnitt~\ref{sec:valtest}),
 \emph{zweitens} die Trainingsauflösung 1024, weil sie der Leinwandgröße
 entspricht und die kalibrierte Verteilung damit unskaliert beim Netz ankommt
 (Abschnitt~\ref{sec:trainingsaufbau}), \emph{drittens} die Wahl des P2-Kopfes,
-weil er $S$ von 8 auf 4 senkt und die kritische Größe $S\sqrt{2}$ damit unter
-alle auftretenden Objektgrößen schiebt (Abschnitt~\ref{sec:trainingsaufbau}),
+weil er $S$ von 8 auf 4 senkt und jedes Objekt damit im Mittel auf viermal so
+vielen Gitterpositionen abtastet (Abschnitt~\ref{subsec:kleine-objekte}),
 \emph{viertens} die Inferenzauflösung (Abschnitt~\ref{sec:imgsz}) und
-\emph{fünftens} die Erklärung des größten gemessenen Einzeleffekts, des
-Einbruchs auf \mAPfifty{} \zswValNiedrig{} bei \code{imgsz}~640, den
-Abschnitt~\ref{subsec:kleine-objekte} vorhergesagt hatte, bevor er gemessen
-wurde. Diese Kette ist das methodisch belastbarste Ergebnis der Arbeit: Aus
-einer einzigen Größe folgen fünf Entscheidungen, und eine daraus abgeleitete
-Vorhersage ist eingetroffen.
+\emph{fünftens} die Erklärung des Einbruchs auf \mAPfifty{} \zswValNiedrig{}
+bei \code{imgsz}~640, der zur Rechnung aus Abschnitt~\ref{subsec:kleine-objekte}
+passt. Diese Kette ist der geschlossenste Teil der Arbeit: Aus einer einzigen
+Größe folgen fünf Entscheidungen, und der gemessene Auflösungseffekt stimmt mit
+ihr überein.
 
 \section{Grenzen und nächste Schritte}
 \label{sec:grenzen}
@@ -88,8 +91,8 @@ approximativ über die globale photometrische Stufe angenähert. Ob das die
 Detektion beeinträchtigt, zeigt die Fehleranalyse nicht; ihr zweiter Fehlertyp
 geht auf die Erscheinung der Rohrenden selbst zurück. \emph{(3)} Reflect-Padding erzeugt Spiegelsymmetrie, wenn ein
 Hintergrund für den gewünschten Zoom zu klein ist; eine spiegelsymmetrische
-Bildhälfte ist selbst ein erkennbares Merkmal, die Maßnahme gegen Signatur~S1
-erzeugt damit eine schwächere neue Auffälligkeit. \emph{(4)} Die Schaftrichtung ist an der
+Bildhälfte ist selbst ein erkennbares Merkmal, die Maßnahme gegen harte Nähte
+im Hintergrund erzeugt damit eine schwächere neue Auffälligkeit. \emph{(4)} Die Schaftrichtung ist an der
 Säulenrichtung des Clusters kalibriert, nicht an der Rohrrichtung des
 Hintergrunds. In 19,4\,\% der Cluster auf Clean Plates kreuzt der Schaft die
 Hintergrundrohre deshalb unter mehr als $60^\circ$, betroffen sind 22,0\,\% der
@@ -106,9 +109,8 @@ vier Prozentpunkte Halbbreite -- Unterschiede unterhalb dieser Größe sind nich
 entscheidbar; beide Bilder zeigen dieselbe Objektart bei ähnlichem
 Wetter, die Ergebnisse sagen also nichts über andere Zaunhersteller,
 Rohrdurchmesser oder Lichtsituationen. Schließlich wird \code{val} doppelt
-verwendet -- für die Modellauswahl \emph{und} für die Wahl der
-Inferenzauflösung. \code{val} ist damit kein unabhängiger Bewertungssplit
-mehr.
+verwendet -- für die Modellauswahl samt Early Stopping \emph{und} als
+Bewertungssplit. Unabhängig ist \code{val} damit nicht.
 
 \absatz{Quellmaterial und Bewertungsdaten.} Bildinhalt teilen Quellmaterial und
 Bewertungsbilder nicht (Abschnitt~\ref{sec:valtest}), unabhängig sind sie aber
@@ -127,9 +129,12 @@ belastbaren Zahlen sind die \code{test}-Zahlen.
 
 \absatz{Grenzen der Ablation.} Drei Vorbehalte bleiben. \emph{Erstens} das
 reduzierte Budget: 3000 Bilder und 30 Epochen sind aus der Rechenzeit gewählt,
-nicht aus einem Konvergenzkriterium. Es ist für beide Arme gleich und kann
-den Vergleich deshalb nicht verzerren, begrenzt aber die absolute Höhe der
-Zahlen; ein Effekt, der sich erst nach 60 Epochen zeigte, bliebe unentdeckt.
+nicht aus einem Konvergenzkriterium. Es ist für beide Arme gleich und verzerrt
+den Vergleich deshalb nur, wenn die Arme verschieden schnell konvergieren; ihre
+besten Modelle stammen immerhin aus verschiedenen Epochen
+(\zCZeroBestEpoche{} und \zCOneBestEpoche). Sicher begrenzt es die absolute
+Höhe der Zahlen; ein Effekt, der sich erst nach 60 Epochen zeigte, bliebe
+unentdeckt.
 \emph{Zweitens} je ein Lauf pro Arm: Ohne Wiederholung mit verschiedenen
 Trainings-Seeds ist die Streuung des Trainings selbst unbekannt und von der
 Wirkung des Datensatzes nicht zu trennen, zumal der Effekt nur auf einem der
@@ -141,12 +146,17 @@ zeigt die Folgen einer Verschlechterung, nicht den Ertrag eines besseren
 Entwurfs derselben Stufen.
 
 \absatz{Nächste Schritte.} Jede der genannten Grenzen hat eine Gegenmaßnahme;
-nach erwartetem Nutzen geordnet:
+in der Reihenfolge, in der sie anzugehen wären:
 
 \begin{enumerate}[itemsep=3pt,leftmargin=1.6em]
-  \item \textbf{Labelkonvention angleichen.} Eine geänderte Boxschwelle im
-  Generator genügt, und die Sensitivitätsrechnung lässt auf \code{test} rund
-  \zsensTestGain{} Punkte \mAPseven{} erwarten; das ist der mit geringstem Aufwand erreichbare Gewinn dieser Liste, anzugehen vor jeder weiteren Optimierung.
+  \item \textbf{Labelkonvention angleichen.} Die Generatorboxen werden um den
+  auf \code{val} gemessenen Fehlbetrag aufgeweitet (Tabelle~\ref{tab:boxsens}).
+  Wie viel das bringen kann, zeigt die Sensitivitätsrechnung auf \code{test},
+  eine Obergrenzenschätzung: bis zu \zsensTestGain\PP{} mehr \mAPseven. An der
+  Leitgröße
+  \mAPfifty{} ändert das nichts. Zuerst anzugehen ist es trotzdem, weil die
+  Modellauswahl nach \mAPall{} erfolgt (Abschnitt~\ref{sec:trainingsaufbau})
+  und damit von der Konvention abhängt.
   \item \textbf{Mehr Bewertungsdaten und mehrere Seeds.} Zehn bis zwanzig
   annotierte Realbilder aus Aufnahmen, aus denen kein Quellmaterial stammt,
   würden die Konfidenzintervalle auf ein Maß bringen, bei
@@ -175,7 +185,8 @@ Ein ausschließlich auf synthetischen Bildern trainierter Detektor erreicht auf
 zwei echten Aufnahmen \mAPfifty{} von \textbf{\zrefValMap} und
 \textbf{\zrefTestMap} bei einem besten $F_1$ von \zrefValFf{} und \zrefTestFf;
 auf \code{test}, das weder im Quellmaterial vorkommt noch zur Modellauswahl
-dient, zählen von \znPredTest{} Detektionen nur \zfpTest{} als falsch-positiv,
+dient, zählen am $F_1$-optimalen Betriebspunkt von \znPredTest{} Detektionen
+nur \zfpTest{} als falsch-positiv,
 \zfpDoppelTest{} davon als zweite Box auf einer bereits erkannten Stirnfläche. Für
 eine Anwendung, für die kein einziges handannotiertes Trainingsbild existiert,
 ist das ein tragfähiges Ergebnis.
@@ -190,22 +201,26 @@ Methodisch tragen drei Einsichten:
   ist deshalb keine Formalität, sondern das eigentliche Handwerk. Sie hat
   zudem einen Nebeneffekt, den diese Arbeit nutzt: Wer jede Begründung
   ausschreibt, macht sichtbar, welche davon noch nie geprüft wurde.
-  \item \textbf{Sorgfalt beim Einfügen ist kein Feinschliff, und keine
-  synthetische Kennzahl zeigt an, wenn sie fehlt.} Werden die Maßnahmen gegen
-  die Signaturen S1--S5 abgeschaltet, ändert sich \mAPfifty{} auf dem
-  Testbild um $\zablCTestGap$\PP, auf dem \emph{eigenen} synthetischen Split
-  desselben Arms aber nur um $\zablCSvalGap$\PP; auf dem zweiten Realbild
-  bleibt der Unterschied innerhalb der Messunsicherheit. Der Schaden entsteht
-  ausschließlich in der Übertragung und ist an den synthetischen Daten
-  unsichtbar. Wer eine Copy-Paste-Pipeline an ihren eigenen Bildern misst,
-  misst die falsche Größe; nötig ist ein beschrifteter realer Split, und sei
-  es ein einziges Bild.
-  \item \textbf{Auflösung dominiert, und die Labelkonvention ist Teil des
-  Messinstruments.} Zwischen \code{imgsz}~640 und dem Optimum liegen
-  \zswValGain\PP{} \mAPfifty, mehr als das Vierfache des Effekts der
-  Einbettung. Ein systematischer Größenversatz von rund zwei Pixeln
-  zwischen Generatorlabel und Handannotation verschiebt außerdem \mAPseven{}
-  auf dem Testbild von \zsensTestMapSOrig{} auf \zsensTestMapSNeu, ohne dass
-  sich am Modell etwas ändert. Wer Lokalisierungsmetriken bei 20\px-Objekten berichtet, muss beide
+  \item \textbf{Sorgfalt beim Einfügen war hier kein Feinschliff, und die
+  synthetische Validierung zeigt nicht an, wenn sie fehlt.} Werden die
+  Maßnahmen gegen die Signaturen S1--S5 und der Schlagschatten abgeschaltet,
+  ändert sich \mAPfifty{} auf dem Testbild um $\zablCTestGap$\PP, auf dem
+  \emph{eigenen} synthetischen Split desselben Arms aber nur um
+  $\zablCSvalGap$\PP; auf dem zweiten Realbild bleibt der Unterschied
+  innerhalb der Messunsicherheit. Der Schaden zeigt sich erst in der
+  Übertragung, an den synthetischen Daten ist er nicht zu sehen. Wer eine
+  Copy-Paste-Pipeline an ihren eigenen Bildern misst, misst die falsche Größe.
+  Nötig sind beschriftete Realbilder, und zwar aus mehr als einer
+  Aufnahmeserie: Auf \code{val} allein wäre der Effekt nicht nachweisbar
+  gewesen.
+  \item \textbf{Die Objektgröße im Netzeingang dominiert, und die
+  Labelkonvention ist Teil des Messinstruments.} Auf dem Testbild liegen
+  zwischen \code{imgsz}~640 und dem Optimum \zswTestGain\PP{} \mAPfifty, gut
+  das Dreifache des Effekts der Einbettung auf demselben Bild; welche Auflösung
+  passt, legt der Größenbereich des Generators fest. Ein systematischer
+  Größenversatz von rund zwei Pixeln zwischen Generatorlabel und
+  Handannotation verschiebt außerdem \mAPseven{} auf dem Testbild von
+  \zsensTestMapSOrig{} auf \zsensTestMapSNeu, ohne dass sich am Modell etwas
+  ändert. Wer Lokalisierungsmetriken bei 20-px-Objekten berichtet, muss beide
   Größen zuerst kennen.
 \end{enumerate}

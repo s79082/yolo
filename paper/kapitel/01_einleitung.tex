@@ -37,13 +37,14 @@ Stirnflächen (Abschnitt~\ref{sec:valtest}), größere Stapel sind zu erwarten. 
 Der eigentliche Engpass ist jedoch die Datenlage. COCO-vortrainierte Gewichte
 enthalten keine Klasse \enquote{Bauzaunprofil}, und die Handannotation von
 rund hundert kleinen Boxen pro Bild über hunderte Bilder ist im Rahmen einer
-Abschlussarbeit nicht leistbar; hinzu kommt, dass hunderte nahezu identische
+Abschlussarbeit nicht leistbar; hinzu kommt, dass rund hundert nahezu identische
 Kleinobjekte je Bild eine über den gesamten Datensatz gleichbleibende
 Annotationsdisziplin verlangen.
 Zur Verfügung stehen sechs aus Realbildern
 ausgeschnittene Rohrprofile, sieben Hintergrundaufnahmen und zwei vollständig
 annotierte Realbilder mit zusammen 187 Objekten. Ausschnitte und Hintergründe
-stammen aus anderen Aufnahmen als die beiden annotierten Bilder.
+stammen aus anderen Aufnahmen als die beiden annotierten Bilder, teils aber aus
+derselben Aufnahmeserie (Abschnitt~\ref{sec:valtest}).
 
 \section{Vorarbeiten zur Objektdetektion}
 \label{sec:vorarbeiten}
@@ -196,9 +197,9 @@ nachträglich per NMS entfernt werden oder gar nicht erst entstehen. YOLO26, der
 in dieser Arbeit verwendete Detektor, verbindet mehrere dieser Entwicklungen.
 Er ist einstufig, echtzeitfähig, ankerfrei und entkoppelt und hat eine
 Merkmalspyramide, die sich um eine feinere Ebene erweitern lässt. Außerdem kann
-er mit seinem Eins-zu-eins-Kopf ohne NMS arbeiten (Kapitel~\ref{kap:theorie}),
-was bei dicht gepackten, gleichartigen Objekten von Vorteil ist
-(Abschnitt~\ref{sec:anwendung}). Gemeinsam ist allen genannten Detektoren
+er mit seinem Eins-zu-eins-Kopf ohne NMS arbeiten (Kapitel~\ref{kap:theorie})
+und umgeht damit bei dicht gepackten, gleichartigen Objekten die Wahl einer
+NMS-Schwelle (Abschnitt~\ref{sec:anwendung}). Gemeinsam ist allen genannten Detektoren
 aber, dass sie ihre Leistung großen Mengen annotierter Daten verdanken. COCO
 umfasst 2,5 Millionen annotierte Objekte in 328\,000 Bildern
 \parencite{lin2014coco}, und auch die anwendungsnahen Arbeiten stützen sich auf
@@ -250,9 +251,9 @@ Abschnitt~\ref{sec:anhangrepro} im Anhang.
 
 Das dritte Ziel ist die experimentelle Bewertung (Kapitel~\ref{kap:auswertung}).
 Sie beruht auf einer Ablation (Abschnitt~\ref{sec:ablationC}). Diese prüft das
-Leitprinzip der Pipeline als Ganzes und schaltet dazu ab, dass die eingefügten
-Objekte in Helligkeit und Farbe, Schärfe, Rauschen und Kompression an ihre
-Umgebung angeglichen werden. Zusätzlich wird die Inferenzauflösung bestimmt. Dazu wird
+Leitprinzip der Pipeline als Ganzes und schaltet dazu die Einbettung ab: die
+weiche Objektkante, den Angleich von Helligkeit und Farbe, Schärfe und Rauschen
+an die Umgebung, die JPEG-Requantisierung und den Schlagschatten. Zusätzlich wird die Inferenzauflösung bestimmt. Dazu wird
 dasselbe Modell bei verschiedenen Auflösungen ausgewertet, ohne neu zu
 trainieren.
 
@@ -261,7 +262,8 @@ diese Begründungspflicht bei jedem Parameter eingehalten wird.
 Copy-Paste-Synthese ist ein etabliertes Verfahren
 \parencite{dwibedi2017,dvornik2018,ghiasi2021}. Welche ihrer Bestandteile in
 einem konkreten industriellen Anwendungsfall tatsächlich wirken und welche
-nicht, wird in der Literatur aber selten so kleinteilig untersucht.
+nicht, wird in der Literatur aber selten untersucht. Experimentell prüft diese
+Arbeit davon das Leitprinzip, die Einbettung der eingefügten Objekte.
 
 \absatz{Aufbau der Arbeit.} Kapitel~\ref{kap:theorie} führt in die Grundlagen
 von Convolutional Neural Networks und in die Architektur von YOLO26 ein.
@@ -272,5 +274,5 @@ Messungen bauen die Parameterentscheidungen auf. Kapitel~\ref{kap:pipeline}
 beschreibt die Synthese-Pipeline, Kapitel~\ref{kap:trainingszeit} den Aufbau
 des Trainings. Die Ergebnisse folgen in Kapitel~\ref{kap:auswertung}. In
 Kapitel~\ref{kap:diskussion} wird besprochen, wie belastbar sie sind und wo
-ihre Grenzen liegen. Der Anhang enthält die Aufrufe der acht
-Verarbeitungsstufen und die vollständigen Parametertabellen.
+ihre Grenzen liegen. Der Anhang enthält die Aufrufe, mit denen sich
+Datensätze, Läufe und Zahlen reproduzieren lassen, und die Parametertabellen.
