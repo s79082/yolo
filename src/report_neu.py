@@ -987,6 +987,28 @@ def zahlen():
             n_ges = sum(r["ohne"]["n"] for r in a["nms"])
             M["nmsVorhersagen"] = str(n_ges)
             put("nmsAnteil", len(alleP) / n_ges, 1, pp=True)
+        # Herkunft der Zweitboxen. Der Text sagt, jede stamme aus der
+        # Nachbarzelle ihrer Trefferbox; gilt das nach einem neuen Lauf nicht
+        # mehr, soll die Luecke im PDF sichtbar werden.
+        zh = a.get("zweitbox_herkunft", [])
+        zbP = [x for r in zh for x in r["paare"]]
+        if zbP:
+            M["zbAnzahl"] = (str(len(zbP)) if all(x["nachbar"] for x in zbP)
+                             else "??")
+        for r in zh:
+            S = r["split"].capitalize()
+            cs = [x[k] for x in r["paare"] for k in ("conf_treffer", "conf_zweitbox")]
+            if cs:
+                put(f"zb{S}ConfMin", min(cs), 2)
+                put(f"zb{S}ConfMax", max(cs), 2)
+            put(f"zb{S}TpConf", r["treffer_conf_median"], 2)
+        for r in a["fehler"]:
+            if "davon_doppeldetektion" in r:
+                put(f"zb{r['split'].capitalize()}Rate", r["davon_doppeldetektion"]
+                    / (r["n_pred"] - r["falsch_positiv"]), 1, pp=True)
+        for r in a.get("zweitbox_sval", []):
+            put(f"zbSval{r['schwelle_von'].capitalize()}Rate",
+                r["zweitboxen"] / r["treffer"], 1, pp=True)
         for sp, v in a["crosscheck"].items():
             S = sp.capitalize()
             put(f"xc{S}Eigen", v["eigen_mAP50"])

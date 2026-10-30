@@ -165,13 +165,18 @@ dagegen direkt eine \emph{Menge} von Objekten vorher \parencite{carion2020detr}.
 Er arbeitet mit einer festen Zahl gelernter \emph{Objektanfragen}, von denen
 jede höchstens eine Detektion liefert, und ordnet im Training jedem annotierten
 Objekt genau eine davon zu. Durch diese \emph{Eins-zu-eins-Zuordnung} lernt das
-Netz, Duplikate von sich aus zu vermeiden, und die NMS entfällt. Inzwischen
+Netz, Duplikate von sich aus zu vermeiden, und die NMS entfällt. Ausgeschlossen
+sind Duplikate damit nicht, denn die Zuordnung wirkt nur im Training. Inzwischen
 wird dieselbe Zuordnung auch in faltungsbasierten einstufigen Detektoren
 eingesetzt: Neben dem üblichen Kopf, der jedem Objekt viele Positionen zuweist,
 wird ein zweiter Kopf mit genau einer Position je Objekt trainiert und bei der
 \emph{Inferenz}, also beim Einsatz des fertigen Modells, allein verwendet
 \parencite{wang2024yolov10}. Nach demselben Prinzip arbeitet auch das
-Dual-Head-Design von YOLO26 (Abschnitt~\ref{sec:yolo26}).
+Dual-Head-Design von YOLO26 (Abschnitt~\ref{sec:yolo26}). In solchen Detektoren
+haben verschiedene Vorhersagen desselben Objekts ähnliche Merkmale, und
+verbleibende Duplikate liegen vor allem in der Umgebung der konfidentesten
+Vorhersage \parencite{wang2021defcn}; Abschnitt~\ref{sec:falschpositive} zeigt
+das am Modell dieser Arbeit.
 
 \absatz{Kleine und dicht gepackte Objekte.} Kleine Objekte sind für alle diese
 Verfahren der schwierigste Fall. Als Gründe werden unter anderem genannt, dass

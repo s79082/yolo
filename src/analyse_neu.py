@@ -10,6 +10,8 @@ Erzeugt docs/experiments/analyse.json mit
   sensitivitaet  dieselbe Auswertung, nachdem alle Vorhersageboxen um den
                gemessenen medianen Fehlbetrag aufgeweitet wurden
   fehler       Falsch-Positive und Falsch-Negative am F1-optimalen Betriebspunkt
+  zweitbox_herkunft  Gitterposition jeder Zweitbox und ihrer Trefferbox
+  zweitbox_sval  Zweitboxen je Treffer auf sval bei den Schwellen von val/test
 
 sowie die Qualitativbilder docs/qual_<split>.jpg.
 
@@ -278,6 +280,94 @@ def nms_gegenprobe(preds, split, conf, iou_thr=0.7):
     return res
 
 
+def zweitbox_herkunft(model, preds, split, conf):
+    """Gitterposition jeder Zweitbox und ihrer Trefferbox.
+
+    Der Eins-zu-eins-Kopf sagt an jeder Gitterposition jeder Ebene eine Box
+    vorher; im Training ist je Stirnflaeche genau eine davon positiv, alle
+    anderen sollen die Konfidenz 0 lernen. Duplikate unterdrueckt er also nur
+    gelernt. Ein Forward-Hook auf dem Detect-Kopf liefert die Rohausgabe des
+    one2one-Zweigs fuer alle Positionen; jede gemeldete Detektion wird ueber
+    Konfidenz und Box ihrer Position zugeordnet. 'nachbar' heisst: dieselbe
+    Ebene, Zellen hoechstens eine Zeile und eine Spalte auseinander.
+    """
+    from ultralytics.utils import ops
+
+    f, p, c, g = preds[0]
+    head = model.model.model[-1]
+    cap = {}
+    hook = head.register_forward_hook(lambda m, i, o: cap.update(o=o))
+    try:
+        r = model.predict(f, verbose=False, **{**BASE, "imgsz": _native(f)})[0]
+    finally:
+        hook.remove()
+    rp = r.boxes.xyxy.cpu().numpy().astype(np.float64)
+    rc = r.boxes.conf.cpu().numpy().astype(np.float64)
+    assert np.allclose(rp, p, atol=1e-3) and np.allclose(rc, c, atol=1e-6)
+
+    o2o = cap["o"][1]["one2one"]
+    sc = o2o["scores"][0, 0].sigmoid().float().cpu().numpy().astype(np.float64)
+    box = head._get_decode_boxes(o2o)[0].T.float().cpu().numpy().astype(np.float64)
+    s0 = int(head.stride[0])
+    netz = (o2o["feats"][0].shape[2] * s0, o2o["feats"][0].shape[3] * s0)
+    box = ops.scale_boxes(netz, box, cv2.imread(f).shape[:2])
+    stride, zx, zy = [], [], []
+    for s, ft in zip(head.stride.tolist(), o2o["feats"]):
+        h, w = ft.shape[2:]
+        stride += [int(s)] * (h * w)
+        zx += np.tile(np.arange(w), h).tolist()
+        zy += np.repeat(np.arange(h), w).tolist()
+    stride, zx, zy = map(np.array, (stride, zx, zy))
+
+    def position(i):
+        k = np.where((np.abs(sc - rc[i]) < 1e-6) &
+                     (np.abs(box - rp[i]).max(1) < 0.05))[0]
+        assert len(k) == 1, (split, i, k)
+        return int(k[0])
+
+    keep = c >= conf
+    idx = np.where(keep)[0]
+    pk, ck = p[keep], c[keep]
+    tp, _, gidx, _ = match(pk, ck, g, 0.5)
+    M = iou_matrix(pk, g)
+    hit = set(gidx[tp].tolist())
+    paare = []
+    for i in np.where(~tp)[0]:
+        if fp_art(M, i, hit) != "zweitbox":
+            continue
+        j = int(np.argmax(M[i]))
+        t = int(np.where(tp & (gidx == j))[0][0])
+        a, b = position(idx[t]), position(idx[i])
+        paare.append(dict(
+            durchmesser_px=round(float(np.sqrt((g[j, 2] - g[j, 0]) *
+                                               (g[j, 3] - g[j, 1]))), 1),
+            stride_treffer=int(stride[a]), stride_zweitbox=int(stride[b]),
+            zelle_treffer=[int(zx[a]), int(zy[a])],
+            zelle_zweitbox=[int(zx[b]), int(zy[b])],
+            nachbar=bool(stride[a] == stride[b] and
+                         max(abs(zx[a] - zx[b]), abs(zy[a] - zy[b])) == 1),
+            conf_treffer=round(float(ck[t]), 4), conf_zweitbox=round(float(ck[i]), 4),
+            iou_treffer=round(float(M[t, j]), 4), iou_zweitbox=round(float(M[i, j]), 4)))
+    st = [int(stride[position(q)]) for q in idx]
+    return dict(split=split, conf=round(conf, 4),
+                treffer_conf_median=round(float(np.median(ck[tp])), 4),
+                detektionen_je_stride={str(s): st.count(s) for s in sorted(set(st))},
+                paare=paare)
+
+
+def zweitbox_rate(preds, conf):
+    """Zweitboxen und Treffer ueber alle Bilder eines Splits bei Schwelle conf."""
+    n_zb = n_tp = 0
+    for _, p, c, g in preds:
+        keep = c >= conf
+        tp, _, gidx, _ = match(p[keep], c[keep], g, 0.5)
+        M = iou_matrix(p[keep], g)
+        hit = set(gidx[tp].tolist())
+        n_tp += int(tp.sum())
+        n_zb += sum(fp_art(M, i, hit) == "zweitbox" for i in np.where(~tp)[0])
+    return dict(conf=round(conf, 4), zweitboxen=int(n_zb), treffer=n_tp)
+
+
 def crosscheck(model):
     res = {}
     for s, imgsz in (("val", 2464), ("test", 1600)):
@@ -303,6 +393,7 @@ if __name__ == "__main__":
     print(json.dumps(rep["crosscheck"], indent=2))
 
     rep["boxversatz"], rep["sensitivitaet"], rep["fehler"] = [], {}, []
+    cstar = {}
     for s in ("val", "test", "sval"):
         preds = predict_split(model, s)
         bv = boxversatz(preds, s)
@@ -318,9 +409,17 @@ if __name__ == "__main__":
                 original=_metrics(preds),
                 aufgeweitet=_metrics(preds, grow))
             conf = _metrics(preds)["best_f1_conf"]
+            cstar[s] = conf
             rep["fehler"].append(fehleranalyse(preds, s, conf))
             rep.setdefault("nms", []).append(nms_gegenprobe(preds, s, conf))
+            rep.setdefault("zweitbox_herkunft", []).append(
+                zweitbox_herkunft(model, preds, s, conf))
             qualbild(preds, s, conf)
+        else:
+            # sval bei den Schwellen der Realbilder: entstehen Zweitboxen
+            # erst auf realen Aufnahmen?
+            rep["zweitbox_sval"] = [dict(schwelle_von=k, **zweitbox_rate(preds, v))
+                                    for k, v in cstar.items()]
     with open(os.path.join(OUT, f"analyse{ARGS.tag}.json"), "w") as f:
         json.dump(rep, f, indent=2)
     print(json.dumps({k: rep[k] for k in ("sensitivitaet", "fehler")}, indent=2))

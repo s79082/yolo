@@ -92,8 +92,9 @@ größere Teil ist ein \emph{systematischer Größenversatz zwischen
 Generatorlabel und Handannotation}, der in Abschnitt~\ref{sec:boxversatz}
 aufgeschlüsselt wird. \mAPall{} ist bei dieser Objektgröße daher weniger ein
 Maß für die Detektionsqualität als für Pixelauflösung und Labelkonvention;
-diese Feststellung gilt für alle folgenden Tabellen. Ein Qualitativbild der
-Detektionen zeigt Abbildung~\ref{abb:qualitativ} im Anhang.
+diese Feststellung gilt für alle folgenden Tabellen. Wo das Modell auf beiden
+Realbildern trifft und wo es sich irrt, zeigt Abbildung~\ref{abb:qualitativ} in
+Abschnitt~\ref{sec:bootstrap}.
 
 \absatz{Sim-to-Real-Abstand.}\label{sec:simtoreal}
 Der Split \code{sval} besteht aus 400 synthetischen Bildern derselben Pipeline
@@ -398,8 +399,32 @@ desselben Bildes zählen dabei nicht als unabhängige Belege, weil \mAPfifty{},
 $F_1$ und Rückruf auf denselben Detektionen beruhen. Der Auflösungseffekt von
 \zswValGain\,Prozentpunkten übersteigt das Intervall dagegen um ein Vielfaches.
 
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.93\textwidth]{abbildungen/neu_qual_test.jpg}
+
+\vspace{4pt}
+\includegraphics[width=0.93\textwidth]{abbildungen/neu_qual_val.jpg}
+\caption[Qualitatives Ergebnis]{Qualitatives Ergebnis des Referenzmodells bei
+der berichteten Zuordnungsschwelle $\mathrm{IoU} \geq 0{,}50$
+\parencite{everingham2010,lin2014coco} und am $F_1$-optimalen Betriebspunkt.
+Grün = Treffer, blau = Falsch-Negativ, magenta = Zweitbox, die eine bereits
+getroffene Stirnfläche ebenfalls mit $\mathrm{IoU} \geq 0{,}50$ trifft, rot =
+übrige Falsch-Positive. Zweitbox und Trefferbox sind fast deckungsgleich, die
+Zweitbox verdeckt die Trefferbox deshalb im Bild.
+\emph{Oben} \code{test} ($c^* = \zrefTestConf$): \zfnTest{} Falsch-Negative,
+\zfpTest{} Falsch-Positive bei 89 annotierten Stirnflächen, davon
+\zfpDoppelTest{} Zweitboxen. \emph{Unten} \code{val} ($c^* = \zrefValConf$):
+\zfnVal{} Falsch-Negative, \zfpVal{} Falsch-Positive bei 98 annotierten
+Stirnflächen, davon \zfpDoppelVal{} Zweitbox. Warum Zweitboxen entstehen und
+als Fehler zählen, erklärt der Absatz \enquote{Falsch-Positive} in
+Abschnitt~\ref{sec:falschpositive}. Erzeugt mit \code{src/analyse\_neu.py}.}
+\label{abb:qualitativ}
+\end{figure}
+
 \absatz{Falsch-Negative.} Am $F_1$-optimalen Betriebspunkt bleiben auf
-\code{test} \zfnTest{} Objekte unentdeckt, auf \code{val} \zfnVal. Auf
+\code{test} \zfnTest{} Objekte unentdeckt, auf \code{val} \zfnVal{} (blau in
+Abbildung~\ref{abb:qualitativ}). Auf
 \code{test} sind \zfnKleinTest{} davon kleiner als 18\px; sie liegen
 überwiegend am linken Bildrand, wo die Objekte am kleinsten sind. Daneben gibt
 es einen zweiten Fehlertyp: Enden mit ungewöhnlicher Erscheinung, auf
@@ -410,13 +435,15 @@ Quellobjekte (Abschnitt~\ref{sec:quellmaterial}), eine mit Laub oder Rost
 gefüllte aber keines; hier liegt eine verbleibende Domänenlücke im
 Quellmaterial selbst.
 
-\absatz{Falsch-Positive.} Auf \code{test} sind sie selten: \zfpTest{} bei
-\znPredTest{} Detektionen. Davon sind \zfpDoppelTest{} \emph{Zweitboxen}: Sie
+\phantomsection\absatz{Falsch-Positive.}\label{sec:falschpositive} Auf \code{test} sind sie selten: \zfpTest{} bei
+\znPredTest{} Detektionen. Davon sind \zfpDoppelTest{} \emph{Zweitboxen}
+(magenta in Abbildung~\ref{abb:qualitativ}): Sie
 treffen ein schon erkanntes Rohrende mit $\mathrm{IoU} \geq 0{,}50$, zählen
 aber als Fehler, weil die Zuordnungsregel je annotierter Fläche nur einen
 Treffer zulässt \parencite{lin2014coco}, und bleiben stehen, weil der Kopf
-NMS-frei arbeitet (Abschnitt~\ref{sec:yolo26}); \zfpOhneTest{} überlappt keine
-Annotation. Auf \code{val} sind es \zfpVal{} bei \znPredVal{} Detektionen; der
+NMS-frei arbeitet und der Inferenzparameter \code{iou} deshalb ohne Wirkung
+bleibt (Abschnitt~\ref{sec:yolo26}); \zfpOhneTest{} überlappt keine
+Annotation (rot). Auf \code{val} sind es \zfpVal{} bei \znPredVal{} Detektionen; der
 $F_1$-optimale Betriebspunkt liegt dort bei der niedrigen Konfidenzschwelle
 \zrefValConf. Darunter sind \zfpDoppelVal{} Zweitbox, \zfpTeilVal{} Detektionen,
 die eine annotierte Stirnfläche mit einer IoU unter 0{,}50 überdecken, und
@@ -425,6 +452,22 @@ die eine annotierte Stirnfläche mit einer IoU unter 0{,}50 überdecken, und
 Treffer und Falsch-Negative bleiben gleich;
 $F_1$ stiege auf \code{test} von \znmsTestFfOhne{} auf \znmsTestFfMit.
 Berichtet wird ohne diesen Schritt.
+Dass Zweitboxen überhaupt entstehen, liegt am Eins-zu-eins-Kopf: Im Training
+ist je Stirnfläche genau eine Gitterposition positiv, jede andere soll die
+Konfidenz~0 lernen (\code{tal\_topk2=1} in \code{E2ELoss},
+\code{ultralytics/utils/loss.py}, Version~8.4.117). Duplikate unterdrückt er
+also nur gelernt, und bei Detektoren dieser Bauart misslingt das am ehesten in
+der Umgebung der konfidentesten Vorhersage, weil verschiedene Vorhersagen
+desselben Objekts ähnliche Merkmale haben \parencite{wang2021defcn}.
+Entsprechend stammt jede der \zzbAnzahl{} Zweitboxen aus der direkt
+benachbarten Gitterzelle ihrer Trefferbox auf derselben Merkmalsebene, und beide
+Boxen eines Paares sind weniger konfident als die meisten Treffer: auf
+\code{test} \zzbTestConfMin{} bis \zzbTestConfMax{} bei einem Median von
+\zzbTestTpConf{} über alle Treffer. Sie entstehen auch nicht erst auf den
+Realbildern: Auf dem synthetischen Split \code{sval} kommen bei der Schwelle von
+\code{test} \zzbSvalTestRate{} Zweitboxen auf 100 Treffer (\code{test}:
+\zzbTestRate), bei der von \code{val} \zzbSvalValRate{} (\code{val}:
+\zzbValRate).
 
 \section{Ein systematischer Größenversatz der Boxen}
 \label{sec:boxversatz}

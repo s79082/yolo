@@ -205,5 +205,113 @@
         }
       ]
     }
+  ],
+  "zweitbox_herkunft": [
+    {
+      "split": "val",
+      "conf": 0.1191,
+      "treffer_conf_median": 0.8821,
+      "detektionen_je_stride": {
+        "4": 101
+      },
+      "paare": [
+        {
+          "durchmesser_px": 27.3,
+          "stride_treffer": 4,
+          "stride_zweitbox": 4,
+          "zelle_treffer": [
+            585,
+            100
+          ],
+          "zelle_zweitbox": [
+            585,
+            101
+          ],
+          "nachbar": true,
+          "conf_treffer": 0.667,
+          "conf_zweitbox": 0.2472,
+          "iou_treffer": 0.7912,
+          "iou_zweitbox": 0.7942
+        }
+      ]
+    },
+    {
+      "split": "test",
+      "conf": 0.2665,
+      "treffer_conf_median": 0.8663,
+      "detektionen_je_stride": {
+        "4": 84
+      },
+      "paare": [
+        {
+          "durchmesser_px": 15.8,
+          "stride_treffer": 4,
+          "stride_zweitbox": 4,
+          "zelle_treffer": [
+            7,
+            104
+          ],
+          "zelle_zweitbox": [
+            7,
+            105
+          ],
+          "nachbar": true,
+          "conf_treffer": 0.4163,
+          "conf_zweitbox": 0.3916,
+          "iou_treffer": 0.6702,
+          "iou_zweitbox": 0.686
+        },
+        {
+          "durchmesser_px": 23.8,
+          "stride_treffer": 4,
+          "stride_zweitbox": 4,
+          "zelle_treffer": [
+            332,
+            223
+          ],
+          "zelle_zweitbox": [
+            333,
+            223
+          ],
+          "nachbar": true,
+          "conf_treffer": 0.4752,
+          "conf_zweitbox": 0.3766,
+          "iou_treffer": 0.7453,
+          "iou_zweitbox": 0.7431
+        },
+        {
+          "durchmesser_px": 14.8,
+          "stride_treffer": 4,
+          "stride_zweitbox": 4,
+          "zelle_treffer": [
+            11,
+            89
+          ],
+          "zelle_zweitbox": [
+            12,
+            89
+          ],
+          "nachbar": true,
+          "conf_treffer": 0.3508,
+          "conf_zweitbox": 0.3257,
+          "iou_treffer": 0.7348,
+          "iou_zweitbox": 0.7634
+        }
+      ]
+    }
+  ],
+  "zweitbox_sval": [
+    {
+      "schwelle_von": "val",
+      "conf": 0.1191,
+      "zweitboxen": 477,
+      "treffer": 8748
+    },
+    {
+      "schwelle_von": "test",
+      "conf": 0.2665,
+      "zweitboxen": 242,
+      "treffer": 8664
+    }
   ]
 }
