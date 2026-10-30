@@ -274,5 +274,46 @@ Messungen bauen die Parameterentscheidungen auf. Kapitel~\ref{kap:pipeline}
 beschreibt die Synthese-Pipeline, Kapitel~\ref{kap:trainingszeit} den Aufbau
 des Trainings. Die Ergebnisse folgen in Kapitel~\ref{kap:auswertung}. In
 Kapitel~\ref{kap:diskussion} wird besprochen, wie belastbar sie sind und wo
-ihre Grenzen liegen. Der Anhang enthält die Aufrufe, mit denen sich
-Datensätze, Läufe und Zahlen reproduzieren lassen, und die Parametertabellen.
+ihre Grenzen liegen; Abschnitt~\ref{sec:fazit} beantwortet dort die
+Forschungsfrage aus Abschnitt~\ref{sec:forschungsfrage}. Der Anhang enthält
+die Aufrufe, mit denen sich Datensätze, Läufe und Zahlen reproduzieren lassen,
+und die Parametertabellen.
+
+\section{Forschungsfrage und Hypothesen}
+\label{sec:forschungsfrage}
+
+Aus der Aufgabenstellung und den Zielen ergibt sich die Frage, die diese
+Arbeit beantworten soll:
+
+\begin{quote}
+\emph{Lässt sich ein Detektor für die Stirnflächen gestapelter Bauzaunfelder
+ausschließlich mit synthetischen Bildern aus wenigen Objektausschnitten so
+trainieren, dass er auf realen Aufnahmen zuverlässig detektiert, und welche
+Eigenschaften der Synthese entscheiden darüber?}
+\end{quote}
+
+Die Frage wird in drei Hypothesen zerlegt. Jede ist so formuliert, dass eine
+Messung in Kapitel~\ref{kap:auswertung} sie bestätigen oder widerlegen kann:
+
+\begin{description}[leftmargin=1.4em,itemsep=2pt,font=\normalfont\bfseries]
+  \item[H1 Übertragung.] Ein ausschließlich synthetisch trainierter Detektor
+  überträgt das Gelernte auf reale Aufnahmen: Sein \mAPfifty{} liegt dort
+  nicht messbar unter dem auf synthetischen Validierungsbildern, der
+  Sim-to-Real-Abstand (Abschnitt~\ref{sec:sim2real}) bleibt also innerhalb
+  der Messunsicherheit. Geprüft wird das am Referenzmodell
+  (Abschnitt~\ref{sec:hauptergebnis}).
+  \item[H2 Einbettung.] Für die Übertragung ist wesentlich, dass sich die
+  eingefügten Objekte nicht statistisch von ihrer Umgebung unterscheiden.
+  Fehlt die Einbettung, sinkt \mAPfifty{} auf realen Bildern deutlich, auf
+  synthetischen dagegen kaum. Geprüft wird das mit der Ablation
+  (Abschnitt~\ref{sec:ablationC}).
+  \item[H3 Objektgröße.] Die Detektionsgüte hängt vor allem davon ab, ob die
+  Objekte im Netzeingang in der Größe ankommen, für die der Generator
+  kalibriert ist. Liegt die Inferenzauflösung deutlich darunter, bricht die
+  Detektion ein; darüber ändert sie sich wenig. Geprüft wird das mit dem
+  Auflösungssweep (Abschnitt~\ref{sec:imgsz}).
+\end{description}
+
+Als Maßstab dient die Messunsicherheit aus Abschnitt~\ref{sec:bootstrap}: Ein
+Unterschied gilt nur dann als gezeigt, wenn er über das 95\,\%-Intervall des
+Bootstraps hinausgeht.

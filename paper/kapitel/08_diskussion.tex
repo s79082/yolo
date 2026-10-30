@@ -180,6 +180,7 @@ in der Reihenfolge, in der sie anzugehen wären:
 \end{enumerate}
 
 \section{Fazit}
+\label{sec:fazit}
 
 Ein ausschließlich auf synthetischen Bildern trainierter Detektor erreicht auf
 zwei echten Aufnahmen \mAPfifty{} von \textbf{\zrefValMap} und
@@ -190,6 +191,42 @@ nur \zfpTest{} als falsch-positiv,
 \zfpDoppelTest{} davon als zweite Box auf einer bereits erkannten Stirnfläche. Für
 eine Anwendung, für die kein einziges handannotiertes Trainingsbild existiert,
 ist das ein tragfähiges Ergebnis.
+
+\absatz{Antwort auf die Forschungsfrage.} Die Forschungsfrage aus
+Abschnitt~\ref{sec:forschungsfrage} lässt sich mit einem eingeschränkten Ja
+beantworten. Ein ausschließlich synthetisch trainierter Detektor erreicht auf
+beiden realen Aufnahmen ein \mAPfifty{} über 0,9, auf dem Testbild ohne
+messbaren Abstand zur synthetischen Validierung. Von den untersuchten
+Eigenschaften der Synthese entscheidet die Objektgröße im Netzeingang am
+deutlichsten; für die Einbettung gibt es einen starken Hinweis auf dem
+Testbild. Im Einzelnen:
+
+\begin{description}[leftmargin=1.4em,itemsep=2pt,font=\normalfont\bfseries]
+  \item[H1 Übertragung: auf \code{test} bestätigt, auf \code{val} nicht.] Auf
+  \code{test} liegt der Sim-to-Real-Abstand mit \zsimRealTest\,Prozentpunkten innerhalb
+  des 95\,\%-Intervalls $[\zbootTestLo;\,\zbootTestHi]$, auf \code{val} mit
+  \zsimRealVal\,Prozentpunkten darüber (Abschnitt~\ref{sec:simtoreal}). Die Übertragung
+  gelingt also auf dem Bild, das in keine Entscheidung eingeht. Auf \code{val}
+  bleibt ein messbarer Abstand, und ob er in den Bildern oder in den
+  Beschriftungen liegt, ist offen.
+  \item[H2 Einbettung: auf \code{test} gestützt, nicht nachgewiesen.] Ohne
+  Einbettung ändert sich \mAPfifty{} auf \code{test} um $\zablCTestGap$\PP,
+  auf dem eigenen synthetischen Split desselben Arms nur um
+  $\zablCSvalGap$\PP{} (Abschnitt~\ref{sec:ablationC}). Auf \code{val} bleibt
+  der Unterschied mit $\zablCValGap$\,Prozentpunkten innerhalb der Messunsicherheit. Mit
+  je einem Lauf je Arm und einem Bündel, das auch die JPEG-Variation umfasst,
+  ist das ein Hinweis, kein Nachweis (Abschnitt~\ref{sec:grenzen}).
+  \item[H3 Objektgröße: bestätigt.] Bei \code{imgsz}~640 kommen die Objekte
+  auf \code{val} nur noch mit \mbox{3--9\px} im Netz an, und \mAPfifty{} fällt auf
+  \zswValNiedrig. Sobald der Objektmedian im Netzeingang etwa 17\px{}
+  erreicht, ändert sich auf beiden Splits kaum noch etwas
+  (Abschnitt~\ref{sec:imgsz}). Der Effekt übersteigt das Bootstrap-Intervall
+  um ein Vielfaches.
+\end{description}
+
+Gültig ist diese Antwort für die beiden untersuchten Aufnahmen; über andere
+Stapel, Hersteller und Lichtsituationen sagt sie nichts
+(Abschnitt~\ref{sec:grenzen}).
 
 Methodisch tragen drei Einsichten:
 
