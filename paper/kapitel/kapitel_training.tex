@@ -103,9 +103,16 @@ viermal so viele Positionen wie P3 und hob ihn in den eigenen Läufen bei
 \code{imgsz}=1024 und Batch~8 von etwa 6 auf etwa 12~GB.
 
 Ausgangspunkt sind COCO-vortrainierte Gewichte. Die vortrainierten Filter der
-ersten Schichten sind weitgehend domänenunabhängig \parencite{yosinski2014},
-und \textcite{hinterstoisser2018} zeigen den Nutzen ausdrücklich für
-synthetische Trainingsdaten. Weil die \code{-p2}-Variante über eine
+ersten Schichten sind weitgehend domänenunabhängig \parencite{yosinski2014}.
+Für Detektoren, die nur auf synthetischen Bildern trainiert werden, zeigen
+\textcite{hinterstoisser2018}, dass vortrainierte Merkmale viel bringen, und zwar
+gerade dann, wenn der Merkmalsextraktor eingefroren bleibt; auf den
+synthetischen Bildern mittrainiert, schnitt er bei ihnen deutlich schlechter ab.
+Diese Arbeit friert keine Schicht ein (\code{freeze} bleibt ungesetzt), und ob
+das Einfrieren auch hier hilft, ist nicht untersucht. Die Ausgangslage
+unterscheidet sich allerdings: Dort sind die synthetischen Bilder einfache
+OpenGL-Renderings, hier bestehen sie aus Ausschnitten und Hintergründen echter
+Fotos. Weil die \code{-p2}-Variante über eine
 Architekturdatei und nicht über einen fertigen Checkpoint definiert ist, werden
 die Gewichte nur \emph{teilweise} übernommen; die zusätzlichen Blöcke der
 P2-Ebene werden zufällig initialisiert.
@@ -155,15 +162,18 @@ die Voreinstellung $a=0{,}5$ der Werkzeugkette (Tabelle~\ref{tab:trainaug}).
 Abgeschaltet sind \code{degrees}, \code{shear} und \code{perspective}, weil
 sie achsparallele Boxen aufweiten (Gleichung~\eqref{eq:dbox}); die Drehung
 übernimmt der Generator mit exakten Boxen (Abschnitt~\ref{sec:arbeitsteilung}).
-Auch \code{mixup} und
-\code{cutmix} sind abgeschaltet, aber aus verschiedenen Gründen. \code{mixup}
-überblendet zwei Bilder etwa im Verhältnis 1:1 und übernimmt beide Labelsätze
-vollständig \parencite{zhang2018mixup}. Jedes Objekt erscheint dann
-halbtransparent, trägt aber ein volles Label. \code{cutmix} setzt einen
-Ausschnitt des zweiten Bildes in eine Fläche des ersten, die keine Box trifft,
-und übernimmt aus dem zweiten Bild jedes Objekt, von dem mindestens 10\,\% im
-Ausschnitt liegen, mit entsprechend beschnittener Box \parencite{yun2019cutmix}.
-So entstehen Labels auf Objektresten bis hinab zu einem Zehntel der Fläche,
+Auch \code{mixup} \parencite{zhang2018mixup} und
+\code{cutmix} \parencite{yun2019cutmix} sind abgeschaltet, aber aus
+verschiedenen Gründen. Im Original mischen beide auch die Labels anteilig, nach
+dem Mischverhältnis bzw.\ nach dem Flächenanteil des eingesetzten Ausschnitts.
+Für die Detektion setzt die Werkzeugkette sie eigenständig um (\code{MixUp} und
+\code{CutMix} in \code{ultralytics/data/augment.py}, Version~8.4.117).
+\code{mixup} überblendet dort zwei Bilder etwa im Verhältnis 1:1 und übernimmt
+beide Labelsätze vollständig. Jedes Objekt erscheint dann halbtransparent,
+trägt aber ein volles Label. \code{cutmix} setzt einen Ausschnitt des zweiten
+Bildes in eine Fläche des ersten, die keine Box trifft, und übernimmt aus dem
+zweiten Bild jedes Objekt, von dem mindestens 10\,\% im Ausschnitt liegen, mit
+entsprechend beschnittener Box. So entstehen Labels auf Objektresten bis hinab zu einem Zehntel der Fläche,
 also genau das, was die Sichtbarkeitsregel des Generators mit ihrer Grenze von
 30\,\% aussortiert (Abschnitt~\ref{sec:sichtbarkeit}). Selten wäre das nicht:
 Auf den 6000 erzeugten Bildern findet die Werkzeugkette in 67,3\,\% der

@@ -190,14 +190,18 @@ stark. Anforderung~A5 verlangt beide, und Tabelle~\ref{tab:parameter} nennt sie
 für jede Transformation.
 
 \absatz{Nicht gewählte Alternativen.} Vier naheliegende Alternativen werden in
-dieser Arbeit nicht verfolgt. Die ersten beiden scheitern daran, dass sie viele
-reale Daten voraussetzen. Eine automatische Suche nach Augmentierungsparametern
+dieser Arbeit nicht verfolgt. Die ersten beiden scheitern an der Datenlage.
+Eine automatische Suche nach Augmentierungsparametern
 wie AutoAugment \parencite{cubuk2019} oder RandAugment \parencite{cubuk2020}
 optimiert die Parameter auf eine Validierungsleistung. Mit einem einzigen
 realen Validierungsbild hieße das, die Pipeline an dieses eine Bild anzupassen.
-Generative Modelle, etwa Diffusionsmodelle \parencite{trabucco2024}, brauchen
-eine ausreichend große und repräsentative Menge realer Beispiele, um die
-Objektverteilung zu lernen; sechs Ausgangsobjekte reichen dafür nicht. Ein
+Generative Modelle wie Diffusionsmodelle kommen zwar mit wenigen Beispielen aus:
+\textcite{trabucco2024} verändern reale Bilder mit einem vortrainierten
+Diffusionsmodell und lernen neue Objektklassen aus wenigen gelabelten
+Beispielen. Untersucht haben sie das aber nur für die Bildklassifikation, bei
+der ein Klassenlabel je Bild genügt; die Objektdetektion nennen sie als mögliche
+Erweiterung. Ein Detektor braucht dagegen für jedes der rund hundert Objekte
+eine exakte Box, und die liefert ein solcher Bildgenerator nicht mit. Ein
 explizit parametrisierter Generator hat außerdem zwei Vorteile, auf die es hier
 ankommt: Geometrie und Photometrie lassen sich getrennt steuern, und die Labels
 folgen exakt aus der bekannten Szenengeometrie.
@@ -652,8 +656,9 @@ nur zur Hälfte (Abschnitt~\ref{sec:ablationC}).
     S4 & fehlendes bzw.\ unrealistisches Sensorrauschen; Rauschmuster sind
          kameraspezifisch \parencite{lukas2006}
        & Rauschmodell \\
-    S5 & fehlende Kompressionsartefakte; eingefügte Pixel tragen eine andere
-         DCT-Blockstatistik \parencite{wallace1992jpeg}
+    S5 & fehlende Kompressionsartefakte; JPEG quantisiert $8\times8$-DCT-Blöcke
+         \parencite{wallace1992jpeg}, eingefügte Bereiche stören das Blockmuster
+         \parencite{farid2009}
        & JPEG-Kompression \\
     S6 & fehlende Interaktion mit der Umgebung
        & physikalisch plausible Okkluder und Schatten \\

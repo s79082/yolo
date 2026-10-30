@@ -236,7 +236,7 @@ Gamma $0{,}75$--$1{,}35$ & 79,7\,\% & Gamma statt Kontrast, weil es die nichtlin
 HSV: Ton $\pm16^\circ$ (OpenCV: $\pm8$ H-Einheiten), Sättigung $\times0{,}45$--$1{,}60$ & 69,7\,\% & Verzinkter Stahl ist neutralgrau, nimmt aber Farbstiche an (Flugrost, Moos, Himmelsreflex); Farbtonhub moderat, da große Sprünge unphysikalisch wären. & A \\
 Farbangleich an den lokalen Hintergrund, Gl.~\eqref{eq:harmonize} & 84,7\,\% & Ohne Angleich bliebe zwischen Objekt und Umgebung ein Farb- und Helligkeitsversatz, den ein CNN als Einfügemarke lernen könnte. Partieller Statistiktransfer \parencite{reinhard2001,tsai2017}. & L/A (S2) \\
 \quad Angleichstärken $\alpha_\mu \in [0{,}10;\,0{,}45]$, $\alpha_\sigma \in [0;\,0{,}35]$ & -- & Deutlich unter 1 gedeckelt, damit der Transfer partiell bleibt und der Albedo-Unterschied Bohrung/Kranz erhalten wird (Abschnitt~\ref{sec:synthese}). & A \\
-Unschärfeangleich $\sigma$ 0,25--1,10\px & 59,8\,\% & Das skalierte Objekt ist glatter oder schärfer als das Zielbild, und reale Objekte liegen je nach Stapeltiefe außerhalb der Schärfeebene \parencite{popescu2005}. & L/A (S3) \\
+Unschärfeangleich $\sigma$ 0,25--1,10\px & 59,8\,\% & Die Skalierung macht das Objekt glatter oder schärfer als das Zielbild und hinterlässt messbare Resampling-Spuren \parencite{popescu2005}; reale Objekte werden zudem umso unschärfer abgebildet, je weiter sie je nach Stapeltiefe von der Schärfeebene entfernt liegen \parencite{pentland1985}. & L/A (S3) \\
 Rauschangleich (Abschnitt~\ref{sec:modellentscheidungen}) & 69,7\,\% & Beim Verkleinern sinkt das Rauschen, der eingefügte Bereich wäre messbar rauschärmer. Niveau \emph{pro Einfügestelle} über den Hochpassrest geschätzt \parencite{immerkaer1996} (Hintergründe: 6,8--15,2 Grauwerte Hochpassstreuung). & L/A (S4) \\
 \quad Streufaktor $\mathcal{U}[0{,}5;\,1{,}25]$ & -- & Variiert das eingefügte Niveau um die lokale Schätzung, damit der Einsatz nicht exakt die Hintergrundstatistik trifft. & A \\
 Alphakante weichzeichnen $\sigma$ 0,4--1,0\px & 100\,\% & Immer -- eine pixelharte Silhouette gibt es bei 25\px-Objekten in echten Aufnahmen nicht. Das Intervall liegt unterhalb der 1,1\px{} Übergangsbreite, die die Alphamaske bereits mitbringt (Abschnitt~\ref{sec:matting}). & P/A (S1) \\
@@ -319,13 +319,15 @@ $10^\circ$ um 15,8\,\% der Kantenlänge, was die Überlappung mit der korrekten 
 auf 0,745 senkt (Abschnitt~\ref{subsec:aabb-rotation}). Die nötige Rotations- und
 Perspektivinvarianz liefert der Generator label-exakt. \\
 \code{mixup} & 0,0 &
-\textbf{Aus.} Überblendet zwei Bilder im Verhältnis $r \approx 0{,}5$ und
-verkettet beide Labelsätze ungewichtet \parencite{zhang2018mixup}: Jedes Objekt
-erscheint halbtransparent und trägt ein volles Boxlabel. \\
+\textbf{Aus.} Im Original werden auch die Labels nach dem Mischverhältnis
+gemischt \parencite{zhang2018mixup}. Die Werkzeugkette überblendet zwei Bilder
+im Verhältnis $r \approx 0{,}5$ und verkettet beide Labelsätze ungewichtet:
+Jedes Objekt erscheint halbtransparent und trägt ein volles Boxlabel. \\
 \code{cutmix} & 0,0 &
-\textbf{Aus.} Setzt den Flicken in eine Fläche ohne Box des Primärbildes und
-übernimmt aus dem zweiten Bild alle Instanzen ab 10\,\% Flächenanteil mit
-beschnittener Box \parencite{yun2019cutmix} -- Labels auf Fragmenten, die die
+\textbf{Aus.} Im Original werden die Labels nach Flächenanteil gemischt
+\parencite{yun2019cutmix}. Die Werkzeugkette setzt den Flicken in eine Fläche
+ohne Box des Primärbildes und übernimmt aus dem zweiten Bild alle Instanzen ab
+10\,\% Flächenanteil mit beschnittener Box -- Labels auf Fragmenten, die die
 Sichtbarkeitsregel des Generators bei 30\,\% aussortiert
 (Abschnitt~\ref{sec:sichtbarkeit}). Die Flächenwahl findet auf den 6000
 erzeugten Bildern in 67,3\,\% der Bilder mit mindestens einem Label eine boxfreie Fläche
