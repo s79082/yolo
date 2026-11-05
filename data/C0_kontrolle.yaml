@@ -1,0 +1,7 @@
+# Arm C0 -- Kontrolle: Standardpipeline, gleicher Code wie C1
+path: /home/mso/source/yolo-gen
+train: synth/C0_kontrolle/images
+val: data/val/images
+test: data/test/images
+names:
+  0: rohrprofil

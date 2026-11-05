@@ -36,26 +36,17 @@
 
 \usepackage[a4paper,inner=3.2cm,outer=2.6cm,top=2.8cm,bottom=3.0cm]{geometry}
 
-
-\usepackage[T1]{fontenc}
-\usepackage[utf8]{inputenc}
-%\usepackage[german]{babel}
-%\usepackage{lmodern}
-%\usepackage{microtype}
-%\usepackage{amsmath,amssymb,amsthm}
-%\usepackage{booktabs}
-%\usepackage{tabularx}
-%\usepackage{enumitem}
-%\usepackage{csquotes}
-%\usepackage[hidelinks]{hyperref}
+% fontenc/inputenc werden ausschliesslich im \ifPDFTeX-Zweig oben geladen.
+% Ein zweites, unbedingtes Laden haette die Engine-Weiche ausgehebelt und
+% unter XeLaTeX genau das T1-Problem erzeugt, vor dem der Kommentar dort warnt.
 
 \numberwithin{equation}{chapter}
-\setcounter{chapter}{2}   % naechstes \chapter wird Kapitel 3
 
 % Notationskonventionen
 \newcommand{\Dom}[1]{\mathcal{D}_{#1}}          % Verteilung
 \newcommand{\Hcls}{\mathcal{H}}                  % Hypothesenklasse
 \newcommand{\HdH}{\Hcls\Delta\Hcls}              % symmetrische Differenzklasse
+\DeclareMathOperator{\disc}{disc}                % Discrepancy-Distanz
 \newcommand{\IoU}{\mathrm{IoU}}
 \DeclareMathOperator*{\argmin}{arg\,min}
 
@@ -103,7 +94,8 @@
   De-tek-ti-ons-kopf De-tek-ti-ons-ebe-ne In-fe-renz-auf-lö-sung
   Ob-jekt-grö-ßen-ver-tei-lung Trai-nings-ver-tei-lung Kon-fi-denz-in-ter-vall
   Rohr-pro-fil-Stirn-flä-chen Anti-Ab-kür-zungs-Maß-nah-me
-  Ein-bet-tungs-rea-lis-mus Prä-dik-ti-ons-po-si-tio-nen}
+  Ein-bet-tungs-rea-lis-mus Prä-dik-ti-ons-po-si-tio-nen
+  Hand-an-no-ta-ti-on}
 
 % ---------------------------------------------------------------------------
 %  Eigene Makros

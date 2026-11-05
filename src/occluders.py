@@ -7,9 +7,9 @@ In allen realen Aufnahmen liegen vor den Stirnflaechen weitere Rohre, die
 Teile der Profile verdecken. Ein synthetisch gemalter Balken haette eine
 andere Textur-, Rausch- und Glanzstatistik als der Rest des Bildes; das Netz
 koennte "Objekt liegt neben kuenstlichem Balken" lernen. Die vier
-Clean-Plate-Hintergruende (bg/test*_cutted.*) sind buchstaeblich Waende aus
-Rohrschaeften desselben Materials, derselben Kamera und derselben Beleuchtung.
-Daraus geschnittene Streifen sind photometrisch exakt konsistent.
+Clean-Plate-Hintergruende (bg/*_cutted.*) sind buchstaeblich Waende aus
+Rohrschaeften desselben Materials; daraus geschnittene Streifen tragen echte
+Textur, echtes Sensorrauschen und echte Glanzlichter.
 
 VERFAHREN
 ---------
@@ -26,8 +26,8 @@ import os
 import numpy as np
 import cv2
 
-CLEAN_PLATES = ["bg/test_cutted.png", "bg/test2_cutted.jpg",
-                "bg/test4_cutted.png", "bg/test5_cutted.jpg"]
+CLEAN_PLATES = ["bg/test_cutted.png", "bg/img3884_cutted.png",
+                "bg/test4_cutted.png", "bg/img3886_cutted.png"]
 OUT = "assets/bars"
 
 

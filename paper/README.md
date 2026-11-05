@@ -19,11 +19,11 @@ sie liegen im letzten Commit unter `paper/kapitel`, `paper/kapitel_kurz` und
 ### Woher die Zahlen kommen
 
 Jede im Fließtext genannte Messzahl steht in `kapitel/zahlen.tex` und wird
-von `neu/src/report_neu.py` erzeugt — ebenso alle Ergebnistabellen
+von `src/report_neu.py` erzeugt — ebenso alle Ergebnistabellen
 (`kapitel/tab_*.tex`). Wird ein Lauf wiederholt, genügt
 
 ```bash
-.venv/bin/python neu/src/report_neu.py
+.venv/bin/python src/report_neu.py --nur-tabellen
 ```
 
 im Projektwurzelverzeichnis, damit Text und Tabellen wieder zu den Daten passen.
@@ -31,9 +31,9 @@ Eine Zahl, für die noch kein Lauf vorliegt, erscheint im PDF als **??**.
 
 ### Herkunft der Zahlenwerte
 
-Anhangabschnitt **A.6** (Tabelle A.4) nennt für jede Klasse von Zahlenwerten die
-Quelle und das Programm, das sie erzeugt — von der Objektstatistik über die
-Pipelineparameter und die Modellkennzahlen bis zu den Metriken. Als Prüfhilfe
+Anhangabschnitt **A.1** nennt hinter jedem Aufruf, welche Zahlenwerte er
+erzeugt, und darunter die Herkunft der Werte, die kein Aufruf ausgibt (gesetzte
+Parameter, Modellkennzahlen, abgeleitete Größen). Als Prüfhilfe
 beim Schreiben:
 
 ```bash
@@ -79,10 +79,10 @@ sudo apt install texlive-latex-recommended texlive-latex-extra texlive-lang-germ
 |---|---|
 | `main.tex` | Dokumentrahmen, bindet alle Kapitel ein |
 | `praeambel.tex` | Pakete, Satzspiegel, Makros (`\code`, `\px`, `\PP`, `\mAPfifty` …) |
-| `literatur.bib` | 77 Quellen |
+| `literatur.bib` | 94 Quellen |
 | `kapitel/00_titel.tex` | Titelseite |
 | `kapitel/00_kurzfassung.tex` | Kurzfassung |
-| `kapitel/01_einleitung.tex` | 1 Einleitung: Aufgabe, Zielsetzung, Aufbau |
+| `kapitel/01_einleitung.tex` | 1 Einleitung: Aufgabe, Vorarbeiten (Verfahren der Objektdetektion), Zielsetzung, Aufbau |
 | `kapitel/02_theorie.tex` | 2 Theoretische Grundlagen (CNN, YOLO26, Anwendung) — der vorhandene Theorieteil |
 | `kapitel/03_augmentierung_grundlagen.tex` | 3 Datenaugmentierung: Formalisierung, Wirkmechanismen, Taxonomie, Detektionsbesonderheiten, Grenzen, Sim-to-Real; leitet die Anforderungen A1–A6 ab |
 | `kapitel/04_datengrundlage.tex` | 4 Datengrundlage: alle Messungen am Quellmaterial (Belegbasis der Parameter) |

@@ -1,0 +1,327 @@
+{
+  "schwelle": 0.99,
+  "aktuell": {
+    "hintergruende": {
+      "bg/test_cutted.png": {
+        "val": {
+          "score": 0.197,
+          "skala": 0.375
+        },
+        "test": {
+          "score": 0.1553,
+          "skala": 0.3
+        }
+      },
+      "bg/img3884_cutted.png": {
+        "val": {
+          "score": 0.1602,
+          "skala": 0.35
+        },
+        "test": {
+          "score": 0.0999,
+          "skala": 0.3
+        }
+      },
+      "bg/test4_cutted.png": {
+        "val": {
+          "score": 0.1792,
+          "skala": 0.3
+        },
+        "test": {
+          "score": 0.2386,
+          "skala": 0.3
+        }
+      },
+      "bg/img3886_cutted.png": {
+        "val": {
+          "score": 0.205,
+          "skala": 0.35
+        },
+        "test": {
+          "score": 0.1435,
+          "skala": 0.3
+        }
+      },
+      "bg/bg_3.jpg": {
+        "val": {
+          "score": 0.4452,
+          "skala": 0.3
+        },
+        "test": {
+          "score": 0.5682,
+          "skala": 0.375
+        }
+      },
+      "bg/bg_4.jpg": {
+        "val": {
+          "score": 0.4177,
+          "skala": 0.425
+        },
+        "test": {
+          "score": 0.3706,
+          "skala": 0.3
+        }
+      },
+      "bg/bg_5.jpg": {
+        "val": {
+          "score": 0.3619,
+          "skala": 0.325
+        },
+        "test": {
+          "score": 0.473,
+          "skala": 0.3
+        }
+      }
+    },
+    "ausschnitte": {
+      "cutouts/cutted_4.png": {
+        "val": {
+          "score": 0.7298,
+          "skala": 0.55
+        },
+        "test": {
+          "score": 0.6828,
+          "skala": 0.65
+        }
+      },
+      "cutouts/cutted_5.png": {
+        "val": {
+          "score": 0.7431,
+          "skala": 0.9
+        },
+        "test": {
+          "score": 0.6951,
+          "skala": 0.8
+        }
+      },
+      "cutouts/cutted_6.png": {
+        "val": {
+          "score": 0.7156,
+          "skala": 0.55
+        },
+        "test": {
+          "score": 0.706,
+          "skala": 0.7
+        }
+      },
+      "cutouts/cutted_7.png": {
+        "val": {
+          "score": 0.6778,
+          "skala": 0.8
+        },
+        "test": {
+          "score": 0.6664,
+          "skala": 0.85
+        }
+      },
+      "cutouts/cutted_8.png": {
+        "val": {
+          "score": 0.7238,
+          "skala": 0.85
+        },
+        "test": {
+          "score": 0.7147,
+          "skala": 0.8
+        }
+      },
+      "cutouts/cutted_9.png": {
+        "val": {
+          "score": 0.641,
+          "skala": 0.55
+        },
+        "test": {
+          "score": 0.624,
+          "skala": 0.5
+        }
+      }
+    }
+  },
+  "aussortiert": {
+    "clean_plates": {
+      "bg/_aus_bewertungsbildern/test2_cutted.jpg": {
+        "val": {
+          "score": 0.9989,
+          "skala": 1.0,
+          "box": [
+            359,
+            66,
+            2065,
+            1174
+          ],
+          "flaechenanteil": 0.6548,
+          "iou_bester_gt": 0.0,
+          "gt_ueberlappt": 0
+        },
+        "test": {
+          "score": 0.1688,
+          "skala": 0.3
+        }
+      },
+      "bg/_aus_bewertungsbildern/test5_cutted.jpg": {
+        "val": {
+          "score": 0.1638,
+          "skala": 0.3
+        },
+        "test": {
+          "score": 0.9985,
+          "skala": 1.0,
+          "box": [
+            268,
+            348,
+            1213,
+            900
+          ],
+          "flaechenanteil": 0.3623,
+          "iou_bester_gt": 0.0,
+          "gt_ueberlappt": 0
+        }
+      }
+    },
+    "ausschnitte": {
+      "cutouts/_aus_val/cutted1.png": {
+        "val": {
+          "score": 0.9974,
+          "skala": 1.0,
+          "box": [
+            228,
+            179,
+            266,
+            211
+          ],
+          "flaechenanteil": 0.0004,
+          "iou_bester_gt": 0.823,
+          "gt_ueberlappt": 2
+        },
+        "test": {
+          "score": 0.7918,
+          "skala": 0.7
+        }
+      },
+      "cutouts/_aus_val/cuuted2.png": {
+        "val": {
+          "score": 0.998,
+          "skala": 1.0,
+          "box": [
+            100,
+            568,
+            136,
+            601
+          ],
+          "flaechenanteil": 0.0004,
+          "iou_bester_gt": 0.854,
+          "gt_ueberlappt": 1
+        },
+        "test": {
+          "score": 0.8347,
+          "skala": 0.75
+        }
+      },
+      "cutouts/_aus_val/cuuted3.png": {
+        "val": {
+          "score": 0.9989,
+          "skala": 1.0,
+          "box": [
+            215,
+            58,
+            251,
+            92
+          ],
+          "flaechenanteil": 0.0004,
+          "iou_bester_gt": 0.913,
+          "gt_ueberlappt": 2
+        },
+        "test": {
+          "score": 0.8824,
+          "skala": 0.65
+        }
+      }
+    }
+  },
+  "zusammenfassung": {
+    "aktuell": {
+      "hintergruende": {},
+      "ausschnitte": {}
+    },
+    "aussortiert": {
+      "clean_plates": {
+        "bg/_aus_bewertungsbildern/test2_cutted.jpg": {
+          "val": {
+            "score": 0.9989,
+            "skala": 1.0,
+            "box": [
+              359,
+              66,
+              2065,
+              1174
+            ],
+            "flaechenanteil": 0.6548,
+            "iou_bester_gt": 0.0,
+            "gt_ueberlappt": 0
+          }
+        },
+        "bg/_aus_bewertungsbildern/test5_cutted.jpg": {
+          "test": {
+            "score": 0.9985,
+            "skala": 1.0,
+            "box": [
+              268,
+              348,
+              1213,
+              900
+            ],
+            "flaechenanteil": 0.3623,
+            "iou_bester_gt": 0.0,
+            "gt_ueberlappt": 0
+          }
+        }
+      },
+      "ausschnitte": {
+        "cutouts/_aus_val/cutted1.png": {
+          "val": {
+            "score": 0.9974,
+            "skala": 1.0,
+            "box": [
+              228,
+              179,
+              266,
+              211
+            ],
+            "flaechenanteil": 0.0004,
+            "iou_bester_gt": 0.823,
+            "gt_ueberlappt": 2
+          }
+        },
+        "cutouts/_aus_val/cuuted2.png": {
+          "val": {
+            "score": 0.998,
+            "skala": 1.0,
+            "box": [
+              100,
+              568,
+              136,
+              601
+            ],
+            "flaechenanteil": 0.0004,
+            "iou_bester_gt": 0.854,
+            "gt_ueberlappt": 1
+          }
+        },
+        "cutouts/_aus_val/cuuted3.png": {
+          "val": {
+            "score": 0.9989,
+            "skala": 1.0,
+            "box": [
+              215,
+              58,
+              251,
+              92
+            ],
+            "flaechenanteil": 0.0004,
+            "iou_bester_gt": 0.913,
+            "gt_ueberlappt": 2
+          }
+        }
+      }
+    }
+  }
+}

@@ -61,12 +61,21 @@ def bootstrap_map50(model, split, infer, grid=6, B=400, seed=0):
     die Varianz deutlich. Kacheln erhalten die lokale Korrelationsstruktur.
     Warum ueberhaupt: je Split existiert nur EIN Bild - ohne Streuungsmass ist
     eine mAP-Zahl nicht interpretierbar.
+
+    Warum erst global matchen: Wuerde je Kachel gematcht, verloere jedes Paar,
+    dessen Vorhersage- und GT-Mittelpunkt auf verschiedenen Seiten einer
+    Kachelgrenze liegen, seinen Treffer und zaehlte als FP plus FN. Das drueckte
+    schon ohne Resampling AP um rund zwei Punkte (val 0,899 statt 0,916, test
+    0,935 statt 0,955), das Intervall laege nicht um den berichteten Wert.
+    Deshalb wird einmal ueber das ganze Bild gematcht; ein Treffer gehoert zur
+    Kachel seiner GT, ein Falsch-Positiv zur Kachel seines Mittelpunkts. Ohne
+    Resampling ergibt das exakt das globale AP (`point`).
     """
     import glob
     img_dir, gt_dir = SPLITS[split]
     files = sorted(sum([glob.glob(os.path.join(img_dir, e))
                         for e in ("*.jpg", "*.png")], []))
-    cells = []                                  # (pred, conf, gt) je Kachel
+    cells = []                                  # (tp, conf, n_gt) je Kachel
     for f in files:
         gt, (W, H) = load_gt(f, gt_dir)
         kw = dict(infer)
@@ -75,36 +84,35 @@ def bootstrap_map50(model, split, infer, grid=6, B=400, seed=0):
         r = model.predict(f, verbose=False, **kw)[0]
         p = r.boxes.xyxy.cpu().numpy().astype(np.float64)
         c = r.boxes.conf.cpu().numpy().astype(np.float64)
+        tp, _, gidx, _ = match(p, c, gt, 0.5)
         gx = (np.clip((gt[:, 0] + gt[:, 2]) / 2 / W, 0, .999) * grid).astype(int)
         gy = (np.clip((gt[:, 1] + gt[:, 3]) / 2 / H, 0, .999) * grid).astype(int)
         px = (np.clip((p[:, 0] + p[:, 2]) / 2 / W, 0, .999) * grid).astype(int)
         py = (np.clip((p[:, 1] + p[:, 3]) / 2 / H, 0, .999) * grid).astype(int)
+        px[tp], py[tp] = gx[gidx[tp]], gy[gidx[tp]]  # Treffer zur Kachel der GT
         for iy in range(grid):
             for ix in range(grid):
                 mg = (gx == ix) & (gy == iy)
                 mp = (px == ix) & (py == iy)
                 if mg.sum() or mp.sum():
-                    cells.append((p[mp], c[mp], gt[mg]))
-    rng = np.random.default_rng(seed)
-    vals = []
-    n = len(cells)
-    for _ in range(B):
-        idx = rng.integers(0, n, n)
-        tps, cfs, ngt = [], [], 0
-        for i in idx:
-            pp, cc, gg = cells[i]
-            tp, _, _, _ = match(pp, cc, gg, 0.5)
-            tps.append(tp)
-            cfs.append(cc)
-            ngt += len(gg)
+                    cells.append((tp[mp], c[mp], int(mg.sum())))
+
+    def _ap(idx):
+        ngt = sum(cells[i][2] for i in idx)
         if ngt == 0:
-            continue
-        tp = np.concatenate(tps) if tps else np.zeros(0, bool)
-        cf = np.concatenate(cfs) if cfs else np.zeros(0)
-        pre, rec, _ = pr_curve(tp, cf, ngt)
-        vals.append(average_precision(pre, rec))
+            return None
+        t = np.concatenate([cells[i][0] for i in idx])
+        cf = np.concatenate([cells[i][1] for i in idx])
+        pre, rec, _ = pr_curve(t, cf, ngt)
+        return average_precision(pre, rec)
+
+    rng = np.random.default_rng(seed)
+    n = len(cells)
+    vals = [a for a in (_ap(rng.integers(0, n, n)) for _ in range(B))
+            if a is not None]
     v = np.array(vals)
-    return dict(n_cells=n, mean=float(v.mean()), std=float(v.std()),
+    return dict(n_cells=n, point=_ap(range(n)), mean=float(v.mean()),
+                std=float(v.std()),
                 ci95=[float(np.percentile(v, 2.5)), float(np.percentile(v, 97.5))])
 
 

@@ -27,9 +27,9 @@ ausschließlich mit Detektionsmetriken.
 \end{figure}
 
 Aus Sicht der Bildverarbeitung ist das ein ungünstiger Spezialfall. Die Objekte
-sind klein (gemessen 12--36\px{} Durchmesser im Original), dicht gepackt (im
-Median rund ein Objektdurchmesser Abstand zum nächsten Nachbarn), untereinander
-nahezu identisch und wechselseitig verdeckt. Erschwerend kommt die hohe
+sind klein (gemessen 6--36\px{} Durchmesser im Original, Median 17 bzw.\
+26,8\px), dicht gepackt (im
+Median rund ein Objektdurchmesser Abstand zum nächsten Nachbarn) und wechselseitig verdeckt. Erschwerend kommt die hohe
 Objektzahl hinzu: Die beiden vorliegenden Aufnahmen enthalten 98 und 89
 Stirnflächen (Abschnitt~\ref{sec:valtest}), größere Stapel sind zu erwarten. Bei dieser Objektzahl hinterlässt selbst ein Rückruf von
 99\,\% im Mittel noch ein übersehenes Objekt je Bild.
@@ -37,96 +37,289 @@ Stirnflächen (Abschnitt~\ref{sec:valtest}), größere Stapel sind zu erwarten. 
 Der eigentliche Engpass ist jedoch die Datenlage. COCO-vortrainierte Gewichte
 enthalten keine Klasse \enquote{Bauzaunprofil}, und die Handannotation von
 rund hundert kleinen Boxen pro Bild über hunderte Bilder ist im Rahmen einer
-Abschlussarbeit nicht leistbar; hinzu kommt, dass hunderte nahezu identische
+Abschlussarbeit nicht leistbar; hinzu kommt, dass rund hundert nahezu identische
 Kleinobjekte je Bild eine über den gesamten Datensatz gleichbleibende
 Annotationsdisziplin verlangen.
-Zur Verfügung stehen neun aus Realbildern
+Zur Verfügung stehen sechs aus Realbildern
 ausgeschnittene Rohrprofile, sieben Hintergrundaufnahmen und zwei vollständig
-annotierte Realbilder mit zusammen 187 Objekten.
+annotierte Realbilder mit zusammen 187 Objekten. Ausschnitte und Hintergründe
+stammen aus anderen Aufnahmen als die beiden annotierten Bilder, teils aber aus
+derselben Aufnahmeserie (Abschnitt~\ref{sec:valtest}).
 
-\section{Zielsetzung und Beitrag}
+\section{Vorarbeiten zur Objektdetektion}
+\label{sec:vorarbeiten}
 
-Der hier verfolgte Ansatz macht diese Einschränkung zum methodischen Zentrum
-der Arbeit: Trainiert wird \emph{ausschließlich} auf synthetischen Bildern, die aus
-den neun Objektausschnitten und den sieben Hintergründen erzeugt werden;
-Validierung und Test erfolgen auf den echten Aufnahmen. Damit ist die
-Augmentierungspipeline nicht mehr eine Menge von Zusatztransformationen auf einem
-vorhandenen Datensatz, sondern sie \emph{ist} der Datensatz: Sie definiert die
-gesamte Trainingsverteilung.
+Bei der Objektdetektion sollen in einem Bild alle Objekte bestimmter Klassen
+gefunden werden. Für jedes gefundene Objekt gibt der Detektor eine
+\emph{Bounding Box} aus, das ist das achsparallele Rechteck um das Objekt.
+Dazu kommen eine Klasse und eine \emph{Konfidenz}, die angibt, als wie
+zuverlässig das Modell die Detektion einschätzt. Anders als bei der
+Bildklassifikation, bei der ein ganzes Bild genau eine Klasse erhält, hängt die
+Zahl der Ausgaben hier vom Bildinhalt ab. Ein Detektor muss deshalb zuerst
+\emph{Kandidaten} bilden, das heißt festlegen, an welchen Stellen und in welcher
+Größe er überhaupt nach Objekten sucht. Jeder Kandidat wird dann klassifiziert,
+und seine Box wird verfeinert. Zum Schluss müssen mehrere Detektionen desselben
+Objekts, sogenannte \emph{Duplikate}, auf eine einzige reduziert werden. Die
+verschiedenen Verfahren unterscheiden sich vor allem darin, wie sie diese drei
+Teilaufgaben lösen. Ausführliche Übersichten geben \textcite{liu2020survey} und
+\textcite{zou2023survey}.
 
-Daraus ergibt sich die Gliederung der Arbeit; die Rangfolge sei dabei
-ausdrücklich benannt. Ziel ist die \textbf{Detektion} der
-Rohrprofil-Stirnflächen. Der Schwerpunkt auf der Synthese-Pipeline ist diesem Ziel
-\emph{nachgeordnet} und durch die Datenlage erzwungen: Ohne annotierte Realbilder
-liegt kein Trainingsdatensatz vor, der augmentiert werden könnte; er muss erst
-entstehen. Ein zweiter Hebel auf dieselbe Größe wäre die Architektur -- die
-geringe Objektgröße relativ zur Gitterauflösung des Detektors ist dieselbe
-Ursache, an der auch die Pipeline ansetzt (Abschnitt~\ref{subsec:kleine-objekte}).
-Dieser Hebel wird hier nicht \emph{untersucht}, bleibt aber nicht ungenutzt: Als
-Detektor dient durchgängig \code{yolo26s-p2}, also YOLO26 in der Größe \enquote{s}
-mit zusätzlichem P2-Kopf, dessen feinste Detektionsebene die Schrittweite~4 statt
-8 hat (Abschnitt~\ref{sec:p2kopf}). Diese Wahl ist kein Gegenstand der
-Experimente, sondern ihre \emph{Konstante}: Eine Ablation der Datenerzeugung
-ist auf dem Modell durchzuführen, das auch im Einsatz stünde, damit ein
-gemessener Datengewinn nicht lediglich die Schwäche eines unterlegenen
-Detektors ausgleicht.
-Entscheidungsmaß ist \mAPfifty{} auf den realen Aufnahmen, ergänzt um das beste
-$F_1$ und den zugehörigen Betriebspunkt (Abschnitt~\ref{sec:metriken}).
+Verglichen werden Detektoren meist auf öffentlichen Datensätzen wie PASCAL VOC
+\parencite{everingham2010} und COCO \parencite{lin2014coco}. Die Objekte in
+diesen Datensätzen wurden von Hand mit Boxen versehen, also \emph{annotiert}.
+Wie gut eine vorhergesagte Box mit einer annotierten Box übereinstimmt, misst
+die \emph{Intersection over Union} (IoU). Dafür wird die Fläche, in der sich
+beide Boxen überschneiden, durch die Fläche geteilt, die sie zusammen bedecken.
+Liegt die IoU über einer Schwelle, meist 0,5, zählt die Detektion als Treffer.
+Als Kennzahl wird üblicherweise die \emph{mean Average Precision} (mAP)
+angegeben. Sie fasst zusammen, welcher Anteil der Detektionen richtig ist
+(\emph{Präzision}) und welcher Anteil der Objekte gefunden wird
+(\emph{Rückruf}), und zwar über alle Konfidenzschwellen hinweg
+(Abschnitt~\ref{sec:metriken}).
 
-Die Arbeit verfolgt drei Ziele. Erstens die \textbf{theoretische Einordnung der
-Datenaugmentierung} (Kapitel~\ref{kap:augtheorie}): Sie klärt, was Augmentierung
-formal leistet, welche Verfahrensklassen bestehen und welche Besonderheiten bei
-der Objektdetektion gelten. Zweitens die \textbf{vollständige Dokumentation und Begründung
-der konkreten Pipeline} (Kapitel~\ref{kap:pipeline} und
-\ref{kap:trainingszeit}): Für jede Transformation werden Parameterbereich,
-gemessener Ist-Anteil im erzeugten Datensatz und Begründung angegeben. Die
-Begründung stützt sich dabei auf genau drei zulässige Quellen -- eine Messung an
+\absatz{Klassische Verfahren.} Vor den tiefen neuronalen Netzen tasteten die
+meisten Detektoren das Bild und seine verkleinerten Kopien mit einem
+\emph{Schiebefenster} ab und entschieden an jeder Position anhand von Hand
+entworfener Merkmale, ob dort ein Objekt liegt, etwa anhand von
+Helligkeitsunterschieden benachbarter Rechtecke \parencite{viola2001} oder der
+Verteilung der Kantenrichtungen in kleinen Bildzellen \parencite{dalal2005}.
+Kreise lassen sich mit der Hough-Transformation auch ohne Training detektieren
+\parencite{duda1972}. Bei all diesen Ansätzen wird von Hand festgelegt, was ein
+Objekt ausmacht. Hier müsste ein solches Kriterium die Stirnflächen von
+Gitterknoten, Maschenöffnungen und Schattenspalten unterscheiden
+(Abschnitt~\ref{sec:anwendung}) und auch teilweise verdeckte Stirnflächen noch
+erfassen.
+
+\absatz{Zweistufige Detektoren.} Deutlich besser wurden Detektoren erst mit
+Faltungsnetzen, die ihre Merkmale selbst aus Beispielen lernen
+(Abschnitt~\ref{sec:cnn}). Mit ihnen stieg die mAP auf PASCAL VOC gegenüber dem
+bis dahin besten veröffentlichten Ergebnis relativ um mehr als 30\,\%
+\parencite{girshick2014}. Die ersten dieser Detektoren arbeiten in zwei Stufen.
+In der ersten Stufe entstehen einige Hundert bis einige Tausend
+\emph{Regionsvorschläge}, also Bildbereiche, die unabhängig von der Klasse
+wahrscheinlich ein Objekt enthalten. Die zweite Stufe klassifiziert jeden
+Vorschlag und verfeinert seine Box. Sie arbeitet dabei auf der
+\emph{Merkmalskarte (Feature Map)}, die eine Schicht des Netzes ausgibt. Diese
+Karte ist ein Gitter, in dem jede Position einen Bereich des
+Eingabebildes durch eine Reihe von Merkmalen beschreibt. Für jeden Vorschlag
+wird der passende Ausschnitt aus der Karte entnommen, sodass das Netz jedes
+Bild nur einmal verarbeiten muss \parencite{girshick2015}. In einer späteren
+Version der bekanntesten Familie dieser Art, R-CNN, sagt ein eigener Netzzweig
+auch die Vorschläge selbst vorher \parencite{ren2015}. Er geht dabei von
+\emph{Ankerboxen} aus. Das sind mehrere vorab festgelegte Referenzboxen
+unterschiedlicher Größe und Seitenverhältnisse an jeder Position der
+Merkmalskarte, zu denen das Netz nur noch Korrekturen vorhersagt. Eine
+\emph{Merkmalspyramide} verbindet außerdem Merkmalskarten mehrerer
+Auflösungen, sodass kleine Objekte auf feinen und große auf groben Karten
+erkannt werden \parencite{lin2017fpn}. Weil die zweite Stufe jeden Vorschlag
+einzeln bearbeitet, ist sie rechenaufwendig. In einem systematischen Vergleich
+waren zweistufige Verfahren am genauesten und einstufige am schnellsten
+\parencite{huang2017tradeoffs}.
+
+\absatz{Einstufige Detektoren.} Einstufige Detektoren kommen ohne
+Vorschlagsstufe aus und sagen Boxen und Klassen in einem einzigen Durchlauf des
+Netzes vorher. Die bekannteste Familie ist YOLO \parencite{redmon2016}. Hier
+wird das Bild in ein Gitter zerlegt, und jede Gitterzelle ist für die Objekte
+zuständig, deren Mittelpunkt in sie fällt. Schon die erste Version war
+\emph{echtzeitfähig} und damit schnell genug, um laufende Videobilder zu
+verarbeiten. Die Autoren nennen aber selbst eine Schwäche, die gerade für diese
+Arbeit wichtig ist. Weil jede Zelle nur zwei Boxen vorhersagt, hat das Modell
+Schwierigkeiten mit kleinen Objekten, die in Gruppen auftreten. Spätere
+einstufige Detektoren treffen ihre Vorhersagen auf mehreren Merkmalskarten
+unterschiedlicher Auflösung und mit mehreren Ankerboxen je Position
+\parencite{liu2016ssd,redmon2017yolo9000}. Dass sie trotzdem lange hinter den
+zweistufigen Verfahren zurückblieben, lag an einem Ungleichgewicht im Training.
+Wenigen Positionen mit Objekt stehen sehr viele Positionen mit Hintergrund
+gegenüber, und diese meist leicht zu erkennenden Beispiele bestimmen das
+Training. Erst eine Verlustfunktion, die leichte Beispiele schwächer gewichtet,
+schloss diese Lücke \parencite{lin2017focal}.
+
+\absatz{Anker, Punkte und Labelzuweisung.} Unabhängig von der Zahl der Stufen
+unterscheiden sich Detektoren darin, worauf sich die vorhergesagte Box bezieht.
+\emph{Ankerbasierte} Verfahren sagen Korrekturen zu Ankerboxen vorher, deren
+Größen und Seitenverhältnisse vorab passend zu den Objekten des Datensatzes
+gewählt werden müssen. \emph{Ankerfreie} Verfahren beschreiben ein Objekt
+stattdessen über Punkte, zum Beispiel über zwei gegenüberliegende Ecken, über
+seinen Mittelpunkt oder über die Abstände, die jede Position der Merkmalskarte
+zu den vier Rändern der Box vorhersagt
+\parencite{law2018cornernet,zhou2019centernet,tian2019fcos}. Eng damit
+verbunden ist die \emph{Labelzuweisung}. Im Training muss für jedes annotierte
+Objekt entschieden werden, welche Anker oder Positionen es vorhersagen sollen
+und welche als Hintergrund gelten. Nach \textcite{zhang2020atss} geht der
+Leistungsunterschied zwischen ankerbasierten und ankerfreien Detektoren im
+Wesentlichen auf diese Zuweisung zurück und nicht darauf, ob von einer Box oder
+von einem Punkt aus gerechnet wird. Besonders kritisch ist die Zuweisung bei
+kleinen Objekten, die nur wenige Positionen überdecken \parencite{xu2022rfla}.
+Den Teil des Netzes, der aus den Merkmalen Boxen und Klassen berechnet, nennt
+man \emph{Detektionskopf}. In neueren Detektoren ist er in zwei Zweige geteilt,
+einen für die Klassifikation und einen für die Box. Ein solcher Kopf heißt
+\emph{entkoppelt} \parencite{ge2021yolox}. Die aktuellen YOLO-Versionen sind
+ankerfrei und entkoppelt (Abschnitt~\ref{sec:neck}).
+
+\absatz{Detektion als Mengenvorhersage.} Die bisher beschriebenen Verfahren
+erzeugen für jedes Objekt mehrere, stark überlappende Kandidaten und dünnen sie
+erst im Nachhinein durch \emph{Non-Maximum Suppression} (NMS) aus: Überlappen
+sich zwei Detektionen stärker als eine festgelegte IoU-Schwelle, bleibt nur die
+mit der höheren Konfidenz erhalten. Der transformerbasierte Detektor DETR sagt
+dagegen direkt eine \emph{Menge} von Objekten vorher \parencite{carion2020detr}.
+Er arbeitet mit einer festen Zahl gelernter \emph{Objektanfragen}, von denen
+jede höchstens eine Detektion liefert, und ordnet im Training jedem annotierten
+Objekt genau eine davon zu. Durch diese \emph{Eins-zu-eins-Zuordnung} lernt das
+Netz, Duplikate von sich aus zu vermeiden, und die NMS entfällt. Ausgeschlossen
+sind Duplikate damit nicht, denn die Zuordnung wirkt nur im Training. Inzwischen
+wird dieselbe Zuordnung auch in faltungsbasierten einstufigen Detektoren
+eingesetzt: Neben dem üblichen Kopf, der jedem Objekt viele Positionen zuweist,
+wird ein zweiter Kopf mit genau einer Position je Objekt trainiert und bei der
+\emph{Inferenz}, also beim Einsatz des fertigen Modells, allein verwendet
+\parencite{wang2024yolov10}. Nach demselben Prinzip arbeitet auch das
+Dual-Head-Design von YOLO26 (Abschnitt~\ref{sec:yolo26}). In solchen Detektoren
+haben verschiedene Vorhersagen desselben Objekts ähnliche Merkmale, und
+verbleibende Duplikate liegen vor allem in der Umgebung der konfidentesten
+Vorhersage \parencite{wang2021defcn}; Abschnitt~\ref{sec:falschpositive} zeigt
+das am Modell dieser Arbeit.
+
+\absatz{Kleine und dicht gepackte Objekte.} Kleine Objekte sind für alle diese
+Verfahren der schwierigste Fall. Als Gründe werden unter anderem genannt, dass
+die schrittweise Verkleinerung der Merkmalskarten im Netz ihre Information
+weitgehend auslöscht, dass ihre Merkmale leicht von Hintergrund und
+Nachbarobjekten überlagert werden und dass schon Boxfehler von wenigen Pixeln
+die IoU stark senken \parencite{cheng2023small}. Wie stark sich die
+Verkleinerung im Netz und die Empfindlichkeit der IoU in der vorliegenden
+Aufgabe auswirken, wird in Abschnitt~\ref{subsec:kleine-objekte} durchgerechnet.
+Szenen mit vielen, oft identischen Objekten in geringem Abstand bleiben auch
+für leistungsfähige Detektoren schwierig, weil die überlappenden Detektionen
+benachbarter Objekte mehrdeutig werden \parencite{goldman2019}. Eine ähnliche
+Aufgabe wie in dieser Arbeit ist das Zählen von Bewehrungsstäben anhand ihrer
+Querschnitte. Ein angepasster einstufiger Detektor erreicht dort eine Average
+Precision von 99,7\,\%, allerdings nach dem Training auf einem eigens
+aufgebauten Datensatz mit 74\,824 Stabquerschnitten von realen Baustellen
+\parencite{li2021rebar}.
+
+\absatz{Einordnung.} Zusammengefasst unterscheiden sich die Verfahren vor allem
+darin, woher ihre Kandidaten kommen (aus Schiebefenstern, Regionsvorschlägen,
+Ankerboxen, Gitterpositionen oder gelernten Objektanfragen) und ob Duplikate
+nachträglich per NMS entfernt werden oder gar nicht erst entstehen. YOLO26, der
+in dieser Arbeit verwendete Detektor, verbindet mehrere dieser Entwicklungen.
+Er ist einstufig, echtzeitfähig, ankerfrei und entkoppelt und hat eine
+Merkmalspyramide, die sich um eine feinere Ebene erweitern lässt. Außerdem kann
+er mit seinem Eins-zu-eins-Kopf ohne NMS arbeiten (Kapitel~\ref{kap:theorie})
+und umgeht damit bei dicht gepackten, gleichartigen Objekten die Wahl einer
+NMS-Schwelle (Abschnitt~\ref{sec:anwendung}). Gemeinsam ist allen genannten Detektoren
+aber, dass sie ihre Leistung großen Mengen annotierter Daten verdanken. COCO
+umfasst 2,5 Millionen annotierte Objekte in 328\,000 Bildern
+\parencite{lin2014coco}, und auch die anwendungsnahen Arbeiten stützen sich auf
+eigens annotierte Realaufnahmen. An einem geeigneten Detektor fehlt es für die
+vorliegende Aufgabe also nicht, wohl aber an Trainingsdaten. Arbeiten zu ihrer
+synthetischen Erzeugung werden in Kapitel~\ref{kap:augtheorie} besprochen, wo
+sie direkt in die Anforderungen an die Pipeline eingehen.
+
+\section{Zielsetzung und Aufbau}
+
+Diese Arbeit setzt deshalb bei den fehlenden Trainingsdaten an. Trainiert wird
+ausschließlich auf synthetischen Bildern, die aus den sechs Objektausschnitten
+und den sieben Hintergründen erzeugt werden. Validiert und getestet wird auf
+den beiden echten Aufnahmen. Die Augmentierungspipeline erweitert damit keinen
+vorhandenen Datensatz, sondern erzeugt den Trainingsdatensatz selbst und legt
+so die gesamte Trainingsverteilung fest.
+
+Das eigentliche Ziel bleibt dabei die Detektion der Stirnflächen. Dass die
+Synthese-Pipeline so viel Raum einnimmt, liegt an der Datenlage, denn ohne
+annotierte Realbilder gibt es keinen Trainingsdatensatz, der sich augmentieren
+ließe. Verbessern ließe sich die Detektion auch über die Architektur. Die
+geringe Objektgröße im Verhältnis zur Gitterauflösung des Detektors ist nämlich
+dieselbe Ursache, an der auch die Pipeline ansetzt
+(Abschnitt~\ref{subsec:kleine-objekte}). Die Architektur selbst wird in dieser
+Arbeit nicht untersucht. Als Detektor dient aber durchgehend
+\code{yolo26s-p2}, also YOLO26 in der Größe \enquote{s} mit einem zusätzlichen
+P2-Kopf. Dessen feinste Detektionsebene hat den Stride 4 statt 8 und
+bildet kleine Objekte damit auf mehr Gitterpositionen ab
+(Abschnitt~\ref{sec:p2kopf}). Das Modell bleibt in allen Experimenten gleich.
+Eine Ablation der Datenerzeugung sollte auf dem Modell laufen, das auch im
+Einsatz verwendet würde. Andernfalls könnte ein gemessener Gewinn durch
+bessere Daten lediglich die Schwäche eines schlechteren Detektors ausgleichen.
+Bewertet
+wird mit \mAPfifty{} auf den realen Aufnahmen, ergänzt um das beste $F_1$ und
+den zugehörigen Betriebspunkt (Abschnitt~\ref{sec:metriken}).
+
+Die Arbeit verfolgt drei Ziele. Das erste ist eine theoretische Einordnung der
+Datenaugmentierung (Kapitel~\ref{kap:augtheorie}). Dabei geht es darum, was
+Augmentierung formal leistet, welche Klassen von Verfahren es gibt und was bei
+der Objektdetektion besonders zu beachten ist. Das zweite Ziel ist, die
+verwendete Pipeline vollständig zu dokumentieren und zu begründen
+(Kapitel~\ref{kap:pipeline} und~\ref{kap:trainingszeit}). Für jede
+Transformation werden der Parameterbereich, der im erzeugten Datensatz
+gemessene Anteil und eine Begründung angegeben. Dabei gilt eine feste
+Begründungspflicht. Zugelassen sind nur drei Quellen, nämlich eine Messung an
 den Realdaten, eine physikalische Randbedingung des Aufnahmegegenstands oder ein
-in der Literatur belegtes Argument; wo keine dieser Quellen vorliegt, wird der
-Wert ausdrücklich als Annahme gekennzeichnet. Tabelle~\ref{tab:herkunft} im
-Anhang benennt zusätzlich für jede Klasse von Zahlenwerten die Datei, aus der
-sie stammt. Drittens die
-\textbf{experimentelle Bewertung} (Kapitel~\ref{kap:auswertung}). Sie stützt
-sich auf \emph{eine} Ablation, und zwar bewusst auf die, die die eigene Pipeline
-an ihrer aufwendigsten Stufe prüft -- der Verdeckung. Von den beiden Fragen, die
-dort zu stellen sind, ist die eine bereits durch die Datensichtung entschieden
-(\emph{dass} verdeckt werden muss, ist physikalische Randbedingung: In den
-Realbildern liegen ausnahmslos Rohre vor den Stirnflächen); offen und
-ausschließlich durch ein Argument gestützt ist die andere:
+Argument aus der Literatur. Gibt es keine davon, wird der Wert ausdrücklich als
+Annahme gekennzeichnet. Welches Programm welche Zahlenwerte erzeugt, nennt
+Abschnitt~\ref{sec:anhangrepro} im Anhang.
+
+Das dritte Ziel ist die experimentelle Bewertung (Kapitel~\ref{kap:auswertung}).
+Sie beruht auf einer Ablation (Abschnitt~\ref{sec:ablationC}). Diese prüft das
+Leitprinzip der Pipeline als Ganzes und schaltet dazu die Einbettung ab: die
+weiche Objektkante, den Angleich von Helligkeit und Farbe, Schärfe und Rauschen
+an die Umgebung, die JPEG-Requantisierung und den Schlagschatten. Zusätzlich wird die Inferenzauflösung bestimmt. Dazu wird
+dasselbe Modell bei verschiedenen Auflösungen ausgewertet, ohne neu zu
+trainieren.
+
+Der Beitrag der Arbeit liegt weniger in einer neuen Methode als darin, dass
+diese Begründungspflicht bei jedem Parameter eingehalten wird.
+Copy-Paste-Synthese ist ein etabliertes Verfahren
+\parencite{dwibedi2017,dvornik2018,ghiasi2021}. Welche ihrer Bestandteile in
+einem konkreten industriellen Anwendungsfall tatsächlich wirken und welche
+nicht, wird in der Literatur aber selten untersucht. Experimentell prüft diese
+Arbeit davon das Leitprinzip, die Einbettung der eingefügten Objekte.
+
+\absatz{Aufbau der Arbeit.} Kapitel~\ref{kap:theorie} führt in die Grundlagen
+von Convolutional Neural Networks und in die Architektur von YOLO26 ein.
+Kapitel~\ref{kap:augtheorie} behandelt die Datenaugmentierung allgemein und
+leitet daraus sechs Anforderungen an die Pipeline ab. In
+Abschnitt~\ref{sec:daten} wird das Quellmaterial vermessen. Auf diesen
+Messungen bauen die Parameterentscheidungen auf. Kapitel~\ref{kap:pipeline}
+beschreibt die Synthese-Pipeline, Kapitel~\ref{kap:trainingszeit} den Aufbau
+des Trainings. Die Ergebnisse folgen in Kapitel~\ref{kap:auswertung}. In
+Kapitel~\ref{kap:diskussion} wird besprochen, wie belastbar sie sind und wo
+ihre Grenzen liegen; Abschnitt~\ref{sec:fazit} beantwortet dort die
+Forschungsfrage aus Abschnitt~\ref{sec:forschungsfrage}. Der Anhang enthält
+die Aufrufe, mit denen sich Datensätze, Läufe und Zahlen reproduzieren lassen,
+und die Parametertabellen.
+
+\section{Forschungsfrage und Hypothesen}
+\label{sec:forschungsfrage}
+
+Aus der Aufgabenstellung und den Zielen ergibt sich die Frage, die diese
+Arbeit beantworten soll:
+
+\begin{quote}
+\emph{Lässt sich ein Detektor für die Stirnflächen gestapelter Bauzaunfelder
+ausschließlich mit synthetischen Bildern aus wenigen Objektausschnitten so
+trainieren, dass er auf realen Aufnahmen zuverlässig detektiert, und welche
+Eigenschaften der Synthese entscheiden darüber?}
+\end{quote}
+
+Die Frage wird in drei Hypothesen zerlegt. Jede ist so formuliert, dass eine
+Messung in Kapitel~\ref{kap:auswertung} sie bestätigen oder widerlegen kann:
 
 \begin{description}[leftmargin=1.4em,itemsep=2pt,font=\normalfont\bfseries]
-  \item[Woraus dürfen die Verdecker bestehen?] Drei Trainingssätze, die sich
-  ausschließlich in den Pixelwerten der Okkluder unterscheiden
-  (Abschnitt~\ref{sec:ablationB}) -- photographisch, prozedural-kalibriert und
-  prozedural-naiv. Sie prüfen die einzige Begründung, mit der die Pipeline ihre
-  aus Realaufnahmen geschnittene Okkluder-Bibliothek rechtfertigt: dass ein
-  \emph{prozedural erzeugter} Balken eine andere Textur-, Rausch- und
-  Glanzstatistik hätte
-  und damit selbst zur Abkürzung würde.
+  \item[H1 Übertragung.] Ein ausschließlich synthetisch trainierter Detektor
+  überträgt das Gelernte auf reale Aufnahmen: Sein \mAPfifty{} liegt dort
+  nicht messbar unter dem auf synthetischen Validierungsbildern, der
+  Sim-to-Real-Abstand (Abschnitt~\ref{sec:sim2real}) bleibt also innerhalb
+  der Messunsicherheit. Geprüft wird das am Referenzmodell
+  (Abschnitt~\ref{sec:hauptergebnis}).
+  \item[H2 Einbettung.] Für die Übertragung ist wesentlich, dass sich die
+  eingefügten Objekte nicht statistisch von ihrer Umgebung unterscheiden.
+  Fehlt die Einbettung, sinkt \mAPfifty{} auf realen Bildern deutlich, auf
+  synthetischen dagegen kaum. Geprüft wird das mit der Ablation
+  (Abschnitt~\ref{sec:ablationC}).
+  \item[H3 Objektgröße.] Die Detektionsgüte hängt vor allem davon ab, ob die
+  Objekte im Netzeingang in der Größe ankommen, für die der Generator
+  kalibriert ist. Liegt die Inferenzauflösung deutlich darunter, bricht die
+  Detektion ein; darüber ändert sie sich wenig. Geprüft wird das mit dem
+  Auflösungssweep (Abschnitt~\ref{sec:imgsz}).
 \end{description}
 
-\noindent Die Inferenzauflösung wird ergänzend über einen Sweep bestimmt, ohne
-neu zu trainieren.
-
-Der Beitrag liegt weniger in einer neuen Methode als in der Konsequenz, mit der
-die Begründungspflicht durchgehalten wird. Copy-Paste-Synthese ist ein
-etabliertes Verfahren \parencite{dwibedi2017,dvornik2018,ghiasi2021}; die Frage,
-welche ihrer Bestandteile in einem konkreten industriellen Anwendungsfall tragen
-und welche nicht, wird in der Literatur dagegen selten so kleinteilig
-beantwortet. Ablation~B reicht dabei über die übliche
-Datensatz-Ablation hinaus: Weil die drei Trainingssätze aus demselben Seed stammen und
-sich nur in den Pixelwerten der Okkluder unterscheiden, sind ihre Labeldateien
-\emph{byte-identisch}. Der Versuch ist damit gepaart -- ein Unterschied im
-Ergebnis kann nicht auf eine andere Objektverteilung zurückgehen.
-
-\section{Aufbau}
-
-Kapitel~\ref{kap:theorie} stellt die Grundlagen von Convolutional Neural Networks
-und der YOLO26-Architektur bereit, Kapitel~\ref{kap:augtheorie} behandelt die
-Datenaugmentierung allgemein und leitet sechs Anforderungen an die Pipeline ab.
-Abschnitt~\ref{sec:daten} vermisst das Quellmaterial -- diese Messungen sind die
-Belegbasis aller Parameterentscheidungen. Kapitel~\ref{kap:pipeline} beschreibt
-die Synthese-Pipeline, Kapitel~\ref{kap:trainingszeit} den Trainingsaufbau,
-Kapitel~\ref{kap:auswertung} die Ergebnisse und Kapitel~\ref{kap:diskussion}
-deren Tragfähigkeit und Grenzen; der Anhang nennt die Aufrufe der acht
-Verarbeitungsstufen und enthält die vollständigen Parametertabellen.
+Als Maßstab dient die Messunsicherheit aus Abschnitt~\ref{sec:bootstrap}: Ein
+Unterschied gilt nur dann als gezeigt, wenn er über das 95\,\%-Intervall des
+Bootstraps hinausgeht.

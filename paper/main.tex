@@ -1,14 +1,17 @@
 % ===========================================================================
-%  Bachelorarbeit -- Fassung mit einer Ablation (Herkunft der Okkluder)
+%  Bachelorarbeit -- Fassung mit einer Ablation
 %
-%  Der Praxisteil beschraenkt sich auf
-%  Hauptergebnis, Inferenzaufloesung und die Ablation zur Herkunft der
-%  Okkluderbalken.  Die Ablation zum Okklusionsanteil ist nicht enthalten;
-%  ihre Laeufe liegen unter neu/runs/A0|A1|A2 und werden in Abschnitt 8.2 als
-%  naechster Schritt benannt.
+%  Der Praxisteil umfasst Hauptergebnis, Inferenzaufloesung und die Ablation
+%  zur Einbettung (Arme C0/C1).  Nicht enthalten sind die Ablation zum
+%  Okklusionsanteil (runs/A0_keine_okklusion | A1_baseline |
+%  A2_starke_okklusion) und die zur Herkunft der Okkluderbalken
+%  (runs/B1_prozedural | B2_prozedural_naiv); beide werden in Abschnitt 7.2
+%  als naechster Schritt benannt.
 %
 %  Tabellen und Zahlen liegen in kapitel/ -- sie werden von
-%  neu/src/report_neu.py erzeugt und von beiden Fassungen geteilt.
+%  src/report_neu.py erzeugt:
+%      python src/report_neu.py --nur-tabellen   (ohne Abbildungen, schnell)
+%      python src/report_neu.py                  (mit Abbildungen)
 %
 %  Uebersetzen:  make
 % ===========================================================================
@@ -17,7 +20,7 @@
 
 \input{praeambel}
 
-%% Alle im Fliesstext genannten Messzahlen -- erzeugt von neu/src/report_neu.py
+%% Alle im Fliesstext genannten Messzahlen -- erzeugt von src/report_neu.py
 \input{kapitel/zahlen}
 
 % Gleitobjekte dichter packen: bei diesem tabellenlastigen Text spart das
@@ -59,5 +62,7 @@
 
 \appendix
 \input{kapitel/09_anhang}
+
+\input{kapitel/10_erklaerung}
 
 \end{document}

@@ -26,6 +26,20 @@
 !paper/**/*.jpeg
 !paper/**/*.png
 
+# Ausnahme: Quellmaterial fuer Training und Auswertung (die Bewertungsbilder
+# stehen weiter unten bei data/).  synth/ laesst sich daraus mit
+# src/generate.py neu erzeugen.  Masken und Okkluder sind eingecheckt, weil
+# src/matting.py die Masken unter anderen Bibliotheksversionen nicht
+# bitgleich reproduziert; IMG_3884/IMG_3886 sind die Quellen von
+# src/clean_plates.py.
+!cutouts/*.png
+!bg/*.jpg
+!bg/*.png
+!assets/masks/*.png
+!assets/bars/*.png
+!/IMG_3884.JPG
+!/IMG_3886.JPG
+
 # ============================================================
 #  Kompilierte PDFs (Build-Artefakte)
 # ============================================================
@@ -51,7 +65,9 @@ __pycache__/
 # ============================================================
 synth/
 data/sval/
-data/*/images/
+data/*/images/*
+!data/val/images/*.jpg
+!data/test/images/*.jpg
 *.cache
 
 # ============================================================

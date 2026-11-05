@@ -1,17 +1,6 @@
 {
   "cutouts": [
     {
-      "file": "cutted1.png",
-      "w": 38,
-      "h": 32,
-      "rgba": true,
-      "alpha_min": 255,
-      "alpha_max": 255,
-      "alpha_uniform": true,
-      "kranz_p90": 143.0,
-      "bohrung_p10": 2.0
-    },
-    {
       "file": "cutted_4.png",
       "w": 30,
       "h": 30,
@@ -76,28 +65,6 @@
       "alpha_uniform": true,
       "kranz_p90": 140.0,
       "bohrung_p10": 39.0
-    },
-    {
-      "file": "cuuted2.png",
-      "w": 36,
-      "h": 33,
-      "rgba": true,
-      "alpha_min": 255,
-      "alpha_max": 255,
-      "alpha_uniform": true,
-      "kranz_p90": 142.29999999999995,
-      "bohrung_p10": 4.0
-    },
-    {
-      "file": "cuuted3.png",
-      "w": 36,
-      "h": 34,
-      "rgba": true,
-      "alpha_min": 255,
-      "alpha_max": 255,
-      "alpha_uniform": true,
-      "kranz_p90": 157.70000000000005,
-      "bohrung_p10": 1.0
     }
   ],
   "labels": {

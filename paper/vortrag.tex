@@ -207,10 +207,10 @@ vollständige Beschreibung der Trainingsverteilung. Es gibt kein aufgenommenes
 Bild, auf das man sich sonst berufen könnte.}
 
 
-\begin{frame}{Die Bilanz nach 36 Transformationen}
-\grosszahl{14 von 43}{Parameterwerten sind \textbf{Annahmen}}{9 gemessen
-$\cdot$ 8 Literatur $\cdot$ 3 physikalisch $\cdot$ 9 gemischt}
-\fuss{Rund 67\,\% auf eine zulässige Quelle zurückgeführt -- die neun
+\begin{frame}{Die Bilanz nach 37 Transformationen}
+\grosszahl{15 von 44}{Parameterwerten sind \textbf{Annahmen}}{8 gemessen
+$\cdot$ 8 Literatur $\cdot$ 2 physikalisch $\cdot$ 11 gemischt}
+\fuss{Rund 66\,\% auf eine zulässige Quelle zurückgeführt -- die elf
 gemischten allerdings nur zur Hälfte.}
 \end{frame}
 
@@ -220,14 +220,14 @@ Diese Zahl selbst nennen, offen: Ein Drittel der Werte ist gesetzt, nicht
 belegt. Das ist der Punkt, an dem eine Kommission sonst nachhakt -- besser
 man nennt ihn ungefragt.
 
-Wichtig für die Redlichkeit: Die neun \enquote{gemischten} sind nur zur
+Wichtig für die Redlichkeit: Die elf \enquote{gemischten} sind nur zur
 Hälfte gedeckt. Ich rechne sie deshalb nicht zu den belegten. Wer nach der
 Belegart einer gemischten Größe fragt, bekommt die ehrliche Antwort
 \enquote{halb Messung, halb Annahme} -- Beispiel: Befund 2, die
 Gleichverteilung über die neun Ausschnitte ist Annahme, das
 Achsverhältnis 0,83--1,14 ist gemessen.
 
-Nicht zu den 43 gezählt sind numerische Absicherungen -- die Klammerung von
+Nicht zu den 44 gezählt sind numerische Absicherungen -- die Klammerung von
 $\sigma_b/\sigma_i$ und der Rauschboden. Sie behaupten nichts über die
 Zieldomäne, sie schützen die Rechnung. Zusatzfolie, falls gefragt.}
 
@@ -242,8 +242,8 @@ Zieldomäne, sie schützen die Rechnung. Zusatzfolie, falls gefragt.}
 \vfill
 \begin{center}
 {\large
-$\displaystyle \hat{R}_{\text{aug}}(f) \;=\; \frac{1}{n}\sum_{i=1}^{n}
-\mathbb{E}_{t \sim p(t)}\Big[ L\big(f(t(x_i)),\, \tau_t(y_i)\big) \Big]$}
+$\displaystyle \hat{R}_{\text{aug}}(h) \;=\; \frac{1}{n}\sum_{i=1}^{n}
+\mathbb{E}_{t \sim p(t)}\Big[ L\big(h(t(x_i)),\, \tau_t(y_i)\big) \Big]$}
 \end{center}
 \vfill
 \begin{center}\large
@@ -322,8 +322,8 @@ Gamma 1,08, Rauschangleich $\sigma = 4{,}1$, Schlagschatten, JPEG-Qualität
 $p(t)$ faktorisiert über die einzelnen Transformationen -- mit zwei bewussten
 Ausnahmen, die aus Anforderung A3 folgen: Objektgröße und Hintergrundzoom sind
 gekoppelt, und die Größen aller Instanzen eines Clusters hängen an einer
-gemeinsamen Basisgröße. Eine unabhängige Ziehung wäre dort physikalisch
-unmöglich.
+gemeinsamen Basisgröße. Eine unabhängige Ziehung erzeugte dort
+Größenkombinationen, die in realen Aufnahmen kaum vorkommen.
 
 Beim letzten Satz bewusst \enquote{Vielfalt} sagen, nicht \enquote{Qualität}.
 Die Qualität hängt zusätzlich an der Exaktheit von $\tau_t$ -- genau der
@@ -633,8 +633,9 @@ Am $F_1$-optimalen Betriebspunkt: bestes $F_1$ \zrefValFf{} bzw.\
 \zrefTestFf, Rückruf \zrefValRec{} / \zrefTestRec{} bei Precision
 \zrefValPrec{} / \zrefTestPrec.
 
-Konkret auf \code{test}: \znPredTest{} Detektionen, davon \zfpTest{} nicht auf
-einem annotierten Objekt, und \zfnTest{} der 89 Stirnflächen übersehen.
+Konkret auf \code{test}: \znPredTest{} Detektionen, davon \zfpTest{}
+falsch-positiv -- allesamt zweite Boxen auf einer bereits erkannten
+Stirnfläche --, und \zfnTest{} der 89 Stirnflächen übersehen.
 
 Wichtig für die Einordnung: \code{test} ist der \emph{schwierigere} der beiden
 Splits -- kleinere Objekte (Median 17,0 gegen 26,8\px), lockerere Packung,
@@ -664,7 +665,7 @@ zwei Fragen: \emph{Kann das Modell die Aufgabe überhaupt?} und
 Die Gegenprobe laut rechnen, sie macht die Größenordnung deutlich: Hätte das
 Netz die Einfügeartefakte gelernt, wäre der synthetische Fehler bei etwa
 0,005 und der reale bei 0,95; die Ben-David-Schranke ergäbe
-$d + \lambda \geq 0{,}94$. Gemessen sind \zepsDiff{}.
+$\tfrac12\, d + \lambda \geq 0{,}94$. Gemessen sind \zepsDiff{}.
 
 \textbf{Die Redlichkeit gehört auf diese Folie und in den Satz:} Die
 Ungleichung nagelt die Summe nach \emph{unten} fest. Dass die Divergenz klein
@@ -787,10 +788,10 @@ Jetzt wird die Behauptung von Folie 15 eingelöst. Erst begründen, warum
 \emph{diese} Frage geprüft wird und keine andere:
 
 An der Okklusionsstufe sind zwei Fragen zu stellen -- \emph{wie viel} verdeckt
-wird und \emph{woraus} die Verdecker bestehen. Die erste ist keine
-Entwurfsfreiheit: In den Realbildern liegen ausnahmslos Rohre vor den
-Stirnflächen, das ist physikalische Randbedingung. Frei entschieden ist nur
-die zweite.
+wird und \emph{woraus} die Verdecker bestehen. Vorgegeben ist nur, \emph{dass}
+es Rohrschäfte gibt: Jede Stirnfläche ist das Ende eines Rohrs, hinter ihr
+führt ein Schaft weg -- das ist physikalische Randbedingung (Befund 8). Die
+Anteile sind gesetzt, die zweite Frage war frei entschieden.
 
 Und die ist \textbf{teuer}: eine eigene Verarbeitungsstufe mit
 Struktur-Tensor, Achsdetektion und Plausibilitätsprüfung -- plus die Bindung
@@ -925,8 +926,9 @@ Reihenfolge:
 gegenüber B0: $-\zablBTestGap\PP$ \mAPfifty, $-\zablBTestGapFf\PP$ $F_1$,
 $-\zablBTestGapRec\PP$ Rückruf. Die Zählung fällt von \zBZeroTestCnt{} auf
 \zBTwoTestCnt{} von 89 Objekten. Das ist der größte Effekt, den diese Arbeit
-über einen Eingriff in die \emph{Trainingsdaten} gemessen hat -- mehr als das
-Doppelte des Bootstrap-Intervalls.
+über einen Eingriff in die \emph{Trainingsdaten} gemessen hat -- rund das
+Anderthalbfache der Halbbreite des Bootstrap-Intervalls auf \code{test}
+(rund 3\PP).
 
 \textbf{(2) Photographisch muss er nicht sein.} B1 ist auf \code{test} von B0
 nicht zu unterscheiden, $F_1$ sogar leicht höher; auf \code{val} liegt es
@@ -1506,18 +1508,12 @@ denn alle vier Clean Plates sind bei diffusem Licht aufgenommen.
 \smallskip
 
 \textbf{Falsch-Positive} sind selten: \zfpTest{} auf \code{test} bei
-\znPredTest{} Detektionen und \zfpVal{} auf \code{val} bei \znPredVal. Sie
-entstehen an dunklen Löchern im Maschendraht und an Schattenspalten zwischen
-Rohren -- genau die Strukturen, gegen die die Negativbilder (9{,}7\,\%)
-gerichtet sind.
-\smallskip
-
-{\color{warn}\textbf{Wichtige Asymmetrie.}} Auf \code{test} ist jede sichtbare
-Stirnfläche erfasst, die Precision ist dort also \emph{exakt}. Auf \code{val}
-fehlen einzelne erkennbare Rohröffnungen in der Annotation; bei 98
-handannotierten Objekten schlägt jede fehlende mit etwa $1{,}0\PP$ Precision
-zu Buche -- die dortigen Precision-Werte sind damit eine
-\textbf{Untergrenze}.
+\znPredTest{} Detektionen und \zfpVal{} auf \code{val} bei \znPredVal. Auf
+\code{test} sind alle \textbf{Zweitboxen}: Sie treffen ein bereits erkanntes
+Rohrende mit IoU $\geq 0{,}50$, zählen aber nach der COCO-Regel als Fehler --
+der NMS-freie Kopf sortiert sie nicht aus. Auf \code{val} gilt das für
+\zfpDoppelVal; \zfpTeilVal{} überdecken eine Stirnfläche nur teilweise,
+\zfpOhneVal{} überlappt keine Annotation.
 \end{frame}
 
 \begin{frame}{Z8 -- Ablation B, vollständig}
@@ -1621,10 +1617,10 @@ A2 stark & \zATwoLabels{} & 0{,}852 & 40{,}7\,\% & \textbf{\zATwoTestMap} &
 \end{center}
 \smallskip
 \textbf{Warum diese Ablation nicht Teil der Auswertung ist.} \emph{Dass}
-verdeckt werden muss, ist keine Entwurfsentscheidung, sondern physikalische
-Randbedingung: In den Realbildern liegen ausnahmslos Rohre vor den
-Stirnflächen (Befund 8). Der Okklusions\emph{anteil} ist damit Dosierung,
-nicht Freiheit.
+verdeckt wird, ist keine Entwurfsentscheidung: Einzelne quer liegende Rohre
+vor dem Stapel sind in den Realbildern belegt, und hinter jeder Stirnfläche
+führt ein Rohrschaft weg (Befund 8). Der Okklusions\emph{anteil} ist damit
+Dosierung, nicht Freiheit.
 \smallskip
 
 Das Ergebnis stützt das: Der Effekt ist klein ($\zablAValGain\PP$ auf
@@ -1680,11 +1676,11 @@ Mit $\varepsilon = 1 - \mAPfifty$ als Platzhalter (die Schranke ist für den
 und ist kein Beweis):
 \[\varepsilon_S = 1 - \zrefSvalMap = \zepsS, \qquad
   \varepsilon_T = 1 - \zrefTestMap = \zepsT
-  \qquad\Longrightarrow\qquad d + \lambda \;\geq\; \zepsDiff\]
+  \qquad\Longrightarrow\qquad \tfrac12\, d + \lambda \;\geq\; \zepsDiff\]
 \textbf{Die Gegenprobe.} Hätte das Netz statt der Rohrenden die
 Einfügeartefakte gelernt, so wäre $\varepsilon_S \approx 0{,}005$ und
 $\varepsilon_T \approx 0{,}95$; die Schranke ergäbe
-$d + \lambda \geq 0{,}94$ -- ein \emph{Vielfaches} des gemessenen Werts.
+$\tfrac12\, d + \lambda \geq 0{,}94$ -- ein \emph{Vielfaches} des gemessenen Werts.
 \smallskip
 
 {\color{warn}Auf die Richtung achten:} Die Ungleichung nagelt die Summe nach
@@ -1845,20 +1841,20 @@ Kontrolliert \emph{abliert} ist einer von 43 Werten.
 \textbf{15\,100-mal}.}
 \end{column}
 \begin{column}{0.505\textwidth}
-\textbf{Bilanz der 43 Parameterwerte} über 36 Transformationen:
+\textbf{Bilanz der 44 Parameterwerte} über 37 Transformationen:
 \begin{center}
 \begin{tabular}{@{}clr@{}}
 \toprule
 & \textbf{Belegart} & \textbf{Anzahl} \\
 \midrule
-\bM & an den Realdaten gemessen & 9 \\
+\bM & an den Realdaten gemessen & 8 \\
 \bL & literaturgestützt & 8 \\
-\bP & physikalisch begründet & 3 \\
-   & gemischt (nur zur Hälfte gedeckt) & 9 \\
+\bP & physikalisch begründet & 2 \\
+   & gemischt (nur zur Hälfte gedeckt) & 11 \\
 \bA & \textcolor{warn}{ausdrücklich Annahme} &
-  \textcolor{warn}{\textbf{14}} \\
+  \textcolor{warn}{\textbf{15}} \\
 \midrule
-& \textbf{gesamt} & \textbf{43} \\
+& \textbf{gesamt} & \textbf{44} \\
 \bottomrule
 \end{tabular}
 \end{center}
@@ -1904,7 +1900,7 @@ $\hat\sigma = \mathrm{std}\big(g - \mathrm{median}_{3\times3}(g)\big)$.
 {\color{akzent}Die Klammerung von $\sigma_b/\sigma_i$ und der Rauschboden
 sind \emph{keine} Modellierungsparameter, sondern numerische Absicherungen --
 sie schützen die Rechnung vor entarteten Schätzwerten und zählen deshalb
-\emph{nicht} zu den 43 Werten.}
+\emph{nicht} zu den 44 Werten.}
 \end{column}
 \end{columns}
 \end{frame}
@@ -1933,7 +1929,7 @@ dieses Maß verwendet.
 \textbf{Layoutmodell.} Die Objektzentren liegen auf einem \emph{gescherten}
 Gitter mit Basisrichtungen $\mathbf{e}_1, \mathbf{e}_2$, eingeschlossener
 Winkel $55^\circ$--$125^\circ$, Gitterabstände
-$s_1 \in [0{,}98;\,1{,}60]\,d_0$ und $s_2 \in [0{,}98;\,1{,}85]\,d_0$.
+$g_1 \in [0{,}98;\,1{,}60]\,d_0$ und $g_2 \in [0{,}98;\,1{,}85]\,d_0$.
 \smallskip
 
 Auf jede ideale Gitterlage wirkt zusätzlich ein Rauschen von typischerweise
@@ -1946,8 +1942,8 @@ liegen -- kalibriert an den 6{,}7\,\% angeschnittenen Labels in \code{test}.
 \smallskip
 
 Eine \textbf{Basisgröße je Cluster}, je Instanz nur $\pm 8\,\%$: Eine
-unabhängige Ziehung wäre physikalisch unmöglich, weil alle Rohre eines
-Stapels denselben Durchmesser haben.
+unabhängige Ziehung wäre unplausibel, weil die Felder eines Stapels in der
+Regel baugleich sind.
 \end{column}
 \end{columns}
 \end{frame}
@@ -2061,8 +2057,8 @@ P2-Blöcke zufällig initialisiert.
 \smallskip
 
 \textbf{Modellauswahl.} Gespeichert wird der Checkpoint mit der höchsten
-Fitness ($0{,}1\,\mAPfifty + 0{,}9\,\mAPall$, Voreinstellung der
-Werkzeugkette, unverändert) auf dem \emph{realen} \code{val}-Bild. Early
+Fitness (allein \mAPall, Voreinstellung der Werkzeugkette,
+unverändert) auf dem \emph{realen} \code{val}-Bild. Early
 Stopping nach 20 Epochen ohne Verbesserung -- bewusst großzügig, weil die
 Fitness auf knapp hundert Ground-Truth-Objekten stark schwankt.
 \smallskip
@@ -2143,8 +2139,8 @@ genähert.}
 \end{columns}
 \smallskip
 Am $F_1$-optimalen Betriebspunkt. Auf \code{test}: \znPredTest{}
-Detektionen, \zfpTest{} nicht auf einem annotierten Objekt, \zfnTest{}
-übersehen.
+Detektionen, \zfpTest{} davon Zweitboxen (magenta), \zfnTest{} übersehen
+(blau).
 \end{frame}
 
 \end{document}

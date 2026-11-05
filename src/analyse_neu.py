@@ -10,6 +10,8 @@ Erzeugt docs/experiments/analyse.json mit
   sensitivitaet  dieselbe Auswertung, nachdem alle Vorhersageboxen um den
                gemessenen medianen Fehlbetrag aufgeweitet wurden
   fehler       Falsch-Positive und Falsch-Negative am F1-optimalen Betriebspunkt
+  zweitbox_herkunft  Gitterposition jeder Zweitbox und ihrer Trefferbox
+  zweitbox_sval  Zweitboxen je Treffer auf sval bei den Schwellen von val/test
 
 sowie die Qualitativbilder docs/qual_<split>.jpg.
 
@@ -32,11 +34,13 @@ sys.path.insert(0, os.path.join(ROOT, "src"))
 from evaluate import (SPLITS, evaluate_split, iou_matrix, load_gt,   # noqa: E402
                       match, pr_curve, average_precision)
 from ultralytics import YOLO                                        # noqa: E402
+import laeufe                                                      # noqa: E402
 
 import argparse
 
 _ap = argparse.ArgumentParser()
-_ap.add_argument("--weights", default="runs/yolo26s_p2/weights/best.pt")
+_ap.add_argument("--weights",
+                 default=laeufe.gewichte(laeufe.REFERENZ["lauf"]))
 _ap.add_argument("--tag", default="")
 ARGS, _ = _ap.parse_known_args()
 WEIGHTS = ARGS.weights
@@ -136,10 +140,25 @@ def boxversatz(preds, split):
     return res
 
 
+def fp_art(M, i, hit, thr=0.5):
+    """Ursache des Falsch-Positiven i: 'zweitbox', 'teil' oder 'ohne'.
+
+    Zweitbox: die Box trifft eine Stirnflaeche mit IoU >= thr, die aber schon
+    eine konfidentere Box belegt; nach der COCO-Regel (jede GT nur einmal)
+    zaehlt sie als FP. Bei diesem Modell kann sie nicht wegfallen: der Kopf
+    ist Ende-zu-Ende, es laeuft keine NMS, der Parameter iou bleibt
+    wirkungslos. 'teil' ueberdeckt eine Annotation nur mit IoU < thr (Versatz
+    oder falsche Groesse), 'ohne' ueberlappt keine Annotation.
+    """
+    if M.shape[1] == 0 or M[i].max() <= 0.0:
+        return "ohne"
+    j = int(np.argmax(M[i]))
+    return "zweitbox" if M[i, j] >= thr and j in hit else "teil"
+
+
 def fehleranalyse(preds, split, conf):
     fp, fn, gesamt_pred = 0, 0, 0
-    fp_ohne_overlap = 0
-    fp_doppel = 0
+    art = dict(zweitbox=0, teil=0, ohne=0)
     fn_groessen = []
     for _, p, c, g in preds:
         keep = c >= conf
@@ -148,27 +167,18 @@ def fehleranalyse(preds, split, conf):
         tp, _, gidx, _ = match(pk, ck, g, 0.5)
         fp += int((~tp).sum())
         hit = set(gidx[tp].tolist())
-        # Zweitbox auf einer bereits getroffenen Stirnflaeche. Sie zaehlt nach
-        # der COCO-Regel als FP, sitzt aber auf einem echten Rohr. Bei diesem
-        # Modell kann sie nicht wegfallen: der Kopf ist Ende-zu-Ende, es laeuft
-        # keine NMS, der Parameter iou bleibt wirkungslos.
-        if len(g):
-            Mg = iou_matrix(pk, g)
-            for i in np.where(~tp)[0]:
-                j = int(np.argmax(Mg[i]))
-                if Mg[i, j] > 0 and j in hit:
-                    fp_doppel += 1
+        M = iou_matrix(pk, g)
+        for i in np.where(~tp)[0]:
+            art[fp_art(M, i, hit)] += 1
         fehl = [j for j in range(len(g)) if j not in hit]
         fn += len(fehl)
         for j in fehl:
             fn_groessen.append(float(np.sqrt((g[j, 2] - g[j, 0]) *
                                              (g[j, 3] - g[j, 1]))))
-        if len(g) and (~tp).sum():
-            M = iou_matrix(pk[~tp], g)
-            fp_ohne_overlap += int((M.max(axis=1) <= 0.0).sum())
     return dict(split=split, conf=round(conf, 4), n_pred=gesamt_pred,
-                falsch_positiv=fp, davon_ohne_ueberlappung=fp_ohne_overlap,
-                davon_doppeldetektion=fp_doppel,
+                falsch_positiv=fp, davon_ohne_ueberlappung=art["ohne"],
+                davon_doppeldetektion=art["zweitbox"],
+                davon_teilueberlappung=art["teil"],
                 falsch_negativ=fn,
                 fn_durchmesser=[round(v, 1) for v in sorted(fn_groessen)])
 
@@ -176,13 +186,15 @@ def fehleranalyse(preds, split, conf):
 def qualbild(preds, split, conf):
     """Qualitativbild am F1-optimalen Betriebspunkt.
 
-    Die Falsch-Positiven werden nach Ursache eingefaerbt. Grund: die Mehrzahl
-    von ihnen sitzt auf einer echten, bereits getroffenen Stirnflaeche und ist
-    keine Fehldetektion im Wortsinn. Der YOLO26-Kopf arbeitet Ende-zu-Ende
-    (end2end=True), es laeuft also keine NMS - der Inferenzparameter 'iou'
-    bleibt wirkungslos. Zweitboxen auf demselben Rohr ueberleben deshalb und
-    zaehlen nach der COCO-Regel (jede GT nur einmal) als FP. Eine einfarbige
-    Darstellung legt dem Betrachter nahe, das Modell habe dort etwas erfunden.
+    Die Falsch-Positiven werden nach Ursache eingefaerbt. Grund: auf test ist
+    jede von ihnen eine Zweitbox auf einer echten, bereits getroffenen
+    Stirnflaeche und keine Fehldetektion im Wortsinn. Der YOLO26-Kopf arbeitet
+    Ende-zu-Ende (end2end=True), es laeuft also keine NMS - der
+    Inferenzparameter 'iou' bleibt wirkungslos. Zweitboxen auf demselben Rohr
+    ueberleben deshalb und zaehlen nach der COCO-Regel (jede GT nur einmal) als
+    FP. Eine einfarbige Darstellung legt dem Betrachter nahe, das Modell habe
+    dort etwas erfunden. Die Zweitbox wird nach der Trefferbox gezeichnet und
+    verdeckt sie, weil beide fast deckungsgleich sind.
     """
     for f, p, c, g in preds[:1]:
         keep = c >= conf
@@ -202,16 +214,15 @@ def qualbild(preds, split, conf):
             if tp[i]:
                 col = (0, 220, 0)                          # Treffer gruen
             else:
-                j = int(np.argmax(M[i])) if len(g) else -1
-                if j >= 0 and M[i, j] > 0 and j in hit:
-                    col = (255, 0, 255)                    # Doppeldetektion magenta
+                if fp_art(M, i, hit) == "zweitbox":
+                    col = (255, 0, 255)                    # Zweitbox magenta
                     n_dop += 1
                 else:
                     col = (0, 0, 255)                      # uebrige FP rot
             cv2.rectangle(im, (int(b[0]), int(b[1])), (int(b[2]), int(b[3])), col, 2)
 
         n_fp = int((~tp).sum())
-        txt = (f"gruen TP={int(tp.sum())}   magenta Doppeldetektion={n_dop}   "
+        txt = (f"gruen TP={int(tp.sum())}   magenta Zweitbox={n_dop}   "
                f"rot FP={n_fp - n_dop}   blau FN={len(g) - len(hit)}   "
                f"conf>={conf:.3f}")
         # Schrift an die Bildbreite anpassen - test ist 1600 px breit, val 2459
@@ -222,7 +233,7 @@ def qualbild(preds, split, conf):
                     max(1, int(round(2 * sc))))
         out = os.path.join(DOC, f"qual_{split}.jpg")
         cv2.imwrite(out, im, [cv2.IMWRITE_JPEG_QUALITY, 92])
-        print("->", out, f"(TP {int(tp.sum())}, Doppel {n_dop}, FP {n_fp-n_dop}, "
+        print("->", out, f"(TP {int(tp.sum())}, Zweitbox {n_dop}, FP {n_fp-n_dop}, "
                          f"FN {len(g)-len(hit)})")
 
 
@@ -269,12 +280,100 @@ def nms_gegenprobe(preds, split, conf, iou_thr=0.7):
     return res
 
 
+def zweitbox_herkunft(model, preds, split, conf):
+    """Gitterposition jeder Zweitbox und ihrer Trefferbox.
+
+    Der Eins-zu-eins-Kopf sagt an jeder Gitterposition jeder Ebene eine Box
+    vorher; im Training ist je Stirnflaeche genau eine davon positiv, alle
+    anderen sollen die Konfidenz 0 lernen. Duplikate unterdrueckt er also nur
+    gelernt. Ein Forward-Hook auf dem Detect-Kopf liefert die Rohausgabe des
+    one2one-Zweigs fuer alle Positionen; jede gemeldete Detektion wird ueber
+    Konfidenz und Box ihrer Position zugeordnet. 'nachbar' heisst: dieselbe
+    Ebene, Zellen hoechstens eine Zeile und eine Spalte auseinander.
+    """
+    from ultralytics.utils import ops
+
+    f, p, c, g = preds[0]
+    head = model.model.model[-1]
+    cap = {}
+    hook = head.register_forward_hook(lambda m, i, o: cap.update(o=o))
+    try:
+        r = model.predict(f, verbose=False, **{**BASE, "imgsz": _native(f)})[0]
+    finally:
+        hook.remove()
+    rp = r.boxes.xyxy.cpu().numpy().astype(np.float64)
+    rc = r.boxes.conf.cpu().numpy().astype(np.float64)
+    assert np.allclose(rp, p, atol=1e-3) and np.allclose(rc, c, atol=1e-6)
+
+    o2o = cap["o"][1]["one2one"]
+    sc = o2o["scores"][0, 0].sigmoid().float().cpu().numpy().astype(np.float64)
+    box = head._get_decode_boxes(o2o)[0].T.float().cpu().numpy().astype(np.float64)
+    s0 = int(head.stride[0])
+    netz = (o2o["feats"][0].shape[2] * s0, o2o["feats"][0].shape[3] * s0)
+    box = ops.scale_boxes(netz, box, cv2.imread(f).shape[:2])
+    stride, zx, zy = [], [], []
+    for s, ft in zip(head.stride.tolist(), o2o["feats"]):
+        h, w = ft.shape[2:]
+        stride += [int(s)] * (h * w)
+        zx += np.tile(np.arange(w), h).tolist()
+        zy += np.repeat(np.arange(h), w).tolist()
+    stride, zx, zy = map(np.array, (stride, zx, zy))
+
+    def position(i):
+        k = np.where((np.abs(sc - rc[i]) < 1e-6) &
+                     (np.abs(box - rp[i]).max(1) < 0.05))[0]
+        assert len(k) == 1, (split, i, k)
+        return int(k[0])
+
+    keep = c >= conf
+    idx = np.where(keep)[0]
+    pk, ck = p[keep], c[keep]
+    tp, _, gidx, _ = match(pk, ck, g, 0.5)
+    M = iou_matrix(pk, g)
+    hit = set(gidx[tp].tolist())
+    paare = []
+    for i in np.where(~tp)[0]:
+        if fp_art(M, i, hit) != "zweitbox":
+            continue
+        j = int(np.argmax(M[i]))
+        t = int(np.where(tp & (gidx == j))[0][0])
+        a, b = position(idx[t]), position(idx[i])
+        paare.append(dict(
+            durchmesser_px=round(float(np.sqrt((g[j, 2] - g[j, 0]) *
+                                               (g[j, 3] - g[j, 1]))), 1),
+            stride_treffer=int(stride[a]), stride_zweitbox=int(stride[b]),
+            zelle_treffer=[int(zx[a]), int(zy[a])],
+            zelle_zweitbox=[int(zx[b]), int(zy[b])],
+            nachbar=bool(stride[a] == stride[b] and
+                         max(abs(zx[a] - zx[b]), abs(zy[a] - zy[b])) == 1),
+            conf_treffer=round(float(ck[t]), 4), conf_zweitbox=round(float(ck[i]), 4),
+            iou_treffer=round(float(M[t, j]), 4), iou_zweitbox=round(float(M[i, j]), 4)))
+    st = [int(stride[position(q)]) for q in idx]
+    return dict(split=split, conf=round(conf, 4),
+                treffer_conf_median=round(float(np.median(ck[tp])), 4),
+                detektionen_je_stride={str(s): st.count(s) for s in sorted(set(st))},
+                paare=paare)
+
+
+def zweitbox_rate(preds, conf):
+    """Zweitboxen und Treffer ueber alle Bilder eines Splits bei Schwelle conf."""
+    n_zb = n_tp = 0
+    for _, p, c, g in preds:
+        keep = c >= conf
+        tp, _, gidx, _ = match(p[keep], c[keep], g, 0.5)
+        M = iou_matrix(p[keep], g)
+        hit = set(gidx[tp].tolist())
+        n_tp += int(tp.sum())
+        n_zb += sum(fp_art(M, i, hit) == "zweitbox" for i in np.where(~tp)[0])
+    return dict(conf=round(conf, 4), zweitboxen=int(n_zb), treffer=n_tp)
+
+
 def crosscheck(model):
     res = {}
     for s, imgsz in (("val", 2464), ("test", 1600)):
         m = model.val(data="data/pipes.yaml", split=s, imgsz=imgsz, conf=0.001,
                       iou=0.7, max_det=1000, device="0", verbose=False,
-                      plots=False, project=os.path.join(ROOT, "neu", "runs"),
+                      plots=False, project=os.path.join(ROOT, "runs"),
                       name=f"xcheck_{s}", exist_ok=True)
         res[s] = dict(ultralytics_mAP50=float(m.box.map50),
                       ultralytics_mAP50_95=float(m.box.map))
@@ -294,6 +393,7 @@ if __name__ == "__main__":
     print(json.dumps(rep["crosscheck"], indent=2))
 
     rep["boxversatz"], rep["sensitivitaet"], rep["fehler"] = [], {}, []
+    cstar = {}
     for s in ("val", "test", "sval"):
         preds = predict_split(model, s)
         bv = boxversatz(preds, s)
@@ -309,9 +409,17 @@ if __name__ == "__main__":
                 original=_metrics(preds),
                 aufgeweitet=_metrics(preds, grow))
             conf = _metrics(preds)["best_f1_conf"]
+            cstar[s] = conf
             rep["fehler"].append(fehleranalyse(preds, s, conf))
             rep.setdefault("nms", []).append(nms_gegenprobe(preds, s, conf))
+            rep.setdefault("zweitbox_herkunft", []).append(
+                zweitbox_herkunft(model, preds, s, conf))
             qualbild(preds, s, conf)
+        else:
+            # sval bei den Schwellen der Realbilder: entstehen Zweitboxen
+            # erst auf realen Aufnahmen?
+            rep["zweitbox_sval"] = [dict(schwelle_von=k, **zweitbox_rate(preds, v))
+                                    for k, v in cstar.items()]
     with open(os.path.join(OUT, f"analyse{ARGS.tag}.json"), "w") as f:
         json.dump(rep, f, indent=2)
     print(json.dumps({k: rep[k] for k in ("sensitivitaet", "fehler")}, indent=2))

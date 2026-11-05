@@ -7,7 +7,15 @@ Aufruf (aus dem Projektwurzelverzeichnis):
     .venv/bin/python paper/tools/abbildungen_vorbereiten.py
 """
 import os
+import sys
+
 import cv2
+
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "src"))
+from laeufe import REFERENZ                                  # noqa: E402
+
+# Vorschaubilder, die src/generate.py --preview neben den Datensatz schreibt
+VORSCHAU = "docs/preview_" + os.path.basename(REFERENZ["daten"]) + "_{:03d}.jpg"
 
 ZIEL = os.path.join(os.path.dirname(__file__), "..", "abbildungen")
 os.makedirs(ZIEL, exist_ok=True)
@@ -18,12 +26,12 @@ JOBS = [
     ("docs/matting_check.png",                      "matting_check.jpg",      2200, 92),
     ("docs/bars_check.png",                         "okkluder_check.png",      800, None),
     ("docs/label_check.png",                        "label_check.jpg",        1800, 92),
-    ("docs/previews/preview_train_000.jpg",         "synth_000.jpg",          1024, 90),
-    ("docs/previews/preview_train_001.jpg",         "synth_001.jpg",          1024, 90),
-    ("docs/previews/preview_train_002.jpg",         "synth_002.jpg",          1024, 90),
-    ("docs/previews/preview_train_003.jpg",         "synth_003.jpg",          1024, 90),
-    ("docs/previews/preview_train_004.jpg",         "synth_004.jpg",          1024, 90),
-    ("docs/previews/preview_train_005.jpg",         "synth_005.jpg",          1024, 90),
+    (VORSCHAU.format(0),                            "synth_000.jpg",          1024, 90),
+    (VORSCHAU.format(1),                            "synth_001.jpg",          1024, 90),
+    (VORSCHAU.format(2),                            "synth_002.jpg",          1024, 90),
+    (VORSCHAU.format(3),                            "synth_003.jpg",          1024, 90),
+    (VORSCHAU.format(4),                            "synth_004.jpg",          1024, 90),
+    (VORSCHAU.format(5),                            "synth_005.jpg",          1024, 90),
     ("docs/fig_ablation_beispiele.png",             "ablation_beispiele.jpg", 2040, 92),
     ("docs/fig_ablation.png",                       "ablation.png",           1950, None),
     ("docs/fig_imgsz_sweep.png",                    "imgsz_sweep.png",        1950, None),

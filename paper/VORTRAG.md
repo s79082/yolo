@@ -208,7 +208,7 @@ Variable. Die Arme zum Verdeckungs*grad* liegen trainiert vor (`runs/A0`,
 Ich schließe es nicht aus, ich zeige, dass das Muster nicht auftritt. Bei
 reinem Artefaktlernen wäre `sval` nahezu perfekt und die Realbilder
 katastrophal; gemessen sind 3,6 bzw. 1,5 %-Punkte Abstand. In die
-Ben-David-Schranke eingesetzt: $d+\lambda \geq 0{,}015$ gegen $\geq 0{,}94$ im
+Ben-David-Schranke eingesetzt: $\tfrac12 d+\lambda \geq 0{,}015$ gegen $\geq 0{,}94$ im
 Artefaktfall. Auf die Richtung achten — die Ungleichung nagelt die Summe nach
 *unten* fest. Es bleibt ein **Indiz**, kein Beweis, und so steht es auch in
 der Arbeit. (Seite 25, Z11, Z12)

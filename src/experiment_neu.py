@@ -49,10 +49,10 @@ ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 os.chdir(ROOT)
 sys.path.insert(0, os.path.join(ROOT, "src"))
 from evaluate import evaluate_split, summary_line       # noqa: E402
+import laeufe                                           # noqa: E402
 
-NEU = os.path.join(ROOT, "neu")
-OUT = os.path.join(NEU, "docs", "experiments")
-RUNS = os.path.join(NEU, "runs")
+OUT = os.path.join(ROOT, "docs", "experiments")
+RUNS = os.path.join(ROOT, "runs")
 EPOCHS = 30
 
 # (Laufname, Datensatz, Kurzbeschreibung)
@@ -78,11 +78,11 @@ B_ALIAS = {"A1_baseline": "B0_photographisch"}
 # ---------------------------------------------------------------------------
 def cmd_data():
     """data/*.yaml schreiben und die Kennwerte der fuenf Datensaetze sammeln."""
-    os.makedirs(os.path.join(NEU, "data"), exist_ok=True)
+    os.makedirs(os.path.join(ROOT, "data"), exist_ok=True)
     os.makedirs(OUT, exist_ok=True)
     tbl = {}
     for name, ds, desc in ARME:
-        yml = os.path.join(NEU, "data", f"{name}.yaml")
+        yml = os.path.join(ROOT, "data", f"{name}.yaml")
         with open(yml, "w") as f:
             f.write(f"# {desc}\npath: {ROOT}\n"
                     f"train: {ds}/images\nval: data/val/images\n"
@@ -143,7 +143,7 @@ def cmd_check():
 
 
 def cmd_train(cache="disk", epochs=EPOCHS, batch=8):
-    os.makedirs(os.path.join(NEU, "logs"), exist_ok=True)
+    os.makedirs(os.path.join(ROOT, "logs"), exist_ok=True)
     for name, _ds, _desc in ARME:
         w = os.path.join(RUNS, name, "weights", "best.pt")
         if os.path.exists(w):
@@ -155,7 +155,7 @@ def cmd_train(cache="disk", epochs=EPOCHS, batch=8):
                "--batch", str(batch)]
         print(" ".join(cmd), flush=True)
         t0 = time.time()
-        log = os.path.join(NEU, "logs", f"train_{name}.log")
+        log = os.path.join(ROOT, "logs", f"train_{name}.log")
         env = dict(os.environ,
                    PYTORCH_CUDA_ALLOC_CONF="expandable_segments:True")
         with open(log, "w") as fh:
@@ -193,7 +193,7 @@ def cmd_eval(imgsz="native"):
     print("->", os.path.join(OUT, "ablationen.json"))
 
 
-REFERENZ = os.path.join(ROOT, "runs", "yolo26s_p2", "weights", "best.pt")
+REFERENZ = os.path.join(ROOT, laeufe.gewichte(laeufe.REFERENZ["lauf"]))
 
 
 def set_referenz(w):
@@ -205,11 +205,11 @@ def set_referenz(w):
 def cmd_main(imgsz="native"):
     """Hauptergebnis: das Referenzmodell der vollstaendigen Pipeline.
 
-    runs/yolo26s_p2 ist auf dem vollen Datensatz (6000 Bilder, 60 Epochen)
-    trainiert und dient als Bezugspunkt, gegen den die beiden Ablationen mit
-    ihrem reduzierten Budget (3000/30) einzuordnen sind. Zusaetzlich zu val und
-    test wird sval ausgewertet -- der synthetische Validierungssatz, aus dem
-    sich der Sim-to-Real-Abstand ergibt.
+    Das Referenzmodell (src/laeufe.py) ist auf dem vollen Datensatz (6000
+    Bilder, 60 Epochen) trainiert und dient als Bezugspunkt, gegen den die
+    Ablation mit ihrem reduzierten Budget (3000/30) einzuordnen ist.
+    Zusaetzlich zu val und test wird sval ausgewertet -- der synthetische
+    Validierungssatz, aus dem sich der Sim-to-Real-Abstand ergibt.
     """
     from ultralytics import YOLO
     os.makedirs(OUT, exist_ok=True)
@@ -271,10 +271,14 @@ def cmd_sweep():
             rep["tta"].append(r)
             print(f"  {tag:5s}", summary_line(r), flush=True)
 
+    # Bootstrap beim nativen Massstab, nicht bei `best`: Alle berichteten
+    # Zahlen stehen beim nativen Massstab, und an diesem Intervall werden sie
+    # gemessen. Bei imgsz=1920 waeren die Intervalle enger
+    # (Breite val 0,072 statt 0,086, test 0,050 statt 0,060).
     sys.path.insert(0, os.path.join(ROOT, "src"))
     from experiment import bootstrap_map50               # noqa: E402
     for s in ("val", "test"):
-        b = bootstrap_map50(model, s, {**base, "imgsz": best})
+        b = bootstrap_map50(model, s, {**base, "imgsz": "native"})
         rep["bootstrap"][s] = b
         print(f"  bootstrap {s}: mAP50 {b['mean']:.4f} +- {b['std']:.4f} "
               f"95%-CI [{b['ci95'][0]:.4f}, {b['ci95'][1]:.4f}]", flush=True)
@@ -284,7 +288,12 @@ def cmd_sweep():
 
 
 def _best_epoch(name):
-    """Epoche des besten Checkpoints aus results.csv (Ultralytics-Fitness)."""
+    """Epoche des besten Checkpoints aus results.csv (Ultralytics-Fitness).
+
+    Ultralytics 8.4.117 gewichtet [P, R, mAP50, mAP50-95] mit [0, 0, 0, 1]
+    (Metric.fitness in ultralytics/utils/metrics.py); der beste Checkpoint
+    ist also der mit dem hoechsten mAP50-95 auf val.
+    """
     p = os.path.join(RUNS, name, "results.csv")
     if not os.path.exists(p):
         return None
@@ -292,11 +301,10 @@ def _best_epoch(name):
     rows = list(csv.DictReader(open(p)))
     if not rows:
         return None
-    key50 = next((k for k in rows[0] if "mAP50(B)" in k and "95" not in k), None)
     key95 = next((k for k in rows[0] if "mAP50-95(B)" in k), None)
-    if not key50 or not key95:
+    if not key95:
         return None
-    fit = [0.1 * float(r[key50]) + 0.9 * float(r[key95]) for r in rows]
+    fit = [float(r[key95]) for r in rows]
     i = int(np.argmax(fit))
     return dict(epoche=int(float(rows[i]["epoch"])), n_epochen=len(rows),
                 fitness=round(fit[i], 5))

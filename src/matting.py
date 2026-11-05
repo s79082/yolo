@@ -3,7 +3,7 @@ Stufe 1 der Pipeline: Matting der Rohrprofil-Cutouts.
 
 PROBLEM
 -------
-Alle 9 Dateien in /cutouts sind RGBA, aber der Alphakanal ist durchgaengig 255
+Alle Dateien in /cutouts sind RGBA, aber der Alphakanal ist durchgaengig 255
 (nachgewiesen in docs/DATENSICHTUNG.md). Es sind also rechteckige Bildausschnitte,
 keine freigestellten Objekte. Wuerde man sie direkt einkopieren, entstuende an jeder
 Einfuegestelle eine rechteckige Naht (Helligkeits-/Textursprung entlang einer
@@ -20,7 +20,7 @@ Alphamaske.
 
 Vorgehen (zweistufig, reproduzierbar):
   1. Manuelle Startwerte, abgelesen aus einer 14x vergroesserten Rasteransicht
-     (docs/cutouts_grid.png). Bei 9 Objekten ist das exakter als jeder Auto-Fit.
+     (docs/cutouts_grid.png). Bei sechs Objekten ist das exakter als jeder Auto-Fit.
   2. Lokale numerische Verfeinerung: maximiert die radiale Kantenenergie
      -dI/dr entlang der Ellipse (innen hell = Rohrkranz, aussen dunkler =
      Hintergrund). Coordinate-Descent auf 6x upgesampeltem, geglaettetem Bild.
@@ -43,15 +43,12 @@ UP = 6  # Upsampling-Faktor fuer subpixelgenaue Kantensuche
 
 # (cx, cy, rx, ry, theta_deg) in ORIGINAL-Pixelkoordinaten, manuell abgelesen
 SEEDS = {
-    "cutted1.png":  (16.0, 15.5, 16.5, 16.0, 0.0),
     "cutted_4.png": (15.5, 15.0, 14.0, 14.5, 0.0),
     "cutted_5.png": (21.0, 19.0, 20.0, 17.5, 0.0),
     "cutted_6.png": (14.0, 15.5, 13.5, 14.0, 0.0),
     "cutted_7.png": (19.5, 17.5, 19.0, 16.5, 0.0),
     "cutted_8.png": (19.0, 18.0, 18.0, 16.5, 0.0),
     "cutted_9.png": (13.0, 15.5, 13.0, 14.0, 0.0),
-    "cuuted2.png":  (17.5, 16.5, 16.5, 15.5, 0.0),
-    "cuuted3.png":  (17.5, 16.0, 16.5, 16.0, 0.0),
 }
 
 
@@ -185,11 +182,11 @@ def main():
         gray_up = cv2.GaussianBlur(gray_up, (0, 0), UP * 0.35)
 
         p, score = refine(gray_up, seed)
-        # Aussenkanten-Korrektur, hart auf [1.02, 1.10] begrenzt: bei den acht
+        # Aussenkanten-Korrektur, hart auf [1.02, 1.10] begrenzt: bei den
         # kontrastreichen Cutouts liegt der 25%-Punkt bei 1.02-1.05. Nur
         # cutted_8 hat einen dunklen, kontraktarmen Kranz; dort liefe das
         # Kriterium ohne Deckel auf 1.19 und die Maske wuerde Hintergrund
-        # aufsaugen. Der Deckel macht die Stufe fuer alle 9 Objekte stabil.
+        # aufsaugen. Der Deckel macht die Stufe fuer alle Objekte stabil.
         s_out = float(np.clip(outer_edge_scale(gray_up, p), 1.02, 1.10))
         p_out = p.copy()
         p_out[2] *= s_out

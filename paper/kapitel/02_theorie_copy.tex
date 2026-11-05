@@ -4,76 +4,101 @@
 \section{Convolutional Neural Networks}
 \label{sec:cnn}
 
-Convolutional Neural Networks (CNNs) verankern strukturelles Vorwissen über
-Bilddaten in der Architektur: lokale Verbindungen, geteilte Gewichte und
-räumliche Unterabtastung \parencite{lecun1998,goodfellow2016}. Eine
-Faltungsschicht verbindet ein Ausgabeneuron nicht mit allen Eingangspixeln,
-sondern mit einem lokalen $k\times k$-Ausschnitt, und wendet denselben Kernel an
-allen räumlichen Positionen an; die Zahl ihrer Parameter hängt damit nicht von
-der Größe der Eingabe ab. Mit zunehmender Tiefe entsteht eine
-Merkmalshierarchie -- frühe Schichten reagieren auf Kanten und Farbverläufe,
-tiefere auf Texturen und semantische Objektmerkmale \parencite{zeiler2014};
-Nichtlinearitäten und Residualverbindungen machen diese Tiefe optimierbar
-\parencite{krizhevsky2012,he2016}. Für die Objektdetektion ist zusätzlich
-relevant, wie redundante Vorhersagen desselben Objekts wieder entfernt werden:
-Klassische Detektoren verwenden dafür \emph{Non-Maximum Suppression} (NMS), die
-stark überlappende Vorhersagen anhand ihrer Intersection over Union unterdrückt
-\parencite{ren2015,redmon2016}.
+Convolutional Neural Networks (CNNs) bringen Vorwissen über Bilder schon in
+ihrer Architektur mit: lokale Verbindungen, geteilte Gewichte und eine
+schrittweise Verkleinerung der räumlichen Auflösung
+\parencite{lecun1998,goodfellow2016}. Ein Neuron einer Faltungsschicht ist nur
+mit einem kleinen $k\times k$-Ausschnitt der Eingabe verbunden, und derselbe
+Kernel wird an allen Bildpositionen angewendet. Die Zahl der Parameter hängt
+deshalb nicht von der Bildgröße ab. Mit zunehmender Tiefe entsteht eine
+Hierarchie von Merkmalen: Frühe Schichten reagieren auf Kanten und
+Farbverläufe, tiefere auf Texturen, Objektteile und ganze Objekte
+\parencite{zeiler2014}. Nichtlinearitäten und Residualverbindungen sorgen dafür,
+dass sich auch sehr tiefe Netze noch trainieren lassen
+\parencite{krizhevsky2012,he2016}.
 
-\absatz{Schrittweite und Objektgröße.} Von alledem ist für diese Arbeit
-ein einziger Aspekt tragend: die schrittweise Reduktion der räumlichen Auflösung,
-klassisch durch Pooling, in modernen Architekturen überwiegend durch Faltungen
-mit Schrittweite $s=2$. Nach $L$ solchen Stufen beträgt der Gesamtschritt
-\[
-  S=\prod_{\ell=1}^{L}s_\ell ,
-\]
-bei ausschließlich halbierenden Stufen also $S=2^L$. Eine Merkmalsebene mit
-Gesamtschrittweite $S$ besitzt Gitterpositionen im Abstand von $S$ Bildpixeln;
-ein Objekt der charakteristischen Größe $d$ wird auf ihr folglich nur durch
-etwa $d/S$ Positionen über seine Ausdehnung repräsentiert. Mit abnehmendem
-$d/S$ stehen dem Detektor immer weniger Positionen zur Verfügung, um das Objekt
-zu lokalisieren und ihm positive Trainingszuweisungen zuzuordnen; die genaue
-Grenze hängt zusätzlich vom Zuweisungsverfahren und von der Lage des Objekts
-relativ zum Gitter ab. Für sehr kleine Objekte wird dieser Verlust an
-Ortsinformation damit kritisch -- der Grund für mehrere Detektionsebenen und
-der Ausgangspunkt der gesamten folgenden Argumentation. Quantifiziert wird er
-in Abschnitt~\ref{subsec:kleine-objekte}.
+\absatz{Stride und Objektgröße.} Für diese Arbeit ist vor allem ein
+Aspekt wichtig: Das Netz verringert die räumliche Auflösung schrittweise, früher
+meist durch Pooling, heute überwiegend durch Faltungen mit Stride $s=2$.
+Die \emph{Schrittweite} (engl.\ \emph{stride}) gibt an, um wie viele Pixel das
+Filterfenster zwischen zwei Auswertungen weiterrückt. Bei $s=1$ wird der Kernel
+an jeder Position ausgewertet, und die Ausgabe ist bei passender Randauffüllung
+so groß wie die Eingabe. Bei $s=2$ wird nur jede zweite Position in Zeilen- und
+Spaltenrichtung ausgewertet, Breite und Höhe der Ausgabe halbieren sich also.
+Allgemein hat die Ausgabe einer Schicht mit Kernelgröße $k$, Randauffüllung $p$
+und Stride $s$ bei einer Eingabebreite $W$ die Breite
+$\lfloor (W+2p-k)/s \rfloor + 1$ \parencite{dumoulin2016}; mit den üblichen
+Werten $k=3$ und $p=1$ werden bei $s=2$ aus 1024 Positionen 512.
+
+Die Strides hintereinanderliegender Stufen multiplizieren sich. Nach
+$\ell$ halbierenden Stufen liegen benachbarte Positionen der Merkmalskarte
+deshalb $S = 2^{\ell}$ Bildpixel auseinander. Dieser Abstand wird
+ebenfalls als \emph{Stride} der Merkmalsebene bezeichnet. Ein Objekt mit
+Durchmesser $d$ überspannt auf einer solchen Ebene nur etwa $d/S$ Positionen;
+je kleiner dieses Verhältnis ist, desto weniger Positionen hat der Detektor, um
+das Objekt zu lokalisieren. Dieses Verhältnis steht im Mittelpunkt der weiteren
+Überlegungen und wird in Abschnitt~\ref{subsec:kleine-objekte} berechnet.
 
 \section{YOLO26}
 \label{sec:yolo26}
 
-\subsection{Einordnung}
+\absatz{Einordnung.} Die YOLO-Familie (\enquote{You Only Look Once}) wurde als
+einstufiger Echtzeitdetektor eingeführt \parencite{redmon2016};
+Abschnitt~\ref{sec:vorarbeiten} ordnet sie in die übrigen Verfahren ein. YOLO26
+wurde im September 2025 vorgestellt. Von seinen Neuerungen ist für diese Arbeit
+vor allem eine wichtig: Ein zweiter Detektionskopf mit Eins-zu-eins-Zuordnung
+(Dual-Head-Design) macht die Inferenz NMS-frei, sodass überlappende Vorhersagen
+nicht mehr nachträglich aussortiert werden müssen
+\parencite{jocher2026yolo26,sapkota2025}.
 
-Die YOLO-Familie (\enquote{You Only Look Once}) wurde als einstufiger Echtzeit-Objektdetektor eingeführt \parencite{redmon2016}. Die Weiterentwicklung durch Ultralytics führte unter anderem zu ankerfreien und entkoppelten Detektionsköpfen. YOLO26 wurde im September 2025 vorgestellt und kombiniert mehrere Änderungen gegenüber früheren YOLO-Architekturen, darunter ein Dual-Head-Design für NMS-freie Inferenz, der Wegfall der Distribution Focal Loss, ProgLoss in Verbindung mit Small-Target-Aware Label Assignment (STAL) sowie der MuSGD-Optimierer \parencite{jocher2026yolo26,sapkota2025}.
+\absatz{Aufbau.}\label{sec:neck} YOLO26 besteht wie die meisten aktuellen
+Detektoren aus drei Teilen: Backbone, Neck und Head. Das Backbone berechnet die
+Merkmale und halbiert dabei mehrmals die räumliche Auflösung. Aus einer Eingabe
+von $1024\times1024$ Pixeln entstehen so Merkmalskarten mit $512\times512$,
+$256\times256$, $128\times128$, $64\times64$ und $32\times32$ Positionen. Je
+tiefer die Ebene, desto gröber ist ihr Gitter und desto mehr Merkmalskanäle hat
+jede Position.
 
-Für die vorliegende Arbeit sind insbesondere die Änderungen relevant, die mit der Erkennung kleiner Objekte und der Verarbeitung dicht gepackter Instanzen zusammenhängen. STAL adressiert die Zuweisung von Trainingspositionen bei kleinen Objekten, während die NMS-freie Inferenz die nachgelagerte Unterdrückung überlappender Vorhersagen vermeidet \parencite{jocher2026yolo26,sapkota2025}.
+Der Neck führt die Merkmale der verschiedenen Ebenen wieder zusammen, nach dem
+Vorbild von Feature Pyramid Networks (FPN) \parencite{lin2017fpn} und Path
+Aggregation Networks (PAN) \parencite{liu2018panet}. Dabei werden die inhaltlich aussagekräftigen Merkmale
+tiefer Ebenen hochskaliert und mit den ortsgenaueren Merkmalen früherer Ebenen
+kombiniert. Ein zweiter Pfad gibt umgekehrt Information von den feinen an die
+groben Ebenen weiter.
 
-\subsection{Backbone, Neck, Head und die Merkmalspyramide}
-YOLO26 lässt sich konzeptionell in die drei Bestandteile Backbone, Neck und Head gliedern. Das Backbone extrahiert hierarchische Merkmale und reduziert dabei schrittweise die räumliche Auflösung. Bei einer Eingabe von \(1024\times1024\) Pixeln entstehen durch Stride-2-Operationen beispielsweise Merkmalsebenen mit räumlichen Auflösungen von \(512\times512\), \(256\times256\), \(128\times128\), \(64\times64\) und \(32\times32\) Pixeln. Mit zunehmender Tiefe sinkt damit die räumliche Auflösung, während die Merkmalsdimension zunimmt.
+Der Kopf arbeitet dadurch auf mehreren Ebenen, die jeweils für einen anderen
+Größenbereich zuständig sind. Die Standardkonfiguration verwendet P3, P4 und P5
+mit den Strides $S\in\{8,16,32\}$. Die Ziffer im Namen ist der
+Exponent: Ebene P$\ell$ hat den Stride $S=2^{\ell}$
+\parencite{lin2017fpn}. Für kleine Objekte kann zusätzlich eine feinere
+P2-Ebene mit $S=4$ verwendet werden. Abbildung~\ref{abb:pyramide} zeigt die
+Gittergrößen bei einer Eingabe von $1024\times1024$ Pixeln. P2 allein hat mehr
+Positionen als P3, P4 und P5 zusammen. Wichtig ist aber nicht diese Zahl,
+sondern der kleinere Stride, mit dem kleine Objekte feiner abgetastet werden.
 
-Der Neck führt Merkmale verschiedener Auflösungsstufen wieder zusammen. Hierzu werden Prinzipien von Feature Pyramid Networks (FPN) und Path Aggregation Networks (PAN) eingesetzt \parencite{lin2017fpn}. Semantisch reichhaltige Merkmale tiefer Ebenen werden auf höhere räumliche Auflösungen gebracht und mit früheren, ortsgenaueren Merkmalen kombiniert. Umgekehrt können Informationen aus feineren Ebenen wieder in tiefere Ebenen einfließen.
+Der Head besteht nur aus Faltungen und sagt an jeder Position jeder Ebene zwei
+Größen vorher: eine Klassenkonfidenz, hier also, wie wahrscheinlich an dieser
+Stelle eine Stirnfläche liegt, und die Lage der zugehörigen Box. Beides
+berechnet er in getrennten Zweigen mit eigenen Gewichten, er ist also
+\emph{entkoppelt} \parencite{ge2021yolox}. Außerdem ist er \emph{ankerfrei}:
+Statt Korrekturen zu vorgegebenen Ankerboxen sagt jede Gitterposition direkt die
+Abstände von ihrem Mittelpunkt zu den vier Rändern der Box vorher
+\parencite{tian2019fcos}.\footnote{Die Ultralytics-Implementierung nennt diese
+Gitterpositionen dennoch \code{anchor points}; \enquote{ankerfrei} bezieht sich
+auf das Fehlen vorgegebener Referenz\emph{boxen}.} Je Position gibt es damit
+genau eine Vorhersage. Wie viele Vorhersagen für ein Objekt in Frage kommen,
+hängt dann nur noch vom Gitter der Merkmalsebene ab, in erster Näherung von der
+Zahl der Gitterpositionen, die in das Objekt fallen. Diese Zahl hängt über den
+Stride von der Objektgröße ab (Abschnitt~\ref{sec:cnn}) und wird in
+Abschnitt~\ref{subsec:kleine-objekte} berechnet.
 
-Der Detektionskopf erhält dadurch mehrere Merkmalsebenen, die unterschiedliche Objektgrößen abdecken. Die Standardkonfiguration verwendet die Ebenen P3, P4 und P5 mit den Gesamtschrittweiten
-
-\[
-S\in\{8,16,32\}.
-\]
-
-Für kleine Objekte kann zusätzlich eine feinere P2-Ebene mit
-
-\[
-S=4
-\]
-
-verwendet werden.
-
-Bei einer Eingabe von $1024\times1024$ Pixeln ergeben sich daraus die in
-Abbildung~\ref{abb:pyramide} gegenübergestellten Gittergrößen. Die P2-Ebene
-enthält dabei allein mehr räumliche Positionen als P3, P4 und P5 zusammen; ihre
-Bedeutung liegt jedoch nicht in dieser Zahl, sondern in der geringeren
-Schrittweite und damit der feineren räumlichen Repräsentation kleiner Objekte.
-
-Der Head ist vollständig faltungsbasiert. Die Klassifikation und die Boxregression werden dabei in getrennten Zweigen verarbeitet. Der Detektor ist zudem ankerfrei: Vorhersagen werden direkt für räumliche Positionen der Merkmalsebenen erzeugt, anstatt eine feste Menge vorgegebener Ankerboxen zu verwenden \parencite{tian2019fcos}. Damit wird die räumliche Struktur der verwendeten Merkmalsebenen unmittelbar für die Detektion relevant.
+\absatz{Die P2-Ebene.}\label{sec:p2kopf} Alle Modelle dieser Arbeit verwenden
+die Konfiguration \code{yolo26s-p2}. Bei ihr führt der Neck den Weg zu den
+feineren Ebenen bis P2 statt nur bis P3 fort. Der Kopf arbeitet dadurch auf
+vier statt drei Ebenen, und die feinste hat mit $S=4$ die doppelte räumliche
+Auflösung. Was das für kleine Objekte bedeutet, rechnet
+Abschnitt~\ref{subsec:kleine-objekte} vor, was es an Rechenaufwand und Speicher
+kostet, Abschnitt~\ref{sec:trainingsaufbau}.
 
 \begin{figure}[htbp]
 \centering
@@ -109,95 +134,36 @@ Der Head ist vollständig faltungsbasiert. Die Klassifikation und die Boxregress
   \draw[-{Latex[length=1.6mm]},gray!60!black] (10.35,2.3) -- (10.35,1.6);
 \end{tikzpicture}
 \caption[Merkmalsebenen des Detektionskopfes]{Merkmalsebenen des
-Detektionskopfes bei einer Eingabe von $1024\times1024$ Pixeln. Die
+Detektionskopfes bei einer Eingabe von $1024\times1024$ Pixeln; die
 Seitenlänge der Quadrate ist proportional zur Gittergröße. Jede Zelle einer
-Ebene mit Schrittweite $S$ entspricht einem Bildbereich von $S \times S$ Pixeln
-und sagt Boxkoordinaten sowie Klassen-Scores vorher. Die Standardkonfiguration
-nutzt \textbf{P3--P5}; die hier trainierten Modelle verwenden zusätzlich die
-links rot gestrichelt eingezeichnete Ebene \textbf{P2} mit Schrittweite~4. Die
-Abbildung zeigt zugleich, warum diese eine Ebene so stark ins Gewicht fällt: P2
-allein enthält mehr Prädiktionspositionen als P3, P4 und P5 zusammen. Diese
-Abhängigkeit von der Schrittweite untersucht
-Abschnitt~\ref{subsec:kleine-objekte} als Kern des Auflösungsproblems.}
+Ebene mit Stride $S$ entspricht einem Bildbereich von $S \times S$
+Pixeln. Die Standardkonfiguration nutzt \textbf{P3--P5}, die hier trainierten
+Modelle zusätzlich die rot gestrichelte Ebene \textbf{P2} mit Stride~4.}
 \label{abb:pyramide}
 \end{figure}
 
 
-\subsection{Der P2-Detektionskopf}
-\label{sec:p2kopf}
-
-Alle in dieser Arbeit trainierten Modelle verwenden die Konfiguration
-\code{yolo26s-p2}. Sie führt den Aufwärtspfad des Necks nicht nur bis P3,
-sondern bis zur P2-Ebene fort; der Detektionskopf erhält dadurch vier statt drei
-Eingangsmerkmalsebenen und mit $S=4$ die doppelte räumliche Auflösung der
-feinsten Ebene.
-
-Der Nutzen folgt unmittelbar aus dem Verhältnis $d_{\mathrm{eff}}/S$ aus
-effektiver Objektgröße und Schrittweite: Die erwartete Zahl der Gitterzentren
-innerhalb eines kreisförmigen Objekts wächst mit $(d_{\mathrm{eff}}/S)^2$
-(Gleichung~\eqref{eq:gridcount}, hergeleitet in
-Abschnitt~\ref{subsec:kleine-objekte}), eine Halbierung der Schrittweite
-vervierfacht sie also. Bei einem Objekt von 12,0\px{} -- dem 5\,\%-Quantil des
-erzeugten Datensatzes, das bei der Trainingsauflösung unskaliert in das Netz
-eingeht -- sind das 1,8 Positionen auf P3 gegenüber 7,1 auf P2;
-im ungünstigsten Fall enthält ein solches Objekt auf P3 gar keine
-Gitterposition.
-
-Erkauft wird das nicht mit Modellgröße: \code{yolo26s-p2} hat mit
-9\,663\,464 Parametern sogar 2,9\,\% weniger als die Basiskonfiguration, und der
-Rechenaufwand steigt bei $640\times640$ nur von 22,7 auf 26,6~GFLOPs. Der Mehraufwand
-fällt beim Speicher an: Die viermal feinere P2-Karte hob den Bedarf in den
-eigenen Läufen bei \code{imgsz}=1024 und Batch~8 von etwa 6 auf etwa 12~GB.
-
-Der P2-Kopf ist bewusst \emph{keine} experimentelle Variable, sondern eine
-konstante architektonische Randbedingung aller Läufe. Ein Detektor, dem die
-Auflösung fehlt, übersieht kleine Objekte unabhängig von der Qualität seiner
-Trainingsdaten; jede Verbesserung der Datenerzeugung würde dann teilweise nur
-eine Architekturschwäche kompensieren, und der gemessene Effekt wäre nicht der
-Effekt der Daten. Die Ablation in Kapitel~\ref{kap:auswertung} verwendet deshalb
-die feiner aufgelöste Variante -- nicht, um die Ergebnisse zu verbessern,
-sondern um die Störgröße zu entfernen, die den Datengewinn sonst überlagert.
-
 \section{Anwendung auf gestapelte Bauzaunprofile}
 \label{sec:anwendung}
 
-Die vorliegende Aufgabe besteht in der Detektion von Rohrstirnflächen in
-gestapelten Bauzaunprofilen; ein YOLO-Modell wird dazu von vortrainierten
-Gewichten auf eine einzelne Objektklasse feinabgestimmt \parencite{yosinski2014}.
-Sie unterscheidet sich von vielen klassischen Detektionsproblemen durch drei
-Eigenschaften, die je einen anderen Teil der Untersuchung bestimmen.
+Detektiert wird eine einzige Klasse, die Stirnflächen der Rahmenrohre. Von
+vielen üblichen Detektionsaufgaben unterscheidet sich diese Aufgabe durch drei
+Eigenschaften, die jeweils einen anderen Teil der Untersuchung bestimmen.
 
-\absatz{Kleine Objekte.} Die Stirnflächen besitzen nur wenige Pixel
-Durchmesser, sodass die effektive Objektgröße nach der Skalierung auf die
-Netzeingabe zum zentralen Parameter wird
-(Gleichung~\eqref{eq:deff}, Abschnitt~\ref{subsec:kleine-objekte}). Die Wahl des
-P2-Kopfes und die später vermessene Inferenzauflösung folgen demselben
-geometrischen Grundprinzip: Das Verhältnis aus effektiver Objektgröße und
-Feature-Stride muss ausreichend groß sein. Die eine Größe senkt den Nenner, die
-andere hebt den Zähler.
+\absatz{Kleine Objekte.} Die Stirnflächen sind nur wenige Pixel groß. Der
+P2-Kopf und die später untersuchte Inferenzauflösung setzen deshalb am selben
+Verhältnis $d_{\mathrm{eff}}/S$ an (Abschnitt~\ref{subsec:kleine-objekte}):
+Der P2-Kopf verkleinert den Nenner, eine höhere Auflösung vergrößert den
+Zähler.
 
-\absatz{Hohe Objektdichte.} Die Profile liegen dicht nebeneinander, ihre
-Bounding Boxes überlappen entsprechend stark. Bei klassischer NMS entsteht
-daraus ein Zielkonflikt -- ein niedriger Schwellenwert unterdrückt tatsächlich
-verschiedene Profile, ein hoher belässt Duplikate. Die NMS-freie Inferenz
-von YOLO26 vermeidet diese nachgelagerte Entscheidung, beseitigt aber nicht die
-eigentliche Schwierigkeit: Das Modell muss eng benachbarte, teilweise
-überdeckte Instanzen weiterhin unterscheiden können.
+\absatz{Hohe Objektdichte.} Die Profile liegen dicht nebeneinander, und ihre
+Boxen überlappen entsprechend stark. Für klassische NMS ist das ein Dilemma: Ein
+niedriger Schwellenwert unterdrückt auch echte Nachbarobjekte, ein hoher behält
+Duplikate bei. Die NMS-freie Inferenz von YOLO26 umgeht diese Entscheidung.
+Die eigentliche Schwierigkeit bleibt aber, denn das Modell muss eng
+benachbarte, teilweise verdeckte Objekte weiterhin voneinander unterscheiden.
 
 \absatz{Verdeckung.} Verkippte Zäune verdecken benachbarte Stirnflächen
-teilweise; Gitterknoten, Maschenöffnungen und Schattenspalten erzeugen
-zusätzlich Strukturen, die einer Stirnfläche ähneln. Verdeckung ist damit keine
-künstliche Störung zur Regularisierung, sondern regulärer Bestandteil der
-Zieldomäne, und die Trainingsdaten müssen sie in plausibler Form abbilden. Dabei
-ist zwischen der \emph{Menge} der Verdeckung und ihrer \emph{visuellen
-Realistik} zu unterscheiden -- eine Unterscheidung, die in
-Abschnitt~\ref{sec:ablationB} zur einzigen kontrollierten Ablation dieser Arbeit
-wird.
-
-Die Architektur wird über alle Läufe konstant gehalten, damit die Ablationen den
-Einfluss der Trainingsdaten und nicht den eines mitvariierenden
-Architekturparameters messen. Umgekehrt muss die Datengenerierung die räumlichen
-Grenzen dieser Architektur berücksichtigen: Bessere Trainingsdaten können eine
-unzureichende räumliche Auflösung nicht kompensieren. Die Betrachtung von
-Objektgröße und Feature-Stride bildet damit die Grundlage für die in
-Kapitel~\ref{kap:augtheorie} formulierten Anforderungen an die Datengenerierung.
+teilweise, und Gitterknoten, Maschenöffnungen und Schattenspalten sehen einer
+Stirnfläche ähnlich. Verdeckung gehört damit zur Zieldomäne, und die
+Trainingsdaten müssen sie realistisch abbilden.

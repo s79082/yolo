@@ -60,7 +60,7 @@ def background_report():
     print("=" * 78)
     print("HINTERGRUENDE")
     print("=" * 78)
-    for f in sorted(glob.glob("bg/*")):
+    for f in sorted(p for p in glob.glob("bg/*") if os.path.isfile(p)):
         im = cv2.imread(f, cv2.IMREAD_COLOR)
         h, w = im.shape[:2]
         g = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)

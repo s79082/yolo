@@ -3,46 +3,42 @@
 \markboth{Kurzfassung}{Kurzfassung}
 \thispagestyle{plain}
 
-An gestapelten mobilen Bauzaunfeldern sind die Stirnflächen der Rahmenrohre zu
-detektieren: kleine, nahezu identische Kreisringe in dichter Packung und
-wechselseitiger Verdeckung. Annotierte Datensätze liegen nicht vor, und die
-Handannotation hunderter Kleinobjekte je Bild ist aufwendig. Die Arbeit
-umgeht diese Abhängigkeit: Trainiert wird \emph{ausschließlich} auf
-synthetischen Bildern aus neun freigestellten Objektausschnitten und sieben
-Hintergrundaufnahmen, validiert und getestet auf realen Aufnahmen.
+Mobile Bauzaunfelder werden auf Baustellen und in Mietparks liegend gestapelt.
+Ein Foto der Stirnseite wäre der naheliegende Weg, einen solchen Stapel
+automatisch zu erfassen, doch jede Auswertung beginnt mit einer scheinbar
+einfachen Aufgabe: die Enden der Rahmenrohre im Bild zu finden. Für einen
+Objektdetektor ist sie jedoch anspruchsvoll: Rund hundert nahezu identische
+Kreisringe von 6 bis 36 Pixeln Durchmesser liegen dicht gepackt, verdecken sich
+gegenseitig und ähneln Gitterknoten und Maschenöffnungen. Vor allem aber gibt
+es keine annotierten Trainingsbilder, und hunderte Bilder mit je rund hundert
+kleinen Boxen von Hand zu beschriften, ist im Rahmen einer
+Abschlussarbeit nicht leistbar.
 
-Der methodische Schwerpunkt verlagert sich damit von der Netzarchitektur auf
-die \textbf{Augmentierungs- und Synthese-Pipeline}, die die Trainingsverteilung
-vollständig erzeugt. Aus den theoretischen Grundlagen der Datenaugmentierung --
-Invarianzkodierung, Rauschregularisierung, Shortcut-Vermeidung -- wird eine
-Begründungspflicht abgeleitet: Jeder Parameter stützt sich auf eine gemessene
-Eigenschaft der Realdaten, eine \emph{physikalische Randbedingung} oder ein
-\emph{Literaturargument}; andernfalls wird er als \emph{Annahme} ausgewiesen. Die Pipeline umfasst 37 Transformationen mit 44
-Parameterwerten; davon sind 8 gemessen, 8 literaturgestützt, 3 physikalisch
-begründet, 10 gemischt und \textbf{15 als Annahme gekennzeichnet}. Auf zwei
-realen Aufnahmen erreicht das Verfahren \mAPfifty{} von \textbf{\zrefValMap}
-und \textbf{\zrefTestMap} bei bestem $F_1$ von \zrefValFf{} und
-\zrefTestFf; \code{test} geht weder in Training noch Modellauswahl ein. Der
-Sim-to-Real-Abstand zum synthetischen Validierungssplit beträgt \zsimRealVal{}
-bzw.\ \zsimRealTest\PP.
+Deshalb wird der Detektor in dieser Arbeit \emph{ausschließlich} mit
+synthetischen Bildern trainiert, die aus nur sechs ausgeschnittenen Rohrenden
+und sieben Hintergrundaufnahmen zusammengesetzt sind. Die
+\textbf{Synthese-Pipeline} erweitert also keinen vorhandenen Datensatz, sie
+erzeugt ihn selbst und legt damit die gesamte Trainingsverteilung fest.
+Entsprechend streng wird sie begründet: Jeder ihrer
+Parameter stützt sich auf eine Messung an den Realdaten, eine physikalische
+Randbedingung oder die Literatur oder ist ausdrücklich als Annahme ausgewiesen.
+Auf einem realen Testbild, das weder im Quellmaterial vorkommt noch zur
+Modellauswahl dient, erreicht der Detektor ein \mAPfifty{} von
+\textbf{\zrefTestMap}.
 
-Überprüft wird die Pipeline an ihrer aufwendigsten Stufe, der Verdeckung: Die
-aus Realaufnahmen geschnittene Okkluder-Bibliothek wird durch zwei prozedurale ersetzt, eine an ihr kalibrierte und eine naive. Alle drei Datensätze
-entstammen demselben Seed; ihre Labeldateien sind byte-identisch -- ein
-gepaarter Versuch, in dem allein die Verdeckerpixel variieren. Ein naiv gezeichneter grauer
-Balken senkt auf dem unberührten Testbild
-\mAPfifty{} um \textbf{\zablBTestGap\PP{}} und $F_1$ um \zablBTestGapFf\PP{} --
-nahezu vollständig im kleinsten Objektdrittel, dessen Rückruf von
-\zBZeroTestRecKlein{} auf \zBTwoTestRecKlein{} sinkt. Ein an fünf Kennwerten kalibriertes Zylindermodell erreicht dagegen dieselbe Leistung wie
-die photographische Bibliothek: Maßgeblich ist nicht die \emph{Herkunft} der
-Verdeckerpixel, sondern die Übereinstimmung ihrer Statistik mit der Umgebung.
-
-Der größte Einzeleffekt geht nicht auf die Augmentierung zurück,
-sondern auf die Inferenzauflösung: \mAPfifty{} auf \code{val} steigt von
-\zswValNiedrig{} bei 640\px{} auf \zswValBest{} (\zswValGain\PP). Ein
-systematischer Größenversatz von \zboxValOff{} bis \zboxTestOff\px{} zwischen
-Generatorlabel und Handannotation erklärt zudem den niedrigen
-\mAPseven{}-Wert; eine Sensitivitätsrechnung hebt ihn von
-\zsensTestMapSOrig{} auf \zsensTestMapSNeu{}, ohne \mAPfifty{} und $F_1$ zu
-verändern. Bei programmatisch erzeugten Labels wird die Labelkonvention selbst zur
-messbaren Größe.
+Welche Eigenschaften der Synthese entscheidend sind, zeigt erst die Auswertung
+auf realen Bildern.
+Werden die eingefügten Objekte nicht in ihre Umgebung eingebettet -- keine
+weiche Kante, kein Angleich von Farbe, Schärfe und Rauschen, kein Schatten,
+keine variable JPEG-Kompression --, verliert der Detektor in einer Ablation mit
+je einem Trainingslauf auf dem Testbild rund 14 Prozentpunkte \mAPfifty{}. Auf
+den synthetischen Validierungsbildern zeigt sich dieser Verlust kaum, und auch
+auf dem zweiten Realbild, das aus derselben Aufnahmeserie stammt wie die
+Objektausschnitte, bleibt der Unterschied innerhalb der Messunsicherheit: Eine
+Prüfung allein an den synthetischen Bildern deckt ihn nicht auf.
+Am stärksten wirkt die Objektgröße im Netzeingang, die der Größenbereich des
+Generators und die Inferenzauflösung gemeinsam festlegen; ist die Auflösung zu
+niedrig, bricht die Detektion ein. Bei Objekten dieser Größe wird zudem die
+genaue Lage der Boxgrenzen zur messbaren Einflussgröße: Der
+Generator legt seine Boxen um rund zwei Pixel enger als die Handannotation, und
+das erklärt einen großen Teil der niedrigen Werte bei strengen IoU-Schwellen.

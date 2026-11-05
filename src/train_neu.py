@@ -38,7 +38,7 @@ import train as T                                       # noqa: E402
 
 from ultralytics import YOLO                            # noqa: E402
 
-PROJECT = os.path.join(ROOT, "neu", "runs")
+PROJECT = os.path.join(ROOT, "runs")
 
 # Abweichungen gegenueber src/train.py -- Wert und Begruendung, damit sie in
 # parameter_begruendung.md des jeweiligen Laufs mitgeschrieben werden.

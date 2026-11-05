@@ -22,11 +22,10 @@
 \label{sec:trainingsaufbau}
 
 \absatz{Datenaufteilung.} Trainiert wird auf synthetischen Bildern, validiert
-auf dem \emph{realen} \code{val}-Bild (98 Objekte). Das ist eine bewusste
-Entscheidung: Die Modellauswahl muss auf der Zieldomäne erfolgen; andernfalls
-fiele die Wahl auf das Modell, das am besten zu den eigenen Renderartefakten
-passt. \code{test}
-(89 Objekte) berührt Training und Modellauswahl nie und dient ausschließlich der
+auf dem \emph{realen} \code{val}-Bild (98 Objekte). Diese Aufteilung ist
+beabsichtigt: Die Modellauswahl muss auf der Zieldomäne erfolgen, sonst fiele die Wahl auf das
+Modell, das am besten zu den eigenen Renderartefakten passt. \code{test}
+(89 Objekte) dient ausschließlich der
 Endbewertung. Ein vierter Split \code{sval} aus 400 synthetischen Bildern mit
 anderem Seed dient allein der Messung des Sim-to-Real-Abstands
 (Abschnitt~\ref{sec:simtoreal}).
@@ -38,175 +37,198 @@ die nicht zu vermischen sind (Tabelle~\ref{tab:budgets}). Das
 werden (Abschnitt~\ref{sec:hauptergebnis}). Die \textbf{Ablationsarme} nutzen
 jeweils 3000~Bilder und 30~Epochen. Dieses kleinere Budget ist eine Konzession an
 die Rechenzeit -- mehrere Läufe statt einem --, und es ist \emph{für alle Arme
-identisch}. Es begrenzt damit die absolute Höhe der Ablationszahlen, nicht ihren
-Vergleich untereinander; Ablationszahlen sind deshalb ausschließlich mit
-Ablationszahlen zu vergleichen, nie mit denen des Referenzmodells.
+identisch}. Es begrenzt damit vor allem die absolute Höhe der Ablationszahlen;
+Ablationszahlen sind deshalb ausschließlich mit Ablationszahlen zu vergleichen,
+nie mit denen des Referenzmodells. Den Vergleich der Arme untereinander lässt es
+unverzerrt, solange beide ähnlich schnell konvergieren
+(Abschnitt~\ref{sec:grenzen}).
 
 \begin{table}[htbp]
 \centering
 \caption[Die beiden Trainingsbudgets]{Die beiden Trainingsbudgets. Alles, was
-nicht genannt ist, ist identisch: Architektur, Optimierer, Lernratenplan,
-Verlustgewichte, Trainingszeit-Augmentierung, Seed, Validierungssplit.}
+nicht genannt ist, ist identisch konfiguriert: Architektur, Optimierer,
+Lernratenplan, Verlustgewichte, Trainingszeit-Augmentierung, Seed,
+Validierungssplit. Kosinusabfall und Mosaic-Abschaltung richten sich dabei
+nach dem Epochenbudget und wirken deshalb in den beiden Budgets zu
+verschiedenen Zeitpunkten.}
 \label{tab:budgets}
 \footnotesize
 \begin{tabular}{@{}lcc@{}}
 \toprule
- & \textbf{Referenzmodell} & \textbf{Ablationsarme (3$\times$)} \\
+ & \textbf{Referenzmodell} & \textbf{Ablationsarme (2$\times$)} \\
 \midrule
 Trainingsbilder & 6000 & 3000 \\
 Epochenbudget & 60 (\code{patience}~20) & 30 (\code{patience}~20) \\
-tatsächlich gelaufen & \zrefEpochen{} (bestes Modell: \zrefBestEpoche) & 30 \\
+tatsächlich gelaufen & \zrefEpochen{} (bestes Modell: \zrefBestEpoche) &
+30 (bestes Modell: \zCZeroBestEpoche{} bzw.\ \zCOneBestEpoche) \\
+Mosaic abgeschaltet ab Epoche & \zrefMosaicAb{} (nicht erreicht) &
+\zCZeroMosaicAb \\
+Lernrate am Ende (Anteil an $\text{lr}_0$) & \zrefLrEnde\,\% &
+\zCZeroLrEnde\,\% \\
 Batch & 8 & 8 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 Der Referenzlauf endete durch Early Stopping nach \zrefEpochen{} von
-60~Epochen; das beste Modell stammt aus Epoche~\zrefBestEpoche. Die Batchgröße
+60~Epochen; das beste Modell stammt aus Epoche~\zrefBestEpoche{}
+(Verlauf in Abschnitt~\ref{sec:trainingsverlauf}). Die Batchgröße
 ist nicht gewählt, sondern erzwungen: Mit Batch~16 überschritt die
 $256\times256$ große P2-Merkmalskarte bei \code{imgsz}=1024 wiederholt den
 freien Speicher der verwendeten Karte, und der Ausweichpfad auf die CPU macht
 die Läufe von der momentanen Fremdlast abhängig und damit unvergleichbar
-(Speicherwerte in Abschnitt~\ref{sec:anhangbericht}).
+(Belegung der Karte in Abschnitt~\ref{sec:anhangrepro}).
 
 \absatz{Modellwahl.} Durchgängig verwendet wird \code{yolo26s-p2} mit
-9,66~Millionen Parametern. Die \emph{Größe} \enquote{s} folgt aus der Datenlage:
-Der Datensatz hat eine Klasse und nur neun zugrunde liegende Objektinstanzen, die
-Formvielfalt ist klein, die nötige Modellkapazität damit ebenfalls; die
-\enquote{nano}-Variante verliert bei 12--40\px{} großen Objekten Rückruf, größere
-Varianten würden die synthetischen Eigenheiten eher memorieren
-\parencite{zhang2017rethinking}. Der \emph{P2-Kopf}
-folgt aus der Auflösungsrechnung in Abschnitt~\ref{sec:p2kopf}: Er senkt die
-Schrittweite der feinsten Detektionsebene von 8 auf 4 und damit die in
-Gleichung~\eqref{eq:gridmiss} beschriebene kritische Größe $S\sqrt{2}$ von 11,3
-auf 5,7\px{} -- bei nativem Maßstab damit unter alle in \code{val} und
-\code{test} auftretenden Objektgrößen. Er kostet dabei keine Parameter -- die \code{-p2}-Variante hat
-sogar 2,9\,\% weniger als das Basismodell --, sondern Speicher.
+9,66~Millionen Parametern. Die \emph{Größe} \enquote{s} ist gesetzt und nicht
+durch einen Vergleich bestimmt; kleinere oder größere Varianten wurden nicht
+trainiert. Begründet ist sie allein mit der Datenlage: Der Datensatz hat nur
+eine Klasse und sechs zugrunde liegende Objektinstanzen, die Formvielfalt ist
+also klein, und tiefe Netze haben genug Kapazität, um selbst zufällige Labels
+zu memorieren \parencite{zhang2017rethinking}. Dass ein größeres Modell
+deshalb die synthetischen Eigenheiten eher lernt und schlechter auf reale Bilder
+überträgt, ist eine Annahme. Der \emph{P2-Kopf} folgt aus der
+Auflösungsrechnung in Abschnitt~\ref{subsec:kleine-objekte}. Er halbiert den
+Stride der feinsten Detektionsebene von 8 auf 4 und senkt damit die kritische Größe
+$S\sqrt{2}$ aus Gleichung~\eqref{eq:gridmiss} von 11,3 auf 5,7\px. Beim nativen
+Maßstab liegt sie damit unter allen Objektgrößen in \code{val} und \code{test}.
+Entscheidend ist dabei der Faktor vier in der Zahl der Gitterpositionen je
+Objekt; dass ein Objekt ganz ohne Position bleibt, verhindert die
+Labelzuweisung der Werkzeugkette auch ohne P2-Kopf
+(Abschnitt~\ref{subsec:kleine-objekte}). Die Parameterzahl erhöht der P2-Kopf
+nicht, die \code{-p2}-Variante hat 2,9\,\% weniger Parameter als das
+Basismodell, und der Rechenaufwand steigt bei $640\times640$ nur von 22,7 auf
+26,6~GFLOPs. Deutlich steigt dagegen der Speicherbedarf: Die P2-Karte hat
+viermal so viele Positionen wie P3 und hob ihn in den eigenen Läufen bei
+\code{imgsz}=1024 und Batch~8 von etwa 6 auf etwa 12~GB.
 
-Ausgangspunkt sind COCO-vortrainierte Gewichte: Die vortrainierten
-Low-Level-Filter sind domänenunabhängig \parencite{yosinski2014}, und
-\textcite{hinterstoisser2018} zeigen den Nutzen explizit für synthetische
-Trainingsdaten. Weil die \code{-p2}-Variante über eine Architekturdatei und nicht
-über einen fertigen Checkpoint definiert ist, werden die Gewichte nur
-\emph{partiell} übernommen; die zusätzlichen Blöcke der P2-Ebene sind zufällig
-initialisiert.
+Ausgangspunkt sind COCO-vortrainierte Gewichte. Die vortrainierten Filter der
+ersten Schichten sind weitgehend domänenunabhängig \parencite{yosinski2014}.
+Für Detektoren, die nur auf synthetischen Bildern trainiert werden, zeigen
+\textcite{hinterstoisser2018}, dass vortrainierte Merkmale viel bringen, und zwar
+gerade dann, wenn der Merkmalsextraktor eingefroren bleibt; auf den
+synthetischen Bildern mittrainiert, schnitt er bei ihnen deutlich schlechter ab.
+Diese Arbeit friert keine Schicht ein (\code{freeze} bleibt ungesetzt), und ob
+das Einfrieren auch hier hilft, ist nicht untersucht. Die Ausgangslage
+unterscheidet sich allerdings: Dort sind die synthetischen Bilder einfache
+OpenGL-Renderings, hier bestehen sie aus Ausschnitten und Hintergründen echter
+Fotos. Weil die \code{-p2}-Variante über eine
+Architekturdatei und nicht über einen fertigen Checkpoint definiert ist, werden
+die Gewichte nur \emph{teilweise} übernommen; die zusätzlichen Blöcke der
+P2-Ebene werden zufällig initialisiert.
 
 \absatz{Modellauswahl.} Gespeichert wird der Checkpoint mit der höchsten
-Fitness auf dem realen \code{val}-Bild. Die Werkzeugkette bildet die Fitness als
-gewichtete Summe der beiden Hauptmetriken,
-\begin{equation}
-  F = w_{50}\,\mAPfifty + w_{\text{all}}\,\mAPall ,
-  \qquad w_{50} + w_{\text{all}} = 1 ,
-  \label{eq:fitness}
-\end{equation}
-und verwendet dafür $w_{50} = 0{,}1$ und $w_{\text{all}} = 0{,}9$; diese
-Gewichtung ist deren unveränderte Voreinstellung
-\parencite{ultralyticsdocs}. Festzuhalten bleibt dabei: Diese Validierung
-läuft bei der \emph{Trainings}auflösung \code{imgsz}=1024, während alle
-berichteten Zahlen bei nativem Maßstab gemessen werden (2459 bzw.\ 1600\px,
-vom Netz auf ein Vielfaches von 32 aufgefüllt). Auswahl- und Bewertungsauflösung
-fallen also auseinander. Das ist hinnehmbar, weil die Rangfolge der Epochen von
-der Auflösung kaum abhängt und eine Auswahl bei nativem Maßstab eine zweite
-Validierung je Epoche kosten würde; es ist aber eine Annahme und keine Messung,
-und sie gilt für alle Läufe gleich.
+Fitness auf dem realen \code{val}-Bild. In der verwendeten Version~8.4.117 der
+Werkzeugkette ist die Fitness allein \mAPall{} (\code{Metric.fitness} in
+\code{ultralytics/utils/metrics.py}). Diese Validierung läuft bei der
+\emph{Trainings}auflösung \code{imgsz}=1024, alle berichteten Zahlen werden
+dagegen beim nativen Maßstab gemessen (2459 bzw.\ 1600\px, vom Netz auf ein
+Vielfaches von 32 aufgefüllt). Ausgewählt und bewertet wird also bei
+unterschiedlicher Auflösung und nach unterschiedlicher Kennzahl, denn die
+Leitgröße der Bewertung ist \mAPfifty{} (Abschnitt~\ref{sec:metriken}).
+Vertretbar ist das nur unter der Annahme, dass die Rangfolge der Epochen davon
+kaum abhängt. Geprüft ist sie nicht, denn eine zweite Validierung je Epoche
+hätte viel Rechenzeit gekostet; sie gilt aber für alle Läufe gleichermaßen.
 
-\absatz{Eingabegröße.} \code{imgsz}=1024, identisch zur Leinwandgröße des
-Generators. Damit durchlaufen die synthetischen Bilder \emph{keine} Skalierung
-beim Einlesen, und die Objekte erreichen das Netz mit exakt der Pixelgröße, für
-die die Pipeline ausgelegt ist (Anforderung~A2). Bei 640\px{} wären sie nach
-Gleichung~\eqref{eq:deff} nur noch 7--27\px{} groß und fielen damit über den
-größten Teil ihrer Spanne unter die kritische Größe der P3-Ebene, die ohne
-P2-Kopf die feinste wäre.
+\absatz{Eingabegröße.} Die Eingabegröße \code{imgsz}=1024 entspricht der
+Leinwandgröße des Generators. Die synthetischen Bilder werden beim Einlesen also
+\emph{nicht} skaliert, und die Objekte erreichen das Netz genau in der Größe,
+für die die Pipeline ausgelegt ist (Anforderung~A2).
 
-\absatz{Optimierung.} AdamW \parencite{loshchilov2019} mit
-$\text{lr}_0 = 10^{-3}$ und Kosinusabfall auf 1\,\% davon
-\parencite{loshchilov2017sgdr}, Mixed Precision \parencite{micikevicius2018},
-Verlustgewichte auf den Standardwerten, fester Seed und deterministische Kernel;
-die vollständige Konfiguration steht in Tabelle~\ref{tab:trainaug} im Anhang.
-AdamW ist explizit gesetzt statt \code{auto}, weil kein Budget für eine
-Lernratensuche vorhanden ist. Early Stopping greift nach 20 Epochen ohne
-Verbesserung auf dem realen \code{val}-Bild -- ein bewusst großzügiges Fenster,
-weil die Fitness an knapp hundert Objekten \emph{eines} Bildes gemessen wird und
-entsprechend stark schwankt (Abschnitt~\ref{sec:trainingsverlauf}).
+\absatz{Optimierung.} Trainiert wird mit AdamW \parencite{loshchilov2019},
+Startlernrate $\text{lr}_0 = 10^{-3}$ und Kosinusabfall auf 1\,\% davon
+\parencite{loshchilov2017sgdr}, mit Mixed Precision \parencite{micikevicius2018},
+Standard-Verlustgewichten, festem Seed und deterministischen Kerneln; die
+vollständige Konfiguration steht in Tabelle~\ref{tab:trainaug} im Anhang. AdamW
+ist ausdrücklich gesetzt statt \code{auto}, weil für eine Lernratensuche kein
+Budget vorhanden war. Early Stopping greift nach 20 Epochen ohne Verbesserung
+auf dem realen \code{val}-Bild; warum das Fenster so großzügig ist, zeigt
+Abschnitt~\ref{sec:trainingsverlauf}.
 
 \section{Augmentierungsparameter zur Trainingszeit}
 \label{sec:trainparam}
 
-Die abgeschalteten Parameter sind ebenso begründungspflichtig wie die aktiven --
-ein auf Null gesetzter Standardwert ist eine Entscheidung.
+Auch abgeschaltete Parameter müssen begründet werden, denn einen Standardwert
+auf null zu setzen ist ebenfalls eine Entscheidung.
 
-Aktiv sind Mosaic (immer, in den letzten zehn Epochen abgeschaltet), Skalierung
-um $\pm s$, die einen Faktor aus $[1-s,\,1+s]$ zieht -- mit \code{scale}$\,=s=0{,}4$
-also aus $[0{,}6;\,1{,}4]$, gegenüber der Voreinstellung $s=0{,}5$ der
-Werkzeugkette abgesenkt (Tabelle~\ref{tab:trainaug}) --,
-Translation, horizontale und vertikale Spiegelung sowie HSV-Variation.
+Aktiv sind Mosaic (bei jedem Trainingsbeispiel; abgeschaltet erst in den
+letzten zehn Epochen des Budgets, die der Referenzlauf wegen Early Stopping
+nicht erreicht, Tabelle~\ref{tab:budgets}),
+Skalierung, Translation, horizontale und vertikale Spiegelung sowie
+HSV-Variation. Die Skalierung zieht einen Faktor aus $[1-a,\,1+a]$, mit
+\code{scale}$\,=a=0{,}4$ also aus $[0{,}6;\,1{,}4]$; das ist etwas weniger als
+die Voreinstellung $a=0{,}5$ der Werkzeugkette (Tabelle~\ref{tab:trainaug}).
+
 Abgeschaltet sind \code{degrees}, \code{shear} und \code{perspective}, weil
-Bildrotation achsparallele Boxen nach Gleichung~\eqref{eq:dbox} um den Faktor
-$|\cos\theta|+|\sin\theta|$ aufweitet und die Überlappung mit der korrekten Box
-nach Gleichung~\eqref{eq:iou} auf $1/(1+|\sin 2\theta|)$ senkt -- für
-$\theta = 10^\circ$ sind das 15,8\,\% mehr Kantenlänge und $\IoU = 0{,}745$
-(Abschnitt~\ref{subsec:aabb-rotation}). Abgeschaltet sind ferner \code{mixup}
-und \code{cutmix}, allerdings aus zwei verschiedenen Gründen. \code{mixup}
-überblendet zwei Bilder im Verhältnis $r \approx 0{,}5$ und verkettet
-anschließend beide Labelsätze ungewichtet \parencite{zhang2018mixup}: Jedes
-Objekt erscheint halbtransparent und trägt dennoch ein volles Boxlabel.
-\code{cutmix} setzt den Flicken des zweiten Bildes dagegen gezielt in eine
-Fläche, die keine Box des ersten trifft, und übernimmt aus dem zweiten Bild
-alle Instanzen ab einem Flächenanteil von 10\,\% mit auf den Flicken
-beschnittener Box \parencite{yun2019cutmix}. Es entstehen Labels auf
-Objektfragmenten bis hinab zu einem Zehntel der Fläche -- gerade das, was die
-Sichtbarkeitsregel des Generators mit ihrer Grenze von 30\,\% aussortiert
-(Abschnitt~\ref{sec:sichtbarkeit}). Der Fall ist nicht selten: Auf die 6000
-erzeugten Bilder angewandt, findet die Flächenwahl der Werkzeugkette in
-67,7\,\% der Positivbilder eine boxfreie Fläche
-(\code{src/cutmix\_flaechen.py}). \code{erasing} und
-\code{copy\_paste} entfallen, weil beides der Generator physikalisch korrekt
-übernimmt. Die vollständige Tabelle mit Begründung je Parameter steht im Anhang
-(Tabelle~\ref{tab:trainaug}).
+sie achsparallele Boxen aufweiten (Gleichung~\eqref{eq:dbox}); die Drehung
+übernimmt der Generator mit exakten Boxen (Abschnitt~\ref{sec:arbeitsteilung}).
+Auch \code{mixup} \parencite{zhang2018mixup} und
+\code{cutmix} \parencite{yun2019cutmix} sind abgeschaltet, aber aus
+verschiedenen Gründen. Im Original mischen beide auch die Labels anteilig, nach
+dem Mischverhältnis bzw.\ nach dem Flächenanteil des eingesetzten Ausschnitts.
+Für die Detektion setzt die Werkzeugkette sie eigenständig um (\code{MixUp} und
+\code{CutMix} in \code{ultralytics/data/augment.py}, Version~8.4.117).
+\code{mixup} überblendet dort zwei Bilder etwa im Verhältnis 1:1 und übernimmt
+beide Labelsätze vollständig. Jedes Objekt erscheint dann halbtransparent,
+trägt aber ein volles Label. \code{cutmix} setzt einen Ausschnitt des zweiten
+Bildes in eine Fläche des ersten, die keine Box trifft, und übernimmt aus dem
+zweiten Bild jedes Objekt, von dem mindestens 10\,\% im Ausschnitt liegen, mit
+entsprechend beschnittener Box. So entstehen Labels auf Objektresten bis hinab zu einem Zehntel der Fläche,
+also genau das, was die Sichtbarkeitsregel des Generators mit ihrer Grenze von
+30\,\% aussortiert (Abschnitt~\ref{sec:sichtbarkeit}). Selten wäre das nicht:
+Auf den 6000 erzeugten Bildern findet die Werkzeugkette in 67,3\,\% der
+Bilder mit mindestens einem Label eine boxfreie Fläche
+(\code{src/cutmix\_flaechen.py}).
+\code{erasing} wirkt in der Werkzeugkette nur bei der Klassifikation und
+\code{copy\_paste} nur mit Segmentierungsmasken; beides leistet hier bereits
+der Generator auf physikalisch plausible Weise. Die vollständige Tabelle mit Begründung je
+Parameter steht im Anhang (Tabelle~\ref{tab:trainaug}).
 
-Die beiden Augmentierungsschichten wirken bei der Objektgröße multiplikativ. Ist
-$[d_{\min}, d_{\max}]$ der Größenbereich des Generators und $s$ die
-Skalierungsstärke des Trainings, so sieht das Netz effektiv Objektgrößen aus
+Generator und Trainingsskalierung wirken bei der Objektgröße zusammen. Liegt
+der Basisdurchmesser des Generators im Bereich $[d_{\min}, d_{\max}]$ und
+skaliert das Training um einen Faktor aus $[1-a,\,1+a]$, so sieht das Netz
+Basisdurchmesser aus
 \begin{equation}
-  \big[\,d_{\min}\,(1-s),\;\; d_{\max}\,(1+s)\,\big].
+  \big[\,d_{\min}\,(1-a),\;\; d_{\max}\,(1+a)\,\big].
   \label{eq:effgroesse}
 \end{equation}
-Mit $[d_{\min}, d_{\max}] = [12, 44]$\px{} aus der Pipeline
-(Gleichung~\eqref{eq:zoom}, Abschnitt~\ref{sec:modellentscheidungen}) und
-$s = 0{,}4$ aus \code{scale} sind das $12 \cdot 0{,}6 = 7{,}2$ bis
-$44 \cdot 1{,}4 = 61{,}6$\px. Diese Spanne
-deckt nach unten die Objektgrößen bei niedriger Inferenzauflösung und nach oben
-jene bei starker Hochskalierung ab -- also den gesamten in
-Abschnitt~\ref{sec:imgsz} durchmusterten Bereich. Sie deckt zugleich die vier
-Objekte unter 12\px{} ab, die \code{test} enthält und die der Generator selbst
-nicht erzeugt (Abschnitt~\ref{sec:valtest}). Der untere Rand von 7,2\px{} liegt
-oberhalb der kritischen Größe $S\sqrt{2}$ aus Gleichung~\eqref{eq:gridmiss}, die
-für die P2-Ebene mit $S=4$ bei 5,7\px{} liegt, aber \emph{unterhalb} der
-11,3\px, die mit dem P3-Stride $S=8$ ohne P2-Kopf gälten: Erst die Modellwahl aus
-Abschnitt~\ref{sec:p2kopf} macht diese Skalierungsstärke zu einem Wert, bei dem
-auch der untere Rand der Trainingsverteilung noch zuverlässig zugewiesen wird.
+Mit $[d_{\min}, d_{\max}] = [12, 44]$\px{} (Gleichung~\eqref{eq:zoom},
+Abschnitt~\ref{sec:modellentscheidungen}) und $a = 0{,}4$ sind das
+$12 \cdot 0{,}6 = 7{,}2$ bis $44 \cdot 1{,}4 = 61{,}6$\px. Von den vier
+Objekten unter 12\px{} in \code{test} (Abschnitt~\ref{sec:valtest}), deren
+Größe der Generator nur über Instanzstreuung, Verdeckung und Anschnitt erreicht
+(Abschnitt~\ref{sec:datensatz}), liegen damit drei in diesem Bereich; das
+kleinste liegt mit 6,4\px{} knapp darunter. Nach oben reicht
+die Spanne auch für stark hochskalierte Bilder. Bei sehr niedriger
+Inferenzauflösung kommen die Objekte dagegen noch kleiner als 7,2\px{} im Netz
+an (Abschnitt~\ref{sec:imgsz}).
 
 \section{Trainingsverlauf}
 \label{sec:trainingsverlauf}
 
-Abbildung~\ref{abb:training} zeigt die Lernkurven der drei Ablationsarme.
-Drei Beobachtungen sind unabhängig vom Ausgang der Ablation.
+Abbildung~\ref{abb:training} zeigt die Lernkurven der beiden Ablationsarme,
+Abbildung~\ref{abb:trainingref} die des Referenzmodells. Drei Beobachtungen
+sind unabhängig vom Ausgang der Ablation.
 
-\emph{Erstens} fällt der Trainingsverlust über alle 30 Epochen monoton, während
-die Metrik auf dem realen \code{val}-Bild deutlich früher flach wird. Das ist der
-Sim-to-Real-Abstand in zeitlicher Form: Ab dem Knick verbessert das Modell
-überwiegend seine Anpassung an Eigenschaften der synthetischen Daten, die in der
-Zieldomäne nicht gelten. Deshalb ist es methodisch notwendig, das beste
-Modell über den \emph{realen} Validierungssplit auszuwählen; eine synthetische
-Validierung wählte das Modell aus der letzten Epoche und damit das am stärksten
-überangepasste.
+\emph{Erstens} fällt der Trainingsverlust bis zur letzten Epoche, von kleinen
+Schwankungen abgesehen, während die Metrik auf dem realen \code{val}-Bild
+deutlich früher stagniert und beim naiv eingeklebten Arm nach ihrem Höchstwert
+(\mAPall{}, Epoche~\zCOneBestEpoche) sogar wieder sinkt. Naheliegend ist, darin
+den Sim-to-Real-Abstand in zeitlicher Form zu sehen: Ab dem Knick verbessert
+das Modell vermutlich überwiegend seine Anpassung an Eigenschaften der
+synthetischen Daten, die in der Zieldomäne nicht gelten; wie stark die Streuung
+der Realmetrik den Knick mitprägt, bleibt offen (siehe drittens). Deshalb wird
+das beste Modell über den \emph{realen} Validierungssplit ausgewählt; eine
+synthetische Validierung würde vermutlich ein späteres, stärker angepasstes
+Modell wählen.
 
-\emph{Zweitens} liegt der Trainingsverlust des Arms mit dem naiven Verdecker
-(B2) unter dem der beiden anderen, obwohl alle drei exakt dieselben Objekte an
-denselben Stellen enthalten. Das ist für sich genommen kein Qualitätsurteil --
-ein niedriger Trainingsverlust auf synthetischen Daten sagt nichts über die
-Zieldomäne --, aber es zeigt, dass der Eingriff gewirkt hat: Ein flächig grauer
-Verdecker macht dieselbe Szene messbar leichter.
+\emph{Zweitens} liegt der Trainingsverlust des naiv eingeklebten Arms (C1)
+ab der zweiten Epoche unter dem der Kontrolle (C0), obwohl beide Arme aus derselben
+Layoutverteilung ziehen und fast gleich viele Objekte labeln. Das ist für sich
+genommen kein Qualitätsurteil -- ein niedriger Trainingsverlust auf
+synthetischen Daten erlaubt keine Aussage über die Zieldomäne --, ist aber
+damit vereinbar, dass der Eingriff gewirkt hat: Ohne Einbettung heben sich die eingefügten Objekte
+deutlicher von ihrer Umgebung ab, und dieselbe Aufgabe wird leichter.
 
 \emph{Drittens} verläuft die Kurve auf dem realen Bild deutlich unruhiger als der
 Trainingsverlust. Das ist kein Trainingsproblem, sondern eine Folge der
@@ -215,16 +237,48 @@ einzelnes gefundenes oder verlorenes Objekt verschiebt den Rückruf bereits um
 einen Prozentpunkt. Auf dieser Streuung beruht das großzügige
 \code{patience}-Fenster aus Abschnitt~\ref{sec:trainingsaufbau}.
 
+\absatz{Referenzmodell.} Beim Referenzmodell tritt die erste Beobachtung am
+deutlichsten auf (Abbildung~\ref{abb:trainingref}). Die Auswahlmetrik
+\mAPall{} auf \code{val} erreicht ihr Maximum von \zrefVerlaufBest{} schon in
+Epoche~\zrefBestEpoche{} und pendelt danach zwischen \zrefVerlaufMin{} und
+\zrefVerlaufMax, während der Box-Verlust weiter von \zrefLossBeste{} auf
+\zrefLossEnde{} fällt. Nach 20~Epochen ohne Verbesserung bricht Early Stopping
+den Lauf nach Epoche~\zrefEpochen{} ab. Das berichtete Modell stammt damit
+aus Epoche~\zrefBestEpoche{} von 60 budgetierten Epochen. Weil Kosinusabfall
+und Mosaic-Abschaltung auf das volle Budget ausgelegt sind, erreicht der Lauf
+deren Schlussphase nicht: Die Lernrate liegt bei Abbruch noch bei
+\zrefLrEnde\,\% des Startwerts, bei den Ablationsarmen am Ende bei
+\zCZeroLrEnde\,\%, und Mosaic bleibt durchgehend aktiv
+(Tabelle~\ref{tab:budgets}). Ob diese Schlussphase die Realmetrik noch gehoben
+hätte, zeigt der Lauf nicht. Für den Vergleich der Ablationsarme spielt sie
+keine Rolle, denn deren beste Modelle stammen aus den Epochen
+\zCZeroBestEpoche{} und \zCOneBestEpoche, also ebenfalls aus der Phase mit
+Mosaic.
+
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=\textwidth]{abbildungen/neu_training_b.png}
-\caption[Lernkurven der Ablationsarme]{Lernkurven der drei Ablationsarme
+\includegraphics[width=\textwidth]{abbildungen/neu_training_c.png}
+\caption[Lernkurven der Ablationsarme]{Lernkurven der beiden Ablationsarme
 (\code{yolo26s-p2}, 3000 Bilder, 30 Epochen, Batch~8). Links der
 Box-Trainingsverlust auf den synthetischen Daten, Mitte und rechts \mAPfifty{}
 und \mAPall{} auf dem realen \code{val}-Bild nach jeder Epoche -- gemessen bei
 \code{imgsz}=1024 und deshalb systematisch unter den in
 Kapitel~\ref{kap:auswertung} berichteten Werten. Der Knick zwischen fallendem
-Verlust und flacher Realmetrik markiert den Punkt, ab dem weiteres Training
-überwiegend synthetische Eigenheiten anpasst.}
+Verlust und flacher Realmetrik markiert vermutlich den Punkt, ab dem weiteres
+Training überwiegend synthetische Eigenheiten anpasst.}
 \label{abb:training}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{abbildungen/neu_training_ref.png}
+\caption[Lernkurven des Referenzmodells]{Lernkurven des Referenzmodells
+(\code{yolo26s-p2}, 6000 Bilder, Budget 60 Epochen, Batch~8, Abbruch durch
+Early Stopping nach Epoche~\zrefEpochen). Links der Box-Trainingsverlust auf
+den synthetischen Daten, Mitte und rechts \mAPfifty{} und \mAPall{} auf dem
+realen \code{val}-Bild nach jeder Epoche, gemessen bei \code{imgsz}=1024. Die
+gestrichelte Linie markiert das beste Modell nach \mAPall{}. Die Werte sind
+nicht mit denen der Ablationsarme in Abbildung~\ref{abb:training} zu
+vergleichen (Tabelle~\ref{tab:budgets}).}
+\label{abb:trainingref}
 \end{figure}

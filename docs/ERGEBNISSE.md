@@ -8,9 +8,9 @@ nativem Maßstab, gegen den korrigierten Annotationsstand
 
 | Split | mAP@0.5 | mAP@0.75 | mAP@0.5:0.95 | bestes F1 | P / R |
 |---|---|---|---|---|---|
-| `val` | 0.9474 | 0.7939 | 0.6197 | 0.9101 | 0.945 / 0.878 |
-| `test` | 0.9688 | 0.3680 | 0.4767 | 0.9364 | 0.964 / 0.910 |
-| `sval` | 0.9836 | 0.9485 | 0.8391 | 0.9613 | 0.968 / 0.954 |
+| `val` | 0.9163 | 0.7526 | 0.5803 | 0.8643 | 0.851 / 0.878 |
+| `test` | 0.9550 | 0.3820 | 0.4783 | 0.9249 | 0.952 / 0.899 |
+| `sval` | 0.9842 | 0.9520 | 0.8302 | 0.9619 | 0.967 / 0.957 |
 
 ## Ablation A — Okklusionsanteil
 
@@ -32,7 +32,7 @@ nativem Maßstab, gegen den korrigierten Annotationsstand
 
 | Split | Paare | Objekt-Ø (Median) | pred/GT | GT − pred | Zentrumsversatz |
 |---|---|---|---|---|---|
-| `val` | 97 | 26.8 px | 0.944 | +1.58 px | 0.056 Ø |
-| `test` | 88 | 17.9 px | 0.897 | +2.00 px | 0.051 Ø |
-| `sval` | 7224 | 24.0 px | 1.003 | -0.08 px | 0.021 Ø |
+| `val` | 95 | 26.8 px | 0.929 | +1.78 px | 0.062 Ø |
+| `test` | 88 | 17.9 px | 0.893 | +2.04 px | 0.048 Ø |
+| `sval` | 8892 | 24.5 px | 1.006 | -0.14 px | 0.022 Ø |
 

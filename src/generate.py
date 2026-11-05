@@ -1,8 +1,8 @@
 """
 Stufe 3: Synthetische Trainingsdatengenerierung (Copy-Paste-Pipeline).
 
-Erzeugt YOLO-Datensaetze aus 9 freigestellten Rohrprofilen (assets/masks),
-56 echten Rohrstangen als Okkluder (assets/bars) und 7 Hintergruenden (bg/).
+Erzeugt YOLO-Datensaetze aus 6 freigestellten Rohrprofilen (assets/masks),
+55 echten Rohrstangen als Okkluder (assets/bars) und 7 Hintergruenden (bg/).
 
 Die Begruendung jeder einzelnen Transformation und ihres Anteils steht in
 docs/PIPELINE.md; der Code hier nennt zu jedem Block die Kurzbegruendung.
@@ -33,10 +33,10 @@ CANVAS = 1024          # Kantenlaenge der erzeugten Bilder
 # pipe_d = gemessener Rohrdurchmesser in Pixeln (aus src/occluders.py),
 # er verankert den physikalisch korrekten Groessenbezug Profil <-> Umgebung.
 BACKGROUNDS = [
-    dict(path="bg/test_cutted.png",  clean=True,  pipe_d=16, w=6.0),
-    dict(path="bg/test2_cutted.jpg", clean=True,  pipe_d=18, w=6.0),
-    dict(path="bg/test4_cutted.png", clean=True,  pipe_d=21, w=6.0),
-    dict(path="bg/test5_cutted.jpg", clean=True,  pipe_d=20, w=6.0),
+    dict(path="bg/test_cutted.png",    clean=True,  pipe_d=16, w=6.0),
+    dict(path="bg/img3884_cutted.png", clean=True,  pipe_d=18, w=6.0),
+    dict(path="bg/test4_cutted.png",   clean=True,  pipe_d=21, w=6.0),
+    dict(path="bg/img3886_cutted.png", clean=True,  pipe_d=20, w=6.0),
     dict(path="bg/bg_3.jpg",         clean=False, pipe_d=None, w=1.0),
     dict(path="bg/bg_4.jpg",         clean=False, pipe_d=None, w=1.0),
     dict(path="bg/bg_5.jpg",         clean=False, pipe_d=None, w=1.0),
@@ -66,6 +66,7 @@ P = dict(  # zentrale Wahrscheinlichkeitstabelle (siehe docs/PIPELINE.md)
     img_clutter=0.35,
     glob_bc=0.90, glob_hsv=0.70, glob_blur=0.35, glob_motion=0.10,
     glob_noise=0.80, glob_vignette=0.25, glob_jpeg=0.85,
+    alpha_feather=1.00,
 )
 
 STATS = Counter()
@@ -129,10 +130,13 @@ def make_background(rng, bgs):
 
     if bg["pipe_d"]:
         # Zoom so, dass Objektdurchmesser = pipe_d * zoom im Zielbereich liegt.
-        # Begruendung: die Stirnflaeche eines Rohres hat exakt den Durchmesser
-        # des Rohrschafts, der im Hintergrund sichtbar ist. Ein Missverhaeltnis
-        # waere physikalisch unmoeglich und wuerde dem Netz eine falsche
-        # Kontext-Groessen-Relation antrainieren.
+        # Begruendung: Stirnflaechen und Rohrschaefte derselben Aufnahme werden
+        # annaehernd im selben Massstab abgebildet; unabhaengig gezogen,
+        # wuerden zufaellige Missverhaeltnisse dem Netz eine falsche
+        # Kontext-Groessen-Relation antrainieren. Das Verhaeltnis 1:1 ist
+        # gesetzt: Die seitlichen Rahmenrohre, deren Stirnflaechen detektiert
+        # werden, muessen nicht denselben Durchmesser haben wie die Rohre der
+        # Clean Plates.
         z_lo = max(0.55, D_MIN / bg["pipe_d"])
         z_hi = min(2.20, D_MAX / bg["pipe_d"])
         zoom = _u(rng, z_lo, max(z_lo + 1e-3, z_hi))
@@ -363,9 +367,11 @@ def embed_realism(bgr, a, bg_patch, rng):
         s = noise_sigma(bg_patch) * _u(rng, 0.5, 1.25)
         bgr = bgr + rng.normal(0, max(0.5, s), bgr.shape)
         STATS["inst_noise"] += 1
-    # Alphakante immer leicht weichzeichnen: ein 25-px-Objekt hat in einer
-    # echten Aufnahme nie eine pixelharte Silhouette.
-    a = cv2.GaussianBlur(a, (0, 0), _u(rng, 0.4, 1.0))
+    # Alphakante leicht weichzeichnen: ein 25-px-Objekt hat in einer
+    # echten Aufnahme nie eine pixelharte Silhouette. Im Arm C1 aus, weil
+    # die harte Silhouette gerade Signatur S1 ist.
+    if P["alpha_feather"] > 0:
+        a = cv2.GaussianBlur(a, (0, 0), _u(rng, 0.4, 1.0))
     return bgr, np.clip(a, 0, 1)
 
 
@@ -833,6 +839,19 @@ def _init_worker(args):
         P["img_has_bars"] = 0.0        # keine querliegenden Stangen
         P["img_clutter"] = 0.0         # keine Fremdkoerper
         P["stub_behind_front"] = 1.0   # kein Schaft kreuzt vor einer Stirnflaeche
+    if args.naive_paste:
+        # Arm C1 -- naives Einkleben im Sinne der Copy-Paste-Literatur.
+        # Abgeschaltet sind genau die Gegenmassnahmen zu den Signaturen
+        # S1-S5 aus Tabelle "Betrachtete synthetische Signaturen"; Layout,
+        # Instanzgeometrie, photometrische Variation, Rohrschaft und
+        # Okkluder bleiben unveraendert, damit der Vergleich nur die
+        # Einbettung betrifft und nicht die Szene.
+        P["alpha_feather"] = 0.0    # S1 harte Silhouette
+        P["inst_harmonize"] = 0.0   # S2 kein Farbangleich
+        P["inst_blur"] = 0.0        # S3 kein Unschaerfeangleich
+        P["inst_noise"] = 0.0       # S4 kein Rauschangleich
+        P["glob_jpeg"] = 0.0        # S5 keine Requantisierung
+        P["inst_shadow"] = 0.0      # S6 kein Schlagschatten
     if args.occlusion_heavy:
         P["img_has_bars"] = 1.0
         P["img_clutter"] = 0.70
@@ -876,6 +895,9 @@ def main():
                     help="zusaetzlich N Kontrollbilder mit Boxen nach docs/")
     ap.add_argument("--no-occlusion", action="store_true",
                     help="Ablation A0: keine Stangen-/Fremdkoerper-Okklusion")
+    ap.add_argument("--naive-paste", action="store_true",
+                    help="Arm C1: naives Einkleben, Gegenmassnahmen zu den "
+                         "Signaturen S1-S5 abgeschaltet")
     ap.add_argument("--occlusion-heavy", action="store_true",
                     help="Ablation A2: maximale Stangen-/Fremdkoerper-Okklusion")
     args = ap.parse_args()
@@ -903,7 +925,8 @@ def main():
     n = args.n
     rep = {
         "n_images": n,
-        "arm": ("A0_no_occlusion" if args.no_occlusion else
+        "arm": ("C1_naive_paste" if args.naive_paste else
+                "A0_no_occlusion" if args.no_occlusion else
                 "A2_heavy_occlusion" if args.occlusion_heavy else "A1_baseline"),
         "canvas": CANVAS,
         "boxes_total": int(np.sum(nbox)),

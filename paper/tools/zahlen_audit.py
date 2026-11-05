@@ -8,7 +8,8 @@ Kennzeichnung als gesetzter Wert bzw. Annahme.
 
 Das Werkzeug ist eine *Erinnerungshilfe*, kein Urteil: Viele Treffer sind
 korrekt, weil die Herkunft im Nachbarsatz oder in der Abschnittseinleitung
-steht. Tabelle~\ref{tab:herkunft} im Anhang ist der verbindliche Nachweis.
+steht. Anhang A.1 (Reproduktion und Herkunft der Zahlen) ist der
+verbindliche Nachweis.
 
 Aufruf (aus paper/):   python3 tools/zahlen_audit.py kapitel
 """

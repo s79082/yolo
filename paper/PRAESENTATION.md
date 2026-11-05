@@ -93,7 +93,7 @@ Ziehungen aus p(t)*.
 
 Statt des empirischen Risikos minimiert das Training das **augmentierte Risiko**
 
-    R̂_aug(f) = (1/n) Σᵢ E_{t∼p(t)} [ L( f(t(xᵢ)), τ_t(yᵢ) ) ]
+    R̂_aug(h) = (1/n) Σᵢ E_{t∼p(t)} [ L( h(t(xᵢ)), τ_t(yᵢ) ) ]
 
 — die Vicinal Risk Minimization von Chapelle. Der Unterschied liegt allein im
 Erwartungswert: Statt jedes Beispiel genau in der Form zu sehen, in der es
@@ -211,7 +211,7 @@ schrumpfen lässt, erzeugt Labels ohne auflösbares Objekt.**
 Der Nutzen hängt daran, wie ähnlich die erzeugte Verteilung D_S der
 Zielverteilung D_T ist. Ben-David gibt dafür die Schranke
 
-    ε_T(h) ≤ ε_S(h) + d_HΔH(D_S, D_T) + λ
+    ε_T(h) ≤ ε_S(h) + ½·d_HΔH(D_S, D_T) + λ
 
 Sie listet die Angriffspunkte des Pipelineentwurfs vollständig auf: **(i)** ε_S
 klein halten — korrekt gelabelte synthetische Daten, deshalb wird die
@@ -509,21 +509,15 @@ und auf test sitzt **jede** Detektion auf einem annotierten Objekt
 (Precision 1,000). Das ist die Antwort auf die Aufgabenstellung. Mit
 Test-Time-Augmentation steigt mAP@0,5 auf test auf 0,963.
 
-> **Der Precision-Wert von 1,000 lädt zu einer Rückfrage ein.** Antwort: Auf test
-> ist jede sichtbare Stirnfläche annotiert, deshalb kann keine korrekte Detektion
-> als Falsch-Positiv gezählt werden. Auf val ist die Annotation nicht vollständig
-> — dort ist die Precision eine Untergrenze, und der Unterschied zwischen den
-> Splits ist genau das.
-
 ### Sim-to-Real-Abstand — die Argumentation ist wichtiger als die Zahl
 
 0,982 gegen 0,886 und 0,956, also **9,6 bzw. 2,6 Prozentpunkte** mAP@0,5.
 
 Dazu steht die Ben-David-Schranke (Gl. 3.6/3.7) mit Werten besetzt im Text:
-ε_S = 0,018, ε_T = 0,044, daraus `d + λ ≥ 0,026`. Der Größenversatz trägt dazu
+ε_S = 0,018, ε_T = 0,044, daraus `½·d + λ ≥ 0,026`. Der Größenversatz trägt dazu
 nichts bei — ein Angleichen der Boxgröße verbessert mAP@0,5 nicht, sondern senkt
 es leicht; bei Zuordnungsschwelle 0,5 ist die Konventionsdifferenz wirkungslos.
-Die Gegenprobe (Netz lernt Artefakte) ergäbe `d + λ ≥ 0,94`, den **36-fachen**
+Die Gegenprobe (Netz lernt Artefakte) ergäbe `½·d + λ ≥ 0,94`, den **36-fachen**
 Wert. **Das ist die stärkste
 Folie des Blocks** — sie macht aus „klein genug / groß genug" eine Rechnung.
 
@@ -688,8 +682,7 @@ statt gemalter Balken — unbelegt.
 
 **Die schwerwiegendste Grenze:** je ein Bild pro Split. Daraus Konfidenz­
 intervalle von ±0,04 bis ±0,05; beide Bilder zeigen dieselbe Objektart bei
-ähnlichem Wetter; die Ground Truth selbst ist unvollständig, weshalb die
-Precision eine **Untergrenze** ist; und val wird doppelt verwendet — für die
+ähnlichem Wetter; und val wird doppelt verwendet — für die
 Modellauswahl *und* für die Wahl der Inferenzauflösung. **Belastbar sind die
 test-Zahlen.**
 
